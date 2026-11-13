@@ -1,0 +1,2680 @@
+/*
+ * Admin shell — the navigation column.
+ *
+ * Every colour, size and radius resolves to a token in _variables.css; there
+ * is no literal hex below. Spacing is logical (inline-start / inline-end)
+ * rather than left/right, so the whole column mirrors in an RTL panel without
+ * a second stylesheet restating it.
+ *
+ * Text on this dark ground never goes lighter than --shell-text-muted, which
+ * is the AA floor for 13px on this gradient.
+ *
+ * All motion runs on --shell-ease and moves only transform, opacity and
+ * grid-template-rows. Nothing here animates a width or a height the browser
+ * has to lay the page out again for on every frame.
+ */
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+
+@keyframes dkFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/*
+ * The dropdown reveal.
+ *
+ * Written with the `translate` and `scale` longhands rather than `transform`
+ * on purpose. CoreUI positions these menus with Popper, which writes an
+ * inline `transform: translate3d(...)`; a keyframe animating `transform`
+ * would overwrite that mid-flight and the menu would jump across the header
+ * and snap back. The longhands compose with it instead.
+ */
+@keyframes dkPop {
+    from {
+        opacity: 0;
+        translate: 0 -10px;
+        scale: 0.96;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+    }
+}
+
+@keyframes dkSubIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/*
+ * The first frame.
+ *
+ * A cookie tells PHP whether the column is collapsed, so the width is already
+ * right when the page paints - but "already right" and "transitioned to
+ * right" look identical to a transition, and the column would slide 192px on
+ * every single page load. admin-shell.js drops this class on the next
+ * animation frame, once the browser has committed the starting state.
+ *
+ * Transitions only, and deliberately so.
+ *
+ * It used to suppress `animation` here as well, which is not the same thing
+ * at all: a transition that never starts costs nothing, but an animation
+ * switched off and back on again restarts from its first keyframe. Measured
+ * on a 114-row column, the labels painted solid, dropped to opacity 0.19 the
+ * instant this class came off, and faded back in over 320ms — on every
+ * single page load. That was the flicker. Nothing in the column animates on
+ * load any more, and this rule can no longer restart one if something ever
+ * does again.
+ */
+.dk-side.no-motion,
+.dk-side.no-motion *,
+body.no-motion .wrapper {
+    transition: none !important;
+}
+
+/* ── Arriving ───────────────────────────────────────────────────────────── */
+
+/*
+ * Every admin screen is a whole page load: the browser tears the old document
+ * down and paints the new one entire. Nothing is wrong with that, and it still
+ * lands like a slam. The column and the header are pixel-for-pixel the same
+ * either side of the click, yet they are redrawn along with everything else,
+ * and the eye reports the whole window as having moved. The health card at the
+ * foot of the column takes the blame for it, because it is the one thing down
+ * there with a red dot on it.
+ *
+ * Where the browser can transition between documents it holds a snapshot of
+ * the page being left and cross-fades it into its replacement. The parts that
+ * did not change cross-fade from themselves, which is to say they do not
+ * appear to do anything at all, and the content arrives rather than landing.
+ * There is no blank frame in the middle — which is the whole difference
+ * between this and simply fading the new page up from nothing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+/*
+ * The same idea for a browser that cannot yet do it across documents.
+ *
+ * The fade is the default and the transition above switches it off, rather
+ * than the other way round, because "can this browser transition between
+ * documents" is not a question CSS can ask. The obvious guard —
+ * `@supports not (view-transition-name: none)` — asks a different question
+ * and gets a wrong answer: Firefox 155 supports view-transition-name for
+ * same-document transitions while implementing no @view-transition at all,
+ * so it failed the @supports test, was excluded from the fallback, and
+ * received neither. Measured, not assumed: probed in Firefox 155 itself.
+ *
+ * So the fade applies everywhere, and admin-shell.js's head snippet adds
+ * dk-vt to the root element only where cross-document transitions genuinely
+ * run. That way the failure mode of the detection is a doubled fade, which
+ * merely looks slightly slower, rather than nothing at all.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .dk-page {
+        animation: dkFade 0.24s var(--shell-ease) both;
+    }
+
+    /*
+     * Where the browser really does cross-fade the whole document, the
+     * content is already arriving from the previous page. Fading it a second
+     * time inside that only darkens the first frame of a transition that was
+     * working perfectly well.
+     */
+    :root.dk-vt .dk-page {
+        animation: none;
+    }
+}
+
+/* ── Column ─────────────────────────────────────────────────────────────── */
+
+.dk-side {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 1035;
+    display: flex;
+    flex-direction: column;
+    width: var(--shell-width);
+    background: linear-gradient(180deg, var(--shell-bg-start) 0%, var(--shell-bg-mid) 52%, var(--shell-bg-end) 100%);
+    border-inline-end: 1px solid var(--shell-border);
+    color: var(--shell-text);
+    font-family: var(--font-primary);
+    transition: width 0.42s var(--shell-ease), transform 0.42s var(--shell-ease);
+}
+
+.dk-side.is-collapsed {
+    width: var(--shell-width-collapsed);
+}
+
+/*
+ * The page column follows the sidebar with logical padding.
+ *
+ * Padding, not margin: .wrapper is width:100% and border-box, so padding
+ * fits inside that width while a margin is added to it - which put 258px
+ * of horizontal overflow on every admin page.
+ *
+ * Logical, not CoreUI's --cui-sidebar-occupy-* pair: those feed physical
+ * padding-left, so an RTL panel kept its offset on the left while the
+ * column sat on the right and the content ran underneath it.
+ *
+ * The reference animates a grid's column track instead, which moves the
+ * content in lockstep with the column. It is the same distance over the same
+ * time either way, and .wrapper is the parent of every admin page - turning
+ * it into a grid child to win a mechanism argument is how the whole panel's
+ * spacing broke the last time.
+ */
+body:has(.dk-side) .wrapper {
+    padding-inline-start: var(--shell-width);
+    padding-inline-end: 0;
+    transition: padding 0.42s var(--shell-ease);
+}
+
+body:has(.dk-side.is-collapsed) .wrapper {
+    padding-inline-start: var(--shell-width-collapsed);
+}
+
+/* ── Edge toggle ────────────────────────────────────────────────────────── */
+
+/*
+ * Sits on the sidebar/header seam, so it reads as attached to the thing it
+ * collapses rather than as one more header button.
+ */
+.dk-side__edge {
+    position: absolute;
+    inset-block-start: 50px;
+    inset-inline-end: -14px;
+    z-index: 2;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: color 0.15s var(--shell-ease), border-color 0.15s var(--shell-ease),
+        transform 0.15s var(--shell-ease);
+}
+
+.dk-side__edge:hover,
+.dk-side__edge:focus-visible {
+    color: var(--color-primary);
+    border-color: var(--top-border-hover);
+    transform: scale(1.08);
+}
+
+/*
+ * Rotated, not mirrored. scaleX(-1) lands on the same picture but travels a
+ * different way to get there - it flattens to a hairline at the halfway
+ * point, which at 420ms is long enough to see.
+ */
+.dk-side__edge svg {
+    transition: transform 0.42s var(--shell-ease);
+}
+
+.dk-side.is-collapsed .dk-side__edge svg {
+    transform: rotate(180deg);
+}
+
+/* ── Brand ──────────────────────────────────────────────────────────────── */
+
+.dk-side__brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    height: var(--shell-brand-height);
+    padding-inline: 1rem;
+    border-block-end: 1px solid var(--shell-border);
+}
+
+.dk-side__mark-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    color: var(--shell-text-strong);
+    text-decoration: none;
+}
+
+/*
+ * The tile is the first thing on the screen and the mark inside it was
+ * sitting in 6px of padding on every side, which reads as a placeholder
+ * rather than a logo. A larger tile with the glyph filling more of it is what
+ * makes the top of the column look finished.
+ */
+.dk-side__mark {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--shell-rail);
+    border-radius: var(--shell-radius);
+    background: var(--shell-surface);
+}
+
+.dk-side__mark img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+/*
+ * A single-colour mark takes the wordmark's accent.
+ *
+ * The glyph's own alpha is the shape and the colour comes from the token, so
+ * this cannot be done by filtering the image — a white bitmap has no hue to
+ * rotate. The mark is masked instead and the bitmap is hidden behind it.
+ *
+ * Only ever applied to a mark the server has confirmed is single-colour, so
+ * there is never a set of real colours being flattened away. And only where
+ * masking works: without it the plain white logo renders as it always did.
+ */
+@supports (mask-image: none) or (-webkit-mask-image: none) {
+    .dk-side__mark.is-tinted {
+        position: relative;
+    }
+
+    .dk-side__mark.is-tinted img {
+        visibility: hidden;
+    }
+
+    .dk-side__mark.is-tinted::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 30px;
+        height: 30px;
+        background-color: var(--shell-mark-tint);
+        -webkit-mask: var(--dk-mark) center / contain no-repeat;
+        mask: var(--dk-mark) center / contain no-repeat;
+    }
+}
+
+.dk-side__wordmark {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.1;
+}
+
+.dk-side__name {
+    color: var(--shell-text-strong);
+    font-size: var(--font-md);
+    font-weight: var(--font-extrabold);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * The tail of the wordmark, in the accent the logotype uses.
+ *
+ * Inherits everything else from .dk-side__name — the size, the weight, the
+ * tightened tracking — so the two halves are one word that happens to change
+ * colour, not two words sitting next to each other.
+ */
+.dk-side__name-accent {
+    color: var(--shell-wordmark-accent);
+}
+
+.dk-side__kicker {
+    margin-block-start: 3px;
+    color: var(--shell-text-dim);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.dk-side__close {
+    display: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--shell-text);
+    cursor: pointer;
+}
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+
+.dk-side__nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.75rem 0.625rem 1rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.dk-side__nav::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.dk-side__section {
+    flex: none;
+    margin-block-start: 0.5rem;
+    padding: 0.625rem 0.625rem 0.25rem;
+    color: var(--shell-text-faint);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Rows ───────────────────────────────────────────────────────────────── */
+
+.dk-side__row {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: var(--shell-row-height);
+    padding-inline: 0.625rem;
+    border-radius: var(--shell-radius);
+    color: var(--shell-text);
+    font-size: var(--shell-font-item);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.3s var(--shell-ease), color 0.3s var(--shell-ease),
+        transform 0.2s var(--shell-ease);
+}
+
+.dk-side__row:hover,
+.dk-side__row:focus-visible {
+    background: var(--shell-surface-hover);
+    color: var(--shell-text-strong);
+}
+
+.dk-side__row:active {
+    transform: scale(0.985);
+}
+
+.dk-side__row.is-open {
+    background: var(--shell-surface-open);
+    color: var(--shell-text-strong);
+    font-weight: var(--font-semibold);
+}
+
+.dk-side__row--item.is-active {
+    background: var(--shell-accent-soft);
+    color: var(--shell-text-strong);
+    font-weight: var(--font-semibold);
+}
+
+/*
+ * An open group hands the pill back to the child that earned it.
+ *
+ * The group head is marked active whenever one of its children is current,
+ * which is what draws the pill on the rail when the group is shut. Left
+ * alone it also draws while the group is open, so the parent and the child
+ * both claim to be the page you are on.
+ *
+ * Two conditions, and both are load-bearing.
+ *
+ * :has() — only hand the pill over when there is a child holding it. A group
+ * can be current in its own right: a ticket detail page belongs to Support
+ * tickets without belonging to New, In progress, Closed or History, so the
+ * group carries active_routes and no sub-item matches. Without this the head
+ * gave the pill away to nobody, and the column went dark on exactly the kind
+ * of page the active_routes work existed to light up.
+ *
+ * :not(.is-collapsed) — on the 72px rail there are no children to see, so
+ * the head is the only thing standing for the current page and keeps it.
+ */
+.dk-side:not(.is-collapsed)
+    .dk-side__group.is-open:has(.dk-side__row--sub.is-active)
+    > .dk-side__row--item.is-active {
+    background: var(--shell-surface-open);
+}
+
+.dk-side:not(.is-collapsed)
+    .dk-side__group.is-open:has(.dk-side__row--sub.is-active)
+    > .dk-side__row--item.is-active
+    .dk-side__marker {
+    display: none;
+}
+
+/*
+ * The indicator sits in the nav's own padding, hard against the edge.
+ *
+ * It does not fade in. The marker is rendered by the blade on the row for
+ * the page being opened, so it is part of the first paint and there is
+ * nothing for it to arrive from — fading it only drew the eye to a bar that
+ * was already where it belonged.
+ */
+.dk-side__marker {
+    position: absolute;
+    inset-inline-start: -0.625rem;
+    inset-block: 0.625rem;
+    width: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background: var(--shell-accent);
+    box-shadow: 0 0 12px var(--shell-accent-glow);
+}
+
+/*
+ * A bare glyph, no tile behind it. The handoff drew the parent icon in a
+ * 28px tinted tile; on the column it read as a row of buttons, and the
+ * plain icon the shell had before sat quieter. What lights while a group is
+ * open, or its own page is current, is the glyph's colour alone.
+ */
+.dk-side__icon {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    transition: color 0.15s var(--shell-ease);
+}
+
+.dk-side__icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.dk-side__row.is-open .dk-side__icon,
+.dk-side__row--item.is-active .dk-side__icon {
+    color: var(--shell-tile-fg-open);
+}
+
+.dk-side__label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * The label fades in when the rail widens, and only then.
+ *
+ * It is display:none on the 72px rail, so expanding brings a hundred-odd
+ * labels back into flow at once; without the fade they land at full strength
+ * while the column is still too narrow to hold them, and the whole list
+ * flickers with clipped text for a couple of frames.
+ *
+ * This used to sit on .dk-side__label unconditionally, which meant it also
+ * ran on a plain page load, when nothing is arriving from anywhere — the
+ * labels are in the markup the server sent. Every click on a menu item
+ * therefore fetched a page and then animated all 114 labels up from
+ * transparent, which is the flicker the whole column appeared to have. The
+ * class comes from admin-shell.js on the toggle itself, so the animation is
+ * tied to the one moment it describes.
+ */
+.dk-side.is-expanding .dk-side__label {
+    animation: dkFade 0.38s var(--shell-ease) both;
+}
+
+/* A down chevron: symmetric, so an RTL column needs no mirror for it. */
+.dk-side__chevron {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: var(--shell-tile-fg);
+    transition: transform 0.2s var(--shell-ease);
+}
+
+.dk-side__chevron svg {
+    width: 9px;
+    height: 9px;
+}
+
+.dk-side__group.is-open .dk-side__chevron {
+    transform: rotate(180deg);
+}
+
+/* ── Sub-rows ───────────────────────────────────────────────────────────── */
+
+/*
+ * Collapsing on grid rows rather than max-height, so a group of four and a
+ * group of eight both open at the same speed and neither needs a magic
+ * pixel ceiling that truncates when a permission adds one more child.
+ */
+.dk-side__subs {
+    position: relative;
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.42s var(--shell-ease), opacity 0.32s var(--shell-ease);
+}
+
+.dk-side__group.is-open .dk-side__subs {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+/*
+ * The trunk: one hairline dropping from the parent tile to the last branch.
+ *
+ * Anchored top and bottom, never given a height, so a group of two and a
+ * group of twenty draw the same line without a per-group number. It hangs
+ * on the wrapper rather than the inner column because the inner clips —
+ * that is what closes the group — and the trunk has to start 2px above the
+ * first row, in the gap under the parent icon. The end inset is half a row
+ * plus the inner's bottom padding, which lands it exactly on the last
+ * branch. A shut group has no height for it to span, so it draws nothing.
+ * 19px is the centre of the 20px glyph after the row's 10px padding, less
+ * half the line.
+ */
+.dk-side__subs::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 19px;
+    inset-block-start: -2px;
+    inset-block-end: 19px;
+    width: 1.5px;
+    border-radius: 1px;
+    background: var(--shell-tree);
+}
+
+/*
+ * The clipping and the drift both live on the inner element, so the wrapper
+ * is free to be nothing but the row that opens and shuts. The start padding
+ * is the tree's indent: every child sits 20px in, and the branch reaches
+ * back across that gap to the trunk.
+ */
+.dk-side__subs-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-height: 0;
+    padding-block: 0;
+    padding-inline-start: 20px;
+    overflow: hidden;
+    transform: translateY(-6px);
+    transition: transform 0.42s var(--shell-ease), padding 0.42s var(--shell-ease);
+}
+
+.dk-side__group.is-open .dk-side__subs-inner {
+    padding-block: 4px 2px;
+    transform: none;
+}
+
+.dk-side__row--sub {
+    height: var(--shell-subrow-height);
+    padding-inline: 22px 8px;
+    gap: 0.625rem;
+    border-radius: var(--shell-radius-sub);
+    color: var(--shell-sub-text);
+    font-size: var(--shell-font-sub);
+    transition: background-color 0.15s var(--shell-ease), color 0.15s var(--shell-ease);
+}
+
+.dk-side__row--sub:hover,
+.dk-side__row--sub:focus-visible {
+    background: var(--shell-surface-open);
+    color: var(--shell-text-strong);
+}
+
+.dk-side__row--sub.is-active {
+    background: var(--shell-sub-active-bg);
+    color: var(--shell-text-strong);
+    font-weight: var(--font-semibold);
+}
+
+/*
+ * The branch: a quarter-circle from the trunk into the row. Two logical
+ * borders and a logical corner, so in an RTL column it curves the other
+ * way and still meets the trunk on the row's start side.
+ */
+.dk-side__row--sub::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1px;
+    inset-block-start: calc(50% - 10px);
+    width: 11px;
+    height: 11px;
+    border-inline-start: 1.5px solid var(--shell-tree);
+    border-block-end: 1.5px solid var(--shell-tree);
+    border-end-start-radius: 8px;
+    transition: border-color 0.15s var(--shell-ease);
+}
+
+/* The leaf, where the branch ends. */
+.dk-side__row--sub::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 10px;
+    inset-block-start: calc(50% - 3px);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--shell-leaf);
+    transition: background-color 0.15s var(--shell-ease), box-shadow 0.15s var(--shell-ease);
+}
+
+.dk-side__row--sub.is-active::before {
+    border-color: var(--shell-tree-active);
+}
+
+.dk-side__row--sub.is-active::after {
+    background: var(--shell-leaf-active);
+    box-shadow: 0 0 6px var(--shell-leaf-glow);
+}
+
+/*
+ * The anchor: a 2px bar on the row's end edge that grows on the current
+ * child. It is rendered at full height by the blade on a page load — the
+ * transition only runs when the class changes under a pointer.
+ */
+.dk-side__anchor {
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-start: 50%;
+    width: 2px;
+    height: 0;
+    border-radius: 999px;
+    background: var(--shell-accent);
+    transform: translateY(-50%);
+    transition: height 0.2s var(--shell-ease);
+}
+
+.dk-side__row--sub.is-active .dk-side__anchor {
+    height: 16px;
+}
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+
+.dk-side__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 22px;
+    height: 18px;
+    padding-inline: 6px;
+
+    /*
+     * The same correction the header badge needs, for the same reason:
+     * `align-items: center` centres the line box, and a line box reserves
+     * room under the baseline for descenders that a digit never uses, so the
+     * ink rides above the middle. Measured across all seventeen badges in the
+     * open mobile sidebar — 0.51px high on the top-level rows, 0.45px on the
+     * sub rows.
+     *
+     * Padding at the start shrinks the content box from the top, moving its
+     * centre down by half the padding, so 1px covers both. Both variants take
+     * it from here; the `--sub` rule below only changes the box.
+     */
+    padding-block: 1px 0;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.dk-side__row--sub .dk-side__badge {
+    min-width: 20px;
+}
+
+/* A hairline ring inside each tinted badge, so it reads as a chip, not a smear. */
+.dk-side__badge--danger {
+    background: var(--shell-badge-danger-bg);
+    color: var(--shell-badge-danger-fg);
+    box-shadow: inset 0 0 0 1px var(--shell-badge-ring-danger);
+}
+
+.dk-side__badge--warn {
+    background: var(--shell-badge-warn-bg);
+    color: var(--shell-badge-warn-fg);
+    box-shadow: inset 0 0 0 1px var(--shell-badge-ring-warn);
+}
+
+.dk-side__row--sub .dk-side__badge--danger {
+    background: var(--shell-badge-danger-bg-sub);
+}
+
+.dk-side__row--sub .dk-side__badge--warn {
+    background: var(--shell-badge-warn-bg-sub);
+}
+
+.dk-side__badge--neutral {
+    background: var(--shell-badge-neutral-bg);
+    color: var(--shell-badge-neutral-fg);
+}
+
+/*
+ * The collapsed stand-in. Hidden at full width, shown on the rail, so a 72px
+ * sidebar still says that something is waiting.
+ */
+.dk-side__pip {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    display: none;
+    width: 7px;
+    height: 7px;
+    border: 2px solid var(--shell-bg-start);
+    border-radius: 50%;
+}
+
+.dk-side__pip--danger {
+    background: var(--shell-badge-danger-dot);
+}
+
+.dk-side__pip--warn {
+    background: var(--shell-badge-warn-dot);
+}
+
+.dk-side__pip--neutral {
+    background: var(--shell-badge-neutral-dot);
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+
+/*
+ * One more row, not a status sentence.
+ *
+ * The System row takes .dk-side__row, so hover, focus and the collapsed rail
+ * all come from the rules above. What is its own: a second line of meta under
+ * the label, and the environment dot on the glyph.
+ */
+.dk-side__foot {
+    flex-shrink: 0;
+    padding: 0.5rem 0.625rem 0.75rem;
+    border-block-start: 1px solid var(--shell-border);
+}
+
+.dk-side__system {
+    height: 48px;
+}
+
+/* Without app-info the row states the build and goes nowhere. */
+.dk-side__system.is-inert {
+    cursor: default;
+}
+
+.dk-side__system.is-inert:hover {
+    background: transparent;
+    color: var(--shell-text);
+}
+
+.dk-side__system.is-inert:active {
+    transform: none;
+}
+
+.dk-side__system-icon {
+    position: relative;
+}
+
+/*
+ * Green is production and nothing else.
+ *
+ * On the glyph rather than beside the text so the collapsed rail keeps it.
+ * The ring is the column's own colour at the foot, which cuts the dot out of
+ * the glyph instead of letting the two strokes run into each other.
+ */
+.dk-side__system-dot {
+    position: absolute;
+    inset-block-end: -2px;
+    inset-inline-end: -3px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--shell-bg-end);
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.dk-side__system-dot.is-staging {
+    background: var(--color-warning);
+}
+
+.dk-side__system-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.15;
+}
+
+.dk-side__system-name {
+    color: var(--shell-text-strong);
+    font-size: var(--shell-font-sub);
+    font-weight: var(--font-medium);
+}
+
+.dk-side__system-meta {
+    overflow: hidden;
+    color: var(--shell-text-faint);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-medium);
+    text-align: start;
+    text-overflow: ellipsis;
+}
+
+/*
+ * The build number in the mono face, so a version an operator is comparing
+ * against a changelog lines up digit for digit.
+ */
+.dk-side__system-ver {
+    font-family: var(--font-mono);
+}
+
+.dk-side__system-badge {
+    gap: 3px;
+}
+
+.dk-side__system-go {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: var(--shell-tile-fg);
+}
+
+[dir='rtl'] .dk-side__system-go {
+    transform: scaleX(-1);
+}
+
+/* ── Collapsed ──────────────────────────────────────────────────────────── */
+
+.dk-side.is-collapsed .dk-side__brand {
+    justify-content: center;
+    padding-inline: 0;
+}
+
+.dk-side.is-collapsed .dk-side__wordmark,
+.dk-side.is-collapsed .dk-side__label,
+.dk-side.is-collapsed .dk-side__chevron,
+.dk-side.is-collapsed .dk-side__badge,
+.dk-side.is-collapsed .dk-side__subs,
+.dk-side.is-collapsed .dk-side__system-go {
+    display: none;
+}
+
+/* On the rail the System row is a row like any other: glyph, dot and pip. */
+.dk-side.is-collapsed .dk-side__system {
+    height: var(--shell-row-height);
+}
+
+.dk-side.is-collapsed .dk-side__pip {
+    display: block;
+}
+
+/* Group heads and items only; the subs are shut in this state and keep their tree padding. */
+.dk-side.is-collapsed .dk-side__row:not(.dk-side__row--sub) {
+    justify-content: center;
+    padding-inline: 0;
+}
+
+/* A section label becomes the rule that used to sit under it. */
+.dk-side.is-collapsed .dk-side__section {
+    height: 0;
+    margin: 0.375rem 0.875rem;
+    padding: 0;
+    border-block-start: 1px solid var(--shell-rail);
+    overflow: hidden;
+    text-indent: -9999px;
+}
+
+/* ── Mobile drawer ──────────────────────────────────────────────────────── */
+
+.dk-side__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgba(var(--color-text-rgb), 0.45);
+}
+
+@media (max-width: 991.98px) {
+    .dk-side {
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-lg);
+    }
+
+    [dir='rtl'] .dk-side {
+        transform: translateX(100%);
+    }
+
+    /* The drawer always opens at full width; a 72px drawer helps nobody. */
+    .dk-side.is-open,
+    .dk-side.is-open.is-collapsed {
+        width: var(--shell-width);
+        transform: translateX(0);
+    }
+
+    .dk-side.is-open.is-collapsed .dk-side__wordmark,
+    .dk-side.is-open.is-collapsed .dk-side__label,
+    .dk-side.is-open.is-collapsed .dk-side__chevron {
+        display: revert;
+    }
+
+    /*
+     * The System row's label is a two-line flex column and its chevron a
+     * grid; `revert` would land both on `inline` and run the build number
+     * onto the name's line. Named here for the reason the badge is below.
+     */
+    .dk-side.is-open.is-collapsed .dk-side__system-label {
+        display: flex;
+    }
+
+    .dk-side.is-open.is-collapsed .dk-side__system-go {
+        display: inline-grid;
+    }
+
+    .dk-side.is-open.is-collapsed .dk-side__system {
+        height: 48px;
+    }
+
+    /*
+     * Named on its own for the same reason as `__subs` below. The badge is a
+     * `<span>`, so `revert` lands on `inline`, which the flex row then
+     * blockifies to `block` — the box keeps its size but nothing centres its
+     * contents any more. Measured across all seventeen badges in this state:
+     * the digit sat 1.24px high and 0.62px towards the start, against 0.02px
+     * in a drawer opened from a non-collapsed cookie.
+     */
+    .dk-side.is-open.is-collapsed .dk-side__badge {
+        display: inline-flex;
+    }
+
+    /*
+     * Named on its own, not folded into the revert list above: `revert` on a
+     * div lands on `display: block`, and this element is the grid whose
+     * single row opens and shuts. An operator whose desktop cookie says
+     * collapsed was getting a drawer with no sub-menus in it at all.
+     */
+    .dk-side.is-open.is-collapsed .dk-side__subs {
+        display: grid;
+    }
+
+    .dk-side.is-open.is-collapsed .dk-side__pip {
+        display: none;
+    }
+
+    /*
+     * Undoes the rail's icon centring, and only for the rows that were
+     * centred. Written as a bare `.dk-side__row` it caught the sub-rows
+     * too, whose 22px start padding is not decoration but the gap the tree
+     * is drawn in. Four classes deep it beat `.dk-side__row--sub`, pulled
+     * every child label back to 10px, and printed "New tickets" across its
+     * own leaf and branch — on any phone whose desktop cookie said
+     * collapsed. A sub-row is never centred, so it has nothing to restore.
+     */
+    .dk-side.is-open.is-collapsed .dk-side__row:not(.dk-side__row--sub),
+    .dk-side.is-open.is-collapsed .dk-side__brand {
+        justify-content: flex-start;
+        padding-inline: 0.625rem;
+    }
+
+    .dk-side__edge {
+        display: none;
+    }
+
+    .dk-side__close {
+        display: grid;
+    }
+
+    body:has(.dk-side) .wrapper,
+    body:has(.dk-side.is-collapsed) .wrapper {
+        padding-inline-start: 0;
+    }
+}
+
+/* ── Mirroring and motion ───────────────────────────────────────────────── */
+
+/*
+ * The column is on the right in an RTL panel, so "collapse me" points the
+ * other way and the two states simply swap. Same rotation, opposite ends -
+ * no mirroring, so the chevron travels the same arc in both directions.
+ */
+[dir='rtl'] .dk-side__edge svg {
+    transform: rotate(180deg);
+}
+
+[dir='rtl'] .dk-side.is-collapsed .dk-side__edge svg {
+    transform: none;
+}
+
+/*
+ * Reduced motion, stated once.
+ *
+ * The old list named six selectors, which meant every transition added after
+ * it silently opted out. A blanket rule inside the shell cannot be
+ * out-of-date, and .01ms rather than 0 so transitionend still fires for
+ * anything listening.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .dk-side,
+    .dk-side *,
+    .dk-top,
+    .dk-top *,
+    .wrapper {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.dk-side a:focus-visible,
+.dk-side button:focus-visible {
+    outline: 2px solid var(--shell-accent);
+    outline-offset: 2px;
+}
+
+/* ══ Header ═════════════════════════════════════════════════════════════════
+ *
+ * Sticky, 64px, and translucent so the page scrolling under it stays legible
+ * as motion rather than as a hard edge.
+ */
+
+.dk-top {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: var(--top-height);
+    padding-inline: 1.25rem;
+    background: rgba(var(--color-white-rgb), 0.92);
+    /*
+     * Saturating what shows through keeps the colour under the bar looking
+     * like itself rather than washed grey; blur alone desaturates it.
+     */
+    backdrop-filter: saturate(1.4) blur(8px);
+    border-block-end: 1px solid var(--color-border);
+    font-family: var(--font-primary);
+
+    /*
+     * The header this replaced carried Bootstrap's mb-4, so every admin
+     * page got a 1.5rem gap under it for free. Nothing else supplies that
+     * - .body has no block-start padding - so dropping the class would
+     * have pushed every page flush against the bar.
+     */
+    margin-block-end: 1.5rem;
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+
+/*
+ * Re-homed above the page body. It used to sit in the top bar spending
+ * header width restating the page title; the layout renders it now, and only
+ * for a page that defines the section.
+ */
+.dk-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    margin-block-end: 0.75rem;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--font-primary);
+    font-size: var(--font-xs);
+}
+
+.dk-crumbs a {
+    color: var(--color-text-muted);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+}
+
+.dk-crumbs a:hover,
+.dk-crumbs a:focus-visible {
+    color: var(--color-primary);
+}
+
+.dk-crumbs .dk-crumb-sep {
+    color: var(--color-border-strong, var(--color-border));
+}
+
+.dk-crumbs .dk-crumb-current {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+[dir='rtl'] .dk-crumbs .dk-crumb-sep {
+    transform: scaleX(-1);
+}
+
+/* ── Search ─────────────────────────────────────────────────────────────── */
+
+/*
+ * A fixed 460px that gives way rather than a column that grows to fill.
+ * Centring it made the box drift as the controls on the right changed width
+ * between pages, which is the sort of thing nobody reports and everybody
+ * notices.
+ *
+ * The box is a button. The palette it opens owns focus and the typing, so a
+ * field here would be a second place to type that searched nothing.
+ */
+.dk-top__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 460px;
+    min-width: 0;
+}
+
+.dk-top__search-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 40px;
+    padding-inline: 12px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--shell-radius);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--font-sm);
+    text-align: start;
+    cursor: pointer;
+}
+
+.dk-top__search-trigger:hover {
+    border-color: var(--top-border-hover);
+    background: var(--color-card);
+}
+
+/*
+ * Two states, not one. A pointer passing over the box and a keyboard landing
+ * on it must not look the same: focus is the brand at full strength plus a
+ * ring, hover is the pale border only.
+ */
+.dk-top__search-trigger:focus-visible {
+    border-color: var(--color-primary);
+    background: var(--color-card);
+    box-shadow: var(--top-focus-ring);
+    outline: none;
+}
+
+.dk-top__search-trigger-icon {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    color: var(--color-text-faint);
+}
+
+.dk-top__search-trigger-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-top__kbd-pair {
+    flex-shrink: 0;
+    display: inline-flex;
+    gap: 4px;
+}
+
+/* Sits inside the box, at its trailing edge. */
+.dk-top__kbd {
+    display: inline-flex;
+    flex-shrink: 0;
+    white-space: nowrap;
+    align-items: center;
+    height: 22px;
+    padding-inline: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-semibold);
+}
+
+/*
+ * Phones only: with the drawer shut nothing on screen says whose panel this
+ * is. Shown at the breakpoint that hides the search trigger, below.
+ */
+.dk-top__wordmark {
+    display: none;
+    margin-inline-start: 4px;
+    color: var(--color-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-extrabold);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dk-top__wordmark:hover,
+.dk-top__wordmark:focus-visible {
+    color: var(--color-text);
+}
+
+.dk-top__wordmark-accent {
+    color: var(--color-primary);
+}
+
+.dk-top__end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-inline-start: auto;
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+
+/*
+ * Every control in the bar answers a press the same way. Stated once here
+ * rather than repeated per control, so a new button cannot be added without
+ * it and none of them can drift to a different curve.
+ */
+.dk-top__icon-btn,
+.dk-top__search-trigger,
+.dk-top__new,
+.dk-top__lang,
+.dk-top__profile,
+.dk-top .admin-notification-trigger {
+    transition: background-color 0.25s var(--shell-ease), border-color 0.25s var(--shell-ease),
+        transform 0.18s var(--shell-ease);
+}
+
+.dk-top__icon-btn:active,
+.dk-top__search-trigger:active,
+.dk-top__lang:active,
+.dk-top__profile:active,
+.dk-top .admin-notification-trigger:active {
+    transform: scale(0.96);
+}
+
+/* Wider button, shallower press - .96 on this one reads as a flinch. */
+.dk-top__new:active {
+    transform: scale(0.97);
+}
+
+.dk-top__icon-btn {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--shell-radius);
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.dk-top__icon-btn:hover,
+.dk-top__icon-btn:focus-visible {
+    background: var(--color-surface-alt);
+    border-color: var(--top-border-hover);
+}
+
+/* The column has its own edge toggle on a desktop; this is the drawer's. */
+@media (min-width: 992px) {
+    .dk-top__hamburger {
+        display: none;
+    }
+}
+
+/*
+ * The search box sits in the bar down to 576px and becomes an overlay below
+ * it; this button is what opens that overlay, so it appears exactly where the
+ * overlay does. Stated here rather than as d-inline-flex/d-sm-none on the
+ * button, because those utilities carry !important and were overriding the
+ * inline-grid above - which left place-items with nothing to centre and the
+ * glyph pinned against the button's leading edge.
+ */
+@media (min-width: 576px) {
+    .dk-top__search-btn {
+        display: none;
+    }
+}
+
+.dk-top__new {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 40px;
+    padding-inline: 0.75rem 0.875rem;
+    border: 0;
+    border-radius: var(--shell-radius);
+    background: var(--color-primary);
+    color: rgb(var(--color-white-rgb));
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.dk-top__new:hover,
+.dk-top__new:focus-visible {
+    background: var(--color-primary-hover);
+    color: rgb(var(--color-white-rgb));
+}
+
+.dk-top__rule {
+    width: 1px;
+    height: 24px;
+    margin-inline: 2px;
+    background: var(--color-border);
+}
+
+.dk-top__lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 40px;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--shell-radius);
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.dk-top__lang:hover,
+.dk-top__lang:focus-visible {
+    background: var(--color-surface-alt);
+}
+
+.dk-top__lang img {
+    width: 18px;
+    height: 13px;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+/* ── Profile trigger ────────────────────────────────────────────────────── */
+
+.dk-top__profile {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: 40px;
+    padding-inline: 0.25rem 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--shell-radius);
+    background: var(--color-card);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.dk-top__profile:hover,
+.dk-top__profile:focus-visible {
+    background: var(--color-surface-alt);
+}
+
+.dk-top__avatar {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.dk-top__avatar img {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+/* No picture uploaded: two letters on the brand gradient say whose session this is. */
+.dk-top__avatar-initials {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+    color: rgb(var(--color-white-rgb));
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.02em;
+}
+
+.dk-top__presence {
+    position: absolute;
+    inset-inline-end: -2px;
+    inset-block-end: -2px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--color-card);
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.dk-top__who {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: start;
+}
+
+.dk-top__who-name {
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-top__who-role {
+    color: var(--color-text-muted);
+    font-size: var(--font-2xs);
+    white-space: nowrap;
+}
+
+/* The affordance the trigger lacked. It points down, so it reads the same in RTL. */
+.dk-top__chev {
+    flex-shrink: 0;
+    margin-inline-start: -2px;
+    color: var(--color-text-faint);
+}
+
+/* ── Dropdowns ──────────────────────────────────────────────────────────── */
+
+/*
+ * CoreUI owns the open/close, the outside click, Escape and the arrow keys.
+ * This only dresses the shell it renders.
+ */
+
+.dk-top__menu {
+    min-width: 260px;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--top-menu-radius);
+    background: var(--color-card);
+    box-shadow: var(--top-menu-shadow);
+}
+/*
+ * Each panel is sized to what it holds rather than to a shared floor. The
+ * shared 260px minimum was the create menu's requirement, and on the language
+ * list it left half the panel empty.
+ */
+.dk-top__menu.dk-top__menu--narrow {
+    width: 248px;
+    min-width: 0;
+}
+
+.dk-top__new-wrap .dk-top__menu {
+    width: 272px;
+    min-width: 0;
+}
+
+/*
+ * The reveal, on the class CoreUI adds when a menu opens. Origin at the top
+ * outer corner so each menu grows out of the button that owns it, which in
+ * an RTL panel is the top left.
+ */
+.dk-top__menu.show,
+.dk-top .notification-dropdown.show {
+    animation: dkPop 0.32s var(--shell-ease) both;
+    transform-origin: top right;
+}
+
+[dir='rtl'] .dk-top__menu.show,
+[dir='rtl'] .dk-top .notification-dropdown.show {
+    transform-origin: top left;
+}
+
+.dk-top__menu--profile {
+    width: 312px;
+    padding: 0 0 4px;
+    overflow: hidden;
+}
+
+.dk-top__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 44px;
+    padding-inline: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-text);
+    font-size: var(--font-xs);
+    font-weight: var(--font-medium);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dk-top__menu-item:hover,
+.dk-top__menu-item:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.dk-top__menu-item.is-active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+}
+
+.dk-top__menu-item.is-danger {
+    color: var(--color-danger-deep, var(--color-danger));
+    font-weight: var(--font-semibold);
+}
+
+.dk-top__menu-item.is-danger:hover,
+.dk-top__menu-item.is-danger:focus-visible {
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: var(--color-danger-deep, var(--color-danger));
+}
+
+/*
+ * The pressed state, stated so CoreUI's cannot be.
+ *
+ * These rows carry .dropdown-item because that is the class CoreUI's
+ * keyboard navigation looks for — and it brings `.dropdown-item:active`
+ * with it, which paints solid brand with near-white text. Every other
+ * row flashing solid indigo under the finger was the one thing in the header
+ * behaving like a different piece of software.
+ *
+ * The reference gives these rows no press state at all, so this states the
+ * hover colour rather than inventing a new one.
+ */
+.dk-top__menu-item:active {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.dk-top__menu-item.is-danger:active {
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: var(--color-danger-deep, var(--color-danger));
+}
+
+.dk-top__menu-item.is-active:active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/*
+ * The icon sits in a tile rather than loose in the row.
+ *
+ * Neutral by default, because most of these rows go somewhere rather than
+ * make something. Only the create menu's own actions are tinted, and only
+ * until the divider — past it "Invite staff" is a destination like the rest.
+ */
+.dk-top__menu-tile {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.dk-top__new-wrap .dk-top__menu-item:not(.is-neutral) .dk-top__menu-tile {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.dk-top__menu-item.is-danger .dk-top__menu-tile {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep, var(--color-danger));
+}
+
+.dk-top__menu-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.dk-top__menu-label {
+    display: block;
+    min-width: 0;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-top__menu-hint {
+    display: block;
+    margin-block-start: 2px;
+    color: var(--color-text-muted);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-medium);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * Every row ends in something. A trailing element is what tells a reader the
+ * row is a row rather than a label, and the ones without it were reading as
+ * a ragged right edge.
+ */
+.dk-top__menu-go {
+    flex-shrink: 0;
+    color: var(--color-text-faint);
+}
+
+[dir='rtl'] .dk-top__menu-go {
+    transform: scaleX(-1);
+}
+
+/* The arrow points out of the page in both directions; it is not a chevron. */
+[dir='rtl'] .dk-top__menu-go--out {
+    transform: none;
+}
+
+.dk-top__menu-kbd {
+    flex-shrink: 0;
+    padding: 0 5px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-semibold);
+    line-height: 18px;
+}
+
+.dk-top__menu-count {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding-inline: 5px;
+    border-radius: 999px;
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--color-danger-deep, var(--color-danger));
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* ── Language rows ──────────────────────────────────────────────────────── */
+
+.dk-top__menu--narrow .dk-top__menu-item {
+    height: 42px;
+}
+
+/*
+ * The flag is a tile rather than a loose image: the files are a mix of PNG
+ * and SVG at different aspect ratios, and cropping them all to one rectangle
+ * is what keeps the column of names starting at the same x.
+ */
+.dk-top__menu-flag {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 22px;
+    overflow: hidden;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.08);
+}
+
+.dk-top__menu-flag img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dk-top__menu-flag.is-empty {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-9);
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.06em;
+}
+
+/*
+ * The code stays a stable width in the mono face so the column of pills does
+ * not shuffle as the list is read.
+ */
+.dk-top__menu-code {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    height: 20px;
+    padding-inline: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+}
+
+.dk-top__menu-item.is-active .dk-top__menu-code {
+    border-color: rgba(var(--color-primary-rgb), 0.25);
+    color: var(--color-primary);
+}
+
+.dk-top__menu-check {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: rgb(var(--color-white-rgb));
+}
+
+/*
+ * The row under the list is a way out of the menu rather than a choice in it,
+ * so it is quieter than the languages above it and carries no second line.
+ */
+.dk-top__menu-item--quiet {
+    height: 36px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-115);
+}
+
+.dk-top__menu-item--quiet .dk-top__menu-label {
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-medium);
+}
+
+.dk-top__menu-glyph {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    color: var(--color-text-faint);
+}
+/*
+ * Group labels. They replace the config's dividers inside the profile menu
+ * rather than joining them — a hairline and a heading saying the same thing
+ * is one of them too many.
+ */
+.dk-top__menu-eyebrow {
+    padding: 6px 10px 4px;
+    color: var(--color-text-faint);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/*
+ * The heading says what the panel is before the first row does. Both menus
+ * that carry one put a small right-hand element beside it — a shortcut hint
+ * or a count — so the header line has the same shape as the rows below it.
+ */
+.dk-top__menu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block: 8px;
+    padding-inline: 12px 10px;
+}
+
+.dk-top__menu-heading {
+    min-width: 0;
+}
+
+.dk-top__menu-heading-title {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-bold);
+    letter-spacing: -0.01em;
+}
+
+.dk-top__menu-heading-sub {
+    display: block;
+    margin-block-start: 2px;
+    color: var(--color-text-muted);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-medium);
+}
+
+.dk-top__menu-head-kbd {
+    flex-shrink: 0;
+    height: 20px;
+    padding: 0 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-semibold);
+    line-height: 18px;
+}
+
+.dk-top__menu-tally {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    height: 20px;
+    padding-inline: 7px;
+
+    /* Centring the line box leaves the digit high, as on the header and
+       sidebar badges — measured 0.5px here. Padding at the start moves the
+       content box centre down by half its value. */
+    padding-block: 1px 0;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+}
+
+.dk-top__menu-rule {
+    height: 1px;
+    margin: 6px 4px;
+    border: 0;
+    background: var(--color-border-soft, var(--color-border));
+    opacity: 1;
+}
+
+.dk-top__menu-rule--head {
+    margin: 0 4px 6px;
+}
+
+/*
+ * The wash is thrown from the outer top corner rather than laid flat, so the
+ * card reads as lit from the same place as the panel's own shadow.
+ */
+.dk-top__card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background:
+        radial-gradient(circle at 90% 0%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
+        var(--color-surface-alt);
+    border-block-end: 1px solid var(--color-border-soft, var(--color-border));
+}
+
+[dir='rtl'] .dk-top__card {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
+        var(--color-surface-alt);
+}
+
+.dk-top__card-figure {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-block;
+    line-height: 0;
+}
+
+.dk-top__card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow:
+        0 0 0 2px var(--color-card),
+        0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
+}
+
+.dk-top__card-initials {
+    display: inline-grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+    color: rgb(var(--color-white-rgb));
+    font-size: var(--font-md);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.02em;
+}
+
+.dk-top__card-presence {
+    position: absolute;
+    inset-block-end: -1px;
+    inset-inline-end: -1px;
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--color-card);
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.dk-top__card-body {
+    min-width: 0;
+}
+
+.dk-top__card-name {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+    letter-spacing: -0.01em;
+}
+
+.dk-top__card-email {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-top__card-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 5px;
+}
+
+.dk-top__card-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+.dk-top__card-2fa {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--color-success-soft);
+    color: var(--color-success-deep, var(--color-success));
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+/* ── Command palette ────────────────────────────────────────────────────── */
+
+/*
+ * Anchored under the search trigger, 640px wide, on the same surface as the
+ * header menus. It grows from the trigger's outer corner like they do; in an
+ * RTL panel that corner is the top right.
+ */
+.dk-palette {
+    position: absolute;
+    inset-block-start: calc(100% + 8px);
+    inset-inline-start: 0;
+    z-index: 1060;
+    width: 640px;
+    max-width: calc(100vw - 24px);
+    border-radius: var(--top-menu-radius);
+    background: var(--color-card);
+    box-shadow: var(--top-menu-shadow);
+    overflow: hidden;
+    animation: dkPop 0.28s var(--shell-ease) both;
+    transform-origin: top left;
+    font-family: var(--font-primary);
+    color: var(--color-text);
+}
+
+[dir='rtl'] .dk-palette {
+    transform-origin: top right;
+}
+
+/* Stated, so no later display rule can outrank the attribute. */
+.dk-palette[hidden] {
+    display: none;
+}
+
+.dk-palette__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-block-end: 1px solid var(--color-border-soft, var(--color-border));
+}
+
+.dk-palette__glyph {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: var(--color-primary);
+}
+
+/* While a request is out, the spinner takes the icon's slot rather than a new one. */
+.dk-palette.is-loading .dk-palette__glyph svg {
+    visibility: hidden;
+}
+
+.dk-palette__spinner {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--color-primary-soft);
+    border-block-start-color: var(--color-primary);
+    border-radius: 50%;
+    animation: dkSpin 0.7s linear infinite;
+}
+
+.dk-palette__spinner[hidden] {
+    display: none;
+}
+
+@keyframes dkSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.dk-palette__input {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-base);
+    outline: none;
+    box-shadow: none;
+}
+
+.dk-palette__input::placeholder {
+    color: var(--color-text-faint);
+}
+
+.dk-palette__scopes {
+    flex-shrink: 0;
+    display: flex;
+    gap: 4px;
+}
+
+.dk-palette__scope {
+    height: 26px;
+    padding-inline: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.18s var(--shell-ease), border-color 0.18s var(--shell-ease),
+        color 0.18s var(--shell-ease);
+}
+
+.dk-palette__scope:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.dk-palette__scope:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.dk-palette__scope.is-active,
+.dk-palette__scope.is-active:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.dk-palette__results {
+    max-height: 360px;
+    padding: 6px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.dk-palette__group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 4px;
+}
+
+.dk-palette__group-label {
+    color: var(--color-text-faint);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.dk-palette__group-count {
+    color: var(--color-text-faint);
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.dk-palette__row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    height: 46px;
+    padding-inline: 10px;
+    border-radius: 10px;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.dk-palette__row:hover,
+.dk-palette__row.is-selected {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.dk-palette__tile {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-bold);
+}
+
+/* A person or a business: initials on the brand gradient, as on the avatar tiles. */
+.dk-palette__tile.is-initials {
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+    color: rgb(var(--color-white-rgb));
+}
+
+/*
+ * The glyph is the sidebar's own SVG, painted through a mask so it takes the
+ * tile's text colour. The file's URL arrives from the endpoint on --dk-icon.
+ */
+.dk-palette__tile-icon {
+    width: 15px;
+    height: 15px;
+    background: currentColor;
+    -webkit-mask-image: var(--dk-icon);
+    mask-image: var(--dk-icon);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.dk-palette__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.dk-palette__title {
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-palette__sub {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-115);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-palette__end {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dk-palette__badge {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-palette__badge.is-warn {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.dk-palette__badge.is-success {
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+}
+
+.dk-palette__badge.is-danger {
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--color-danger-deep);
+}
+
+.dk-palette__badge.is-brand {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/* Only the selected row says Enter opens it. */
+.dk-palette__enter {
+    display: none;
+    height: 20px;
+    padding: 0 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-semibold);
+    line-height: 18px;
+}
+
+.dk-palette__row.is-selected .dk-palette__enter {
+    display: inline-flex;
+}
+
+.dk-palette__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 28px 16px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-125);
+    text-align: center;
+}
+
+.dk-palette__empty strong {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+.dk-palette__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-block-start: 1px solid var(--color-border-soft, var(--color-border));
+    background: var(--color-surface-veil, var(--color-surface-alt));
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-115);
+}
+
+.dk-palette__keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+/*
+ * The same light chip as the trigger's Ctrl K. CoreUI's base kbd paints
+ * the body colour as a background, which read as four black blocks here.
+ */
+.dk-palette__keys kbd {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+    color: var(--color-text-subtle);
+    font-family: inherit;
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+}
+
+.dk-palette__scope-note {
+    white-space: nowrap;
+}
+
+.dk-palette__scope-note strong {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+/*
+ * Below 1180px the header runs out of room before anything breaks, so the
+ * parts an operator can reach another way stand down first: the shortcut
+ * hint, the divider and the "New" label, and the code beside the language
+ * flag; then the name beside the avatar; then the search trigger itself,
+ * which the icon button and a full-width palette replace.
+ */
+@media (max-width: 1180px) {
+    .dk-top__kbd,
+    .dk-top__rule,
+    .dk-top__new-label,
+    .dk-top__lang-code {
+        display: none;
+    }
+
+    .dk-top__new {
+        padding-inline: 0.75rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .dk-top {
+        padding-inline: 0.75rem;
+    }
+
+    .dk-top__who,
+    .dk-top__chev {
+        display: none;
+    }
+
+    .dk-top__profile {
+        padding-inline: 0.25rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    :root {
+        --top-height: 56px;
+    }
+
+    .dk-top {
+        gap: 0.5rem;
+    }
+
+    .dk-top__wordmark {
+        display: inline;
+    }
+
+    /*
+     * The trigger goes; the icon button opens the palette instead. The
+     * wrapper stays in flow at no width so the panel inside it can still be
+     * positioned - against the header now, since the wrapper is static.
+     */
+    .dk-top__search {
+        position: static;
+        flex: 0 0 auto;
+    }
+
+    .dk-top__search-trigger {
+        display: none;
+    }
+
+    .dk-palette {
+        inset-inline: 0.75rem;
+        inset-block-start: calc(100% + 6px);
+        width: auto;
+        max-width: none;
+    }
+
+    .dk-palette__scopes,
+    .dk-palette__keys {
+        display: none;
+    }
+}
+
+/* ══ The bell ═══════════════════════════════════════════════════════════════
+ *
+ * _notifications.blade.php is the same partial the poller re-renders. The
+ * panel itself styles from custom.css; only the trigger and its counter are
+ * scoped to this header, because the copy they replaced hung off
+ * .admin-header--pro, a scope this header no longer creates.
+ */
+.dk-top .admin-notification-trigger {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--shell-radius);
+    background: var(--color-card);
+    color: var(--color-text-muted);
+}
+
+/*
+ * Hover only. The open state is set with the other three triggers further
+ * up, so all four light the same way; leaving it here as well meant this
+ * rule won on source order and the bell alone stayed grey while open.
+ */
+.dk-top .admin-notification-trigger:hover,
+.dk-top .admin-notification-trigger:focus-visible {
+    background: var(--color-surface-alt);
+    border-color: var(--top-border-hover);
+    color: var(--color-text);
+}
+
+/*
+ * On the button's outer corner rather than inside it.
+ *
+ * Sat over the bell, the badge covered the glyph it was counting for — at two
+ * digits there was more badge than bell. Outside, the border does the
+ * separating and the icon stays whole.
+ */
+.dk-top .admin-notification-counter {
+    position: absolute;
+    /*
+     * Anchored to the bell, not floating beside it.
+     *
+     * At -5px the badge's centre sat on the button's corner, leaving about
+     * half an 18px circle outside it — and out there, against the white
+     * header, the ring had nothing to separate it from, so the badge read as
+     * a detached dot rather than a count belonging to the icon. -2px on a
+     * 16px badge keeps 88% of it over the trigger, measured on the page,
+     * where the ring does the job it is there for.
+     */
+    inset-block-start: -2px;
+    inset-inline-end: -2px;
+    display: inline-grid;
+    place-items: center;
+    /*
+     * The badge has to be big enough to hold its own chrome, or it is not a
+     * circle.
+     *
+     * It was 14px square with a 2px ring and 3px of inline padding, and
+     * `box-sizing` is border-box — so the content box came to 4px. A single
+     * digit is about 5.8px at this size, wider than that, so the box grew
+     * sideways while the height stayed pinned: measured 15.83 x 14, an oval.
+     * Vertically it was as tight, a 9px glyph in a 10px content box.
+     *
+     * 16px leaves an 8px content box, which one digit fits inside — so
+     * min-width governs and the badge is exactly 16x16. Measured: "1" and "6"
+     * come out square, "12" and "99+" widen into pills, which is what a pill
+     * radius is for. 18px was round too but sat heavy on a 40px trigger.
+     */
+    min-width: 16px;
+    height: 16px;
+    padding-inline: 2px;
+
+    /*
+     * Centring the line box is not centring the digit.
+     *
+     * `place-items: center` centres the line box, and a line box reserves
+     * room below the baseline for descenders. A digit has none, so that room
+     * stays empty and the ink rides above the middle: measured 2.75px of
+     * space above the numeral and 4.25px below it, an ink centre 0.75px high.
+     *
+     * Padding only at the start shrinks the content box from the top, which
+     * moves its centre — and the line box with it — down by half the padding.
+     * 1.5px therefore buys exactly the 0.75px needed. It is a font metric, so
+     * it holds only because the webfont is pinned and self-hosted; see
+     * `AdminDashboardViewTest` on refreshing Inter from Google.
+     */
+    padding-block: 1.5px 0;
+    border: 2px solid var(--color-card);
+    border-radius: 999px;
+    background: var(--color-danger);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.12);
+    color: rgb(var(--color-white-rgb));
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-extrabold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+
+    /*
+     * Carried over when the second declaration of this badge was removed from
+     * custom.css. Everything else that block held was either overridden here
+     * or a no-op — `box-sizing` repeats the global reset, `letter-spacing: 0`
+     * computes to `normal`, `font-family: inherit` is what a span does anyway
+     * — but these two were its alone, so deleting it without them would have
+     * changed the element.
+     *
+     * The badge is decoration sitting over its own trigger: it should never
+     * be the thing a click lands on, and it paints above the bell.
+     */
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ══ Open dropdown triggers ═════════════════════════════════════════════════
+ *
+ * Last in the sheet on purpose.
+ *
+ * Every one of these buttons also has a :hover rule, and a pointer is still
+ * resting on the button it just clicked. At equal specificity source order
+ * decides, so stated earlier this lost and the open trigger sat there in its
+ * hover colour - which is the one thing it must not look like when the
+ * question is "which of these four menus is showing".
+ *
+ * --color-primary-soft, not --color-primary-subtle. The two read as
+ * synonyms and are not: role-branding-theme.blade.php rebinds "subtle" at
+ * runtime to shade(brand, 46%), a mid-tone, so a trigger tinted with it came
+ * out a solid purple block with brand-coloured text on top. "Soft" is a 10%
+ * wash in both the static tokens and the runtime ones.
+ */
+.dk-top .dk-top__icon-btn[aria-expanded='true'],
+.dk-top .dk-top__lang[aria-expanded='true'],
+.dk-top .dk-top__profile[aria-expanded='true'],
+.dk-top .dk-top__new[aria-expanded='true'],
+.dk-top .admin-notification-trigger[aria-expanded='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/* The palette's trigger reads as the field it stands for: focused, ringed. */
+.dk-top .dk-top__search-trigger[aria-expanded='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-card);
+    box-shadow: var(--top-focus-ring);
+    color: var(--color-text);
+}
+
+/* The New button is solid brand already; it darkens rather than lightens. */
+.dk-top .dk-top__new[aria-expanded='true'] {
+    border-color: transparent;
+    background: var(--color-primary-hover);
+    color: rgb(var(--color-white-rgb));
+}
+
+/* ── Top bar on a narrow phone ─────────────────────────────────────────── */
+/*
+ * The bar needed 383px of its own: five controls that refuse to shrink
+ * (.dk-top__end is flex-shrink: 0, which is right — squashing a tap target
+ * is worse than squashing a word) plus a 63px wordmark. On a 360px Android
+ * that is 23px too many, and because the profile button is last in the row
+ * it was the one hanging off the edge of the screen.
+ *
+ * Two changes, in order of what should give way first.
+ *
+ * 1. The wordmark truncates. It is the only thing here that is decoration
+ *    rather than a control — it exists on mobile at all because the sidebar
+ *    that normally carries the brand is off-canvas — so it is what yields.
+ *    Applied at every width, so no future control can push a button off
+ *    screen no matter how narrow the device: the brand gives up room first.
+ *
+ * 2. Below 400px the spacing and the controls tighten, so the truncation in
+ *    (1) rarely has to happen at all. 36px is the floor: it is still a
+ *    comfortable tap target, and anything smaller trades a layout problem
+ *    for an accessibility one.
+ */
+.dk-top__wordmark {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 400px) {
+    /*
+     * 5px gaps and 8px padding. Measured: at 360px the wordmark was coming up
+     * exactly 7px short of its 63px and truncating to "DigiK…" on the most
+     * common Android width. Four gaps and two paddings give back 8.
+     */
+    .dk-top {
+        gap: 0.3125rem;
+        padding-inline: 0.5rem;
+    }
+
+    .dk-top__icon-btn,
+    .dk-top__lang,
+    .dk-top__notify > .dk-top__icon-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .dk-top__new {
+        height: 36px;
+    }
+
+    .dk-top__profile {
+        height: 36px;
+        padding-inline: 0.1875rem;
+    }
+}
+
+/*
+ * Past a point the truncation stops being worth it: at 320px the wordmark
+ * had been squeezed to 16px, which is an ellipsis and nothing else — noise
+ * where a brand used to be. Below 340px it leaves, and the controls get the
+ * room instead.
+ */
+@media (max-width: 340px) {
+    .dk-top__wordmark {
+        display: none;
+    }
+}

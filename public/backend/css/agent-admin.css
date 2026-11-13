@@ -1,0 +1,1070 @@
+/*
+ * Agent admin — admin › Business profiles
+ *
+ * Cell-level styling only, for the agent list, the pending queue, the review
+ * modal and the commission rules. The card, the table frame and the filter bar
+ * come from admin-table.css; the header, its tabs and its stats strip come
+ * from page-header.css and are never restyled here.
+ *
+ * Declares no scrollbar and no checkbox rules by design — both are canon,
+ * declared once in custom.css and enforced by
+ * tests/Feature/AdminScrollbarConsistencyTest.php and
+ * tests/Feature/AdminCheckboxConsistencyTest.php.
+ *
+ * Logical properties only; the panel ships in Arabic.
+ */
+
+/* ----- Agent identity ----- */
+.ag-logo {
+    flex: 0 0 auto;
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.08);
+    object-fit: cover;
+}
+
+.ag-cell {
+    min-width: 0;
+}
+
+.ag-name {
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ag-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 8px;
+    margin-block-start: 3px;
+}
+
+/* A code reads in the order it was issued, in every language — the view pairs
+   this with dir="ltr". */
+.ag-code {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+}
+
+/* ----- Chips -----
+   Square, because configuration is square and status is round. */
+.ag-chip {
+    display: inline-flex;
+    height: 19px;
+    align-items: center;
+    padding-inline: 7px;
+    border-radius: 6px;
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+/* The counter's own currency, told apart from the ones it merely also takes. */
+.ag-chip--base {
+    color: var(--color-primary-deep);
+    background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.ag-chip--warning {
+    margin-block-start: 8px;
+    height: 22px;
+    padding-inline: 8px;
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+/* ----- Operator ----- */
+.ag-owner {
+    color: var(--color-primary);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+.ag-owner:hover {
+    text-decoration: underline;
+}
+
+.ag-muted {
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.ag-break {
+    word-break: break-word;
+}
+
+/* ----- Commission -----
+   Tabular figures so a column of rates reads as a column. */
+.ag-rate {
+    color: var(--color-text);
+    font-feature-settings: "tnum";
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ag-rate--unset {
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+    font-style: italic;
+}
+
+/* ----- Volume and the cash-in / cash-out split ----- */
+.ag-figure {
+    color: var(--color-text);
+    font-feature-settings: "tnum";
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ag-figure__sub {
+    margin-block-start: 3px;
+    color: var(--color-text-muted);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-115);
+}
+
+.ag-split {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 5px;
+}
+
+/* Two counts, never two sums: the halves are how many operations went each
+   way, which means the same thing whatever currency they were taken in. */
+.ag-split__bar {
+    display: flex;
+    width: 86px;
+    height: 4px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--color-border);
+    overflow: hidden;
+}
+
+.ag-split__in {
+    background: var(--color-primary);
+}
+
+.ag-split__out {
+    flex-grow: 1;
+    background: var(--color-text-faint);
+}
+
+.ag-split__label {
+    color: var(--color-text-muted);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-11);
+    white-space: nowrap;
+}
+
+/* In the review modal's rail the split sits under the three figures it
+   describes, so it takes the panel's width instead of the cell's 86px. */
+.ag-split--rail {
+    margin-block-start: 11px;
+    padding-block-start: 11px;
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.ag-split--rail .ag-split__bar {
+    width: auto;
+    height: 5px;
+    flex: 1 1 auto;
+}
+
+/* ----- Status ----- */
+.ag-pill {
+    display: inline-flex;
+    height: 23px;
+    align-items: center;
+    gap: 6px;
+    padding-inline: 9px;
+    border-radius: 999px;
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.ag-pill__dot {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.ag-pill--warning {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.ag-pill--success {
+    color: var(--color-success-deep);
+    background: var(--color-success-soft);
+}
+
+.ag-pill--danger {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.ag-pill--secondary {
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+}
+
+/* ----- Requested ----- */
+.ag-date {
+    color: var(--color-text-soft);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-125);
+}
+
+.ag-wait {
+    margin-block-start: 2px;
+    color: var(--color-warning-deep);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+/* A request nobody has answered yet is the only row worth tinting, and it is
+   tinted faintly — the Pending pill and the primary Review button already say
+   so twice. */
+.ag-row--pending > td {
+    background: rgba(var(--color-warning-rgb), 0.035);
+}
+
+[data-coreui-theme="dark"] .ag-row--pending > td {
+    background: rgba(var(--color-warning-rgb), 0.07);
+}
+
+/* ----- Review queue -----
+   Only the pending screen draws these. */
+
+/* The operator's own words. Capped in the view, wrapped kindly here — this is
+   the text the decision is made on, so it reads as prose, not as a data cell. */
+.ag-said {
+    max-width: 46ch;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-125);
+    line-height: 1.55;
+    text-wrap: pretty;
+}
+
+/* Under the SLA, nearing it, past it. The chip always spells the wait out, so
+   the tone is a second signal and never the only one. */
+.ag-wait-chip {
+    display: inline-flex;
+    height: 26px;
+    align-items: center;
+    gap: 7px;
+    padding-inline: 10px;
+    border-radius: 8px;
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.ag-wait-chip--ok {
+    color: var(--color-success-deep);
+    background: var(--color-success-soft);
+}
+
+.ag-wait-chip--warn {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.ag-wait-chip--late {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+/* ==========================================================================
+   Review modal
+   ========================================================================== */
+
+/* A form between .modal-content and .modal-body breaks a scrollable modal.
+   .modal-dialog-scrollable caps .modal-content and hides its overflow, and the
+   body is meant to be the flex child that scrolls — but a plain block <form>
+   in between takes no part in that sizing, so the body grows to its full
+   height and the footer is clipped away below the fold. The decision buttons
+   were unreachable; the sheet this one replaced solved it the same way, and
+   dropping that rule is what brought the bug back. */
+.ag-modal-form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ag-review__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 17px 22px;
+    border-block-end: 1px solid var(--color-border);
+}
+
+.ag-review__identity {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+/* CoreUI pins a modal's close button with `margin: -8px -8px -8px auto`, a
+   physical shorthand. The auto does nothing here — `.ag-review__identity`
+   grows and there is no free space left to absorb — but the -8px does: it
+   hugs the button to the row's end in English and to its start in Arabic.
+   Measured at 1440px the gap from the outer corner read 14px LTR and 22px
+   RTL. Restated inline, both directions read 14px. The block halves stay
+   the vendor's. */
+.ag-review__header .btn-close {
+    margin-inline-start: 0;
+    margin-inline-end: calc(-0.5 * var(--cui-modal-header-padding-x));
+}
+
+.ag-review__eyebrow {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ag-review__titleline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: 3px;
+}
+
+.ag-review__title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: 600 !important;
+    line-height: 1.25;
+}
+
+/* The rail carries who is asking; the main column carries what is decided.
+   Below 992px it stacks, rail first, because the identity is what you read
+   before you choose. */
+.ag-review__body {
+    display: flex;
+    min-height: 0;
+    align-items: stretch;
+}
+
+.ag-review__rail {
+    flex: 0 0 340px;
+    width: 340px;
+    box-sizing: border-box;
+    padding: 18px;
+    border-inline-end: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+.ag-review__main {
+    flex-grow: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 18px 22px;
+}
+
+.ag-panel {
+    box-sizing: border-box;
+    padding: 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 11px;
+    background: var(--color-card);
+}
+
+.ag-panel + .ag-panel {
+    margin-block-start: 14px;
+}
+
+.ag-panel__title {
+    margin: 0 0 11px;
+    color: var(--color-text-muted);
+    font-size: var(--font-2xs);
+    font-weight: 700 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ag-facts {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    row-gap: 9px;
+    column-gap: 10px;
+    margin: 0;
+    font-size: var(--font-size-px-125);
+}
+
+.ag-facts dt {
+    color: var(--color-text-muted);
+    font-weight: 400;
+}
+
+.ag-facts dd {
+    margin: 0;
+    color: var(--color-text);
+    word-break: break-word;
+}
+
+.ag-note {
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: var(--font-size-px-125);
+    line-height: 1.6;
+    text-wrap: pretty;
+}
+
+.ag-track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.ag-track__value {
+    display: block;
+    color: var(--color-text);
+    font-feature-settings: "tnum";
+    font-size: var(--font-md);
+    font-weight: var(--font-bold);
+}
+
+.ag-track__label {
+    display: block;
+    margin-block-start: 1px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+}
+
+/* The banner says where the request stands before anything asks for an
+   input, because the actions in the footer differ by status. */
+.ag-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid;
+    border-radius: 11px;
+    margin-block-end: 16px;
+}
+
+.ag-banner__title {
+    display: block;
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+}
+
+.ag-banner__text {
+    display: block;
+    margin-block-start: 2px;
+    color: var(--color-text-soft);
+    font-size: var(--font-size-px-125);
+    line-height: 1.5;
+}
+
+.ag-banner--info {
+    border-color: rgba(var(--color-info-rgb), 0.28);
+    background: var(--color-info-soft);
+}
+
+.ag-banner--info .ag-banner__title {
+    color: var(--color-info-deep);
+}
+
+.ag-banner--success {
+    border-color: rgba(var(--color-success-rgb), 0.3);
+    background: var(--color-success-soft);
+}
+
+.ag-banner--success .ag-banner__title {
+    color: var(--color-success-deep);
+}
+
+.ag-banner--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.35);
+    background: var(--color-warning-soft);
+}
+
+.ag-banner--warning .ag-banner__title {
+    color: var(--color-warning-deep);
+}
+
+.ag-banner--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    background: var(--color-danger-soft);
+}
+
+.ag-banner--danger .ag-banner__title {
+    color: var(--color-danger-deep);
+}
+
+/* A note, not a state: used where the panel is explaining rather than warning. */
+.ag-banner--muted {
+    border-color: var(--color-border-soft);
+    background: var(--color-surface-alt);
+    color: var(--color-text-subtle);
+}
+
+.ag-banner--muted .ag-banner__title {
+    color: var(--color-text-soft);
+}
+
+/* ----- The decision on a rejected request -----
+   Commission setup is not drawn for a rejected row, so this is what the main
+   column carries: the reason that was actually sent to the operator. */
+.ag-decision {
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-block-end: 16px;
+}
+
+.ag-decision__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    border-block-end: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+}
+
+.ag-decision__icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.ag-decision__title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: 600 !important;
+}
+
+.ag-decision__meta {
+    margin: 3px 0 0;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-125);
+}
+
+.ag-decision__body {
+    padding: 16px;
+}
+
+/* The admin's own words, set as prose — this is the text the operator read. */
+.ag-quote {
+    margin: 0;
+    padding-inline-start: 14px;
+    border-inline-start: 3px solid rgba(var(--color-danger-rgb), 0.35);
+    color: var(--color-text-soft);
+    font-size: var(--font-size-px-135);
+    line-height: 1.65;
+    text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Destructive confirm
+
+   The shared confirm names nothing. From a table of near-identical rules that
+   is not enough to act on, so this one carries the subject and the cost.
+   ========================================================================== */
+
+.ag-confirm {
+    padding: 24px 24px 20px;
+}
+
+.ag-confirm__icon {
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.ag-confirm__title {
+    margin: 14px 0 0;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: 600 !important;
+    line-height: 1.3;
+}
+
+.ag-confirm__lede {
+    margin: 7px 0 0;
+    color: var(--color-text-subtle);
+    font-size: var(--font-sm);
+    line-height: 1.6;
+    text-wrap: pretty;
+}
+
+.ag-confirm__subject {
+    box-sizing: border-box;
+    padding: 13px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface-alt);
+    margin-block-start: 16px;
+}
+
+.ag-confirm__subject-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ag-confirm__name {
+    flex-grow: 1;
+    min-width: 0;
+    color: var(--color-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-semibold);
+    overflow-wrap: anywhere;
+}
+
+.ag-facts--confirm {
+    grid-template-columns: 104px minmax(0, 1fr);
+    row-gap: 7px;
+    margin-block-start: 12px;
+}
+
+.ag-confirm .ag-banner {
+    margin-block: 12px 0;
+}
+
+.ag-confirm__final {
+    margin: 14px 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+}
+
+.ag-confirm__footer {
+    padding: 14px 24px;
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+/* ----- Commission setup ----- */
+.ag-setup {
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ag-setup__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-block-end: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+}
+
+.ag-setup__copy {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.ag-setup__title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: 600 !important;
+}
+
+.ag-setup__hint {
+    margin: 3px 0 0;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-125);
+    line-height: 1.5;
+}
+
+.ag-fallback {
+    flex: 0 0 auto;
+}
+
+.ag-fallback__control {
+    width: 132px;
+}
+
+.ag-setup__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 16px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.ag-rule-op {
+    min-width: 148px;
+}
+
+.ag-rule-priority {
+    width: 92px;
+}
+
+/* The row a rule is switched on in, so "which of these is this counter
+   actually earning under" is answerable without reading the checkboxes. */
+.ag-rule--on > td {
+    background: rgba(var(--color-primary-rgb), 0.04);
+}
+
+[data-coreui-theme="dark"] .ag-rule--on > td {
+    background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* ----- Rejection reason -----
+   The request class has always validated rejection_reason and the notification
+   has always interpolated it; until this field existed every rejection e-mail
+   fell back to "No reason provided". */
+.ag-reason {
+    box-sizing: border-box;
+    padding: 13px 15px;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.3);
+    border-radius: 12px;
+    background: rgba(var(--color-danger-rgb), 0.05);
+    margin-block-start: 16px;
+}
+
+.ag-reason__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ag-reason__label {
+    color: var(--color-danger-deep);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+}
+
+.ag-reason__count {
+    color: var(--color-text-muted);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-11);
+}
+
+.ag-reason__field {
+    width: 100%;
+    box-sizing: border-box;
+    margin-block-start: 7px;
+    resize: none;
+}
+
+.ag-review__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 22px;
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+.ag-review__consequence {
+    flex: 1 1 320px;
+    min-width: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+}
+
+.ag-review__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+}
+
+/* ==========================================================================
+   Commission rules
+   ========================================================================== */
+
+/* Rules are matched by specificity first and priority second, which was two
+   sentences of prose nobody read. Drawn once, above the table, it is the thing
+   people point at when they argue about which rule won. */
+.ag-order {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px 14px;
+    padding: 11px 14px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 10px;
+    background: var(--color-surface-alt);
+    margin-block-end: 14px;
+}
+
+.ag-order__legend {
+    flex: 0 0 auto;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.ag-order__steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+}
+
+.ag-order__step {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    gap: 7px;
+    padding-inline: 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ag-order__step--last {
+    color: var(--color-text-muted);
+}
+
+.ag-order__num {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+/* Points along the reading order, so it flips with the text. */
+.ag-order__arrow {
+    flex: 0 0 auto;
+    color: var(--color-text-faint);
+}
+
+[dir='rtl'] .ag-order__arrow {
+    transform: scaleX(-1);
+}
+
+.ag-prio {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary-deep);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-bold);
+}
+
+.ag-prio--broad {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.ag-range {
+    color: var(--color-text-soft);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-125);
+}
+
+/* Where a rule's band sits inside the widest band any rule declares — so a
+   narrow rule looks narrow beside a broad one instead of reading identically. */
+.ag-range__bar {
+    display: flex;
+    width: 100%;
+    max-width: 150px;
+    height: 4px;
+    margin-block-start: 6px;
+    border-radius: 999px;
+    background: var(--color-border);
+    overflow: hidden;
+}
+
+.ag-range__lead {
+    flex: 0 0 auto;
+}
+
+.ag-range__fill {
+    flex: 0 0 auto;
+    background: var(--color-primary);
+}
+
+.ag-range__fill--muted {
+    background: var(--color-text-faint);
+}
+
+.ag-rule-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ==========================================================================
+   Commission rule form
+
+   Unchanged from the sheet this one replaced, because the partial it styles —
+   commission-rules/partials/_form.blade.php — is unchanged too. The redesign
+   stopped at the screens; restyling the form as well would have meant
+   rewriting a partial nobody asked about, so these keep their agent- prefix
+   and their original rules rather than being half-ported.
+   ========================================================================== */
+
+.agent-rule-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.agent-rule-form-section {
+    padding: 0.95rem;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-card);
+    box-shadow: 0 10px 28px rgba(var(--color-text-rgb), 0.04);
+}
+
+.agent-rule-form-section__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.72rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.agent-rule-form-section__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 10px;
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+}
+
+.agent-rule-form-section__head h6 {
+    margin-bottom: 0.15rem;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+}
+
+.agent-rule-form-section__head p {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.agent-rule-form .form-label {
+    color: var(--color-text-subtle);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+}
+
+.agent-rule-form .form-control,
+.agent-rule-form .form-select,
+.agent-rule-form .input-group-text {
+    border-color: var(--color-border-strong);
+    border-radius: 10px;
+}
+
+.agent-rule-form .form-control:focus,
+.agent-rule-form .form-select:focus {
+    box-shadow: var(--top-focus-ring);
+}
+
+.agent-rule-switch-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+/* ----- Narrow ----- */
+@media (max-width: 991.98px) {
+    .ag-review__body {
+        flex-direction: column;
+    }
+
+    .ag-review__rail {
+        flex: 0 0 auto;
+        width: 100%;
+        border-inline-end: 0;
+        border-block-end: 1px solid var(--color-border);
+    }
+
+    .ag-fallback__control {
+        width: 100%;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ag-review__actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ag-review__actions .btn {
+        max-width: none;
+        width: 100%;
+    }
+
+    .agent-rule-form-section {
+        padding: 0.8rem;
+    }
+
+    .agent-rule-switch-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-switch-card {
+        align-items: flex-start;
+    }
+}

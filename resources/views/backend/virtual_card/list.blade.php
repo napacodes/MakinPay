@@ -1,0 +1,116 @@
+@extends('backend.virtual_card.index')
+@section('title', __('Virtual Cards'))
+
+@section('virtual_card_header')
+    <x-page-header
+        icon="fa-credit-card"
+        :title="__('All Virtual Cards')"
+        :subtitle="__('Monitor issued cards, assigned users, providers, wallets, and card lifecycle state.')"
+        :stats="[
+            ['label' => __('Cards'), 'value' => $cards->total()],
+            ['label' => __('Providers'), 'value' => $providers->count()],
+        ]"
+    />
+@endsection
+
+@section('virtual_card_content')
+    <div class="card-body vc-admin-board">
+        <div class="vc-admin-toolbar">
+            <form action="{{ route('admin.virtual-card.list') }}" method="GET" class="vc-admin-filter-form">
+                <div class="vc-admin-filter-form__status">
+                    <x-form.select name="status" :options="$statuses" :selected="request('status')" :includeBlank="true" aria-label="{{ __('Filter by status') }}"/>
+                </div>
+                <div class="vc-admin-filter-form__provider">
+                    <x-form.select name="provider_id" :options="$providers->pluck('name', 'id')->toArray()" :selected="request('provider_id')" :includeBlank="true" aria-label="{{ __('Filter by provider') }}"/>
+                </div>
+                <div class="vc-admin-filter-form__search">
+                    <label for="virtual-card-search" class="visually-hidden">{{ __('Search virtual cards') }}</label>
+                    <div class="input-group">
+                        <input id="virtual-card-search" type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="{{ __('Search by card, user, email...') }}">
+                        <button type="submit" class="btn btn-primary" aria-label="{{ __('Search cards') }}">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive vc-admin-table vc-admin-table--cards">
+            <table class="table align-middle mb-0 vc-admin-table__table">
+                <thead>
+                    <tr>
+                        <th class="vc-admin-table__cell--card">{{ __('Card') }}</th>
+                        <th class="vc-admin-table__cell--user">{{ __('User') }}</th>
+                        <th class="vc-admin-table__cell--provider">{{ __('Provider') }}</th>
+                        <th class="vc-admin-table__cell--wallet">{{ __('Wallet') }}</th>
+                        <th class="vc-admin-table__cell--status">{{ __('Status') }}</th>
+                        <th class="vc-admin-table__cell--issued">{{ __('Issued') }}</th>
+                        <th class="text-end admin-table-actions-heading">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse($cards as $card)
+                    @php
+                        $statusVal = $card->status?->value ?? 'inactive';
+                        $isActive  = $statusVal === \App\Enums\VirtualCard\VirtualCardStatus::Active->value;
+                        $isFrozen  = in_array($statusVal, [
+                            \App\Enums\VirtualCard\VirtualCardStatus::Inactive->value,
+                            \App\Enums\VirtualCard\VirtualCardStatus::Blocked->value,
+                        ], true);
+                    @endphp
+                    <tr>
+                        <td class="vc-admin-table__cell--card">
+                            <span class="vc-admin-chip vc-admin-chip--success">**** {{ $card->last4 }}</span>
+                            <small class="d-block text-muted mt-1">{{ $card->name_on_card }}</small>
+                        </td>
+                        <td class="vc-admin-table__cell--user">
+                            <div class="fw-semibold">{{ $card->user->first_name }} {{ $card->user->last_name }}</div>
+                            <small class="text-muted">{{ $card->user->email }}</small>
+                        </td>
+                        <td class="vc-admin-table__cell--provider">{{ $card->provider->name ?? '-' }}</td>
+                        <td class="vc-admin-table__cell--wallet"><span class="vc-admin-chip">{{ $card->wallet->currency->code ?? '-' }}</span></td>
+                        <td class="vc-admin-table__cell--status"><span class="badge bg-{{ $card->status->badgeColor() }}">{{ $card->status->label() }}</span></td>
+                        <td class="vc-admin-table__cell--issued">
+                            <div class="fw-semibold">{{ $card->created_at->format('Y-m-d') }}</div>
+                            <small class="text-muted">{{ $card->created_at->diffForHumans() }}</small>
+                        </td>
+                        <td class="text-end vc-admin-table__cell--actions admin-table-actions-cell">
+                            @if($isActive || $isFrozen)
+                                @can('virtual-card-action')
+                                    <form action="{{ route('admin.virtual-card.update-status') }}" method="POST" class="admin-table-actions__form" data-vc-confirm="{{ $isActive ? __('Inactivate this card? Authorisations will be declined until reactivated.') : __('Reactivate this card?') }}">
+                                        @csrf
+                                        <input type="hidden" name="card_id" value="{{ $card->id }}">
+                                        <input type="hidden" name="status" value="{{ $isActive ? 'inactive' : 'active' }}">
+                                        <button type="submit" class="btn btn-sm admin-table-action {{ $isActive ? 'btn-outline-warning admin-table-action--warning' : 'btn-outline-success admin-table-action--success' }}">
+                                            <i class="fa-solid {{ $isActive ? 'fa-snowflake' : 'fa-circle-play' }}" aria-hidden="true"></i>
+                                            {{ $isActive ? __('Inactivate') : __('Activate') }}
+                                        </button>
+                                    </form>
+                                @endcan
+                            @else
+                                <span class="badge bg-secondary">{{ __('No action available') }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7">
+                            <x-admin-not-found
+                                :title="__('No cards found')"
+                                :message="__('Issued virtual cards matching the current filters will appear here.')"
+                                icon="fa-credit-card"
+                            />
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($cards->hasPages())
+            <div class="d-flex justify-content-end mt-3">
+                {{ $cards->withQueryString()->links() }}
+            </div>
+        @endif
+    </div>
+@endsection

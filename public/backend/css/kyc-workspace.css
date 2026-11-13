@@ -1,0 +1,882 @@
+/*
+ * KYC review workspace — admin panel
+ *
+ * A modal could show the documents but not let anyone work: closing and
+ * reopening it for each of twelve submissions is the cost of a review
+ * session. This is the full-screen version — documents on one side at a size
+ * you can actually read them, the evidence beside them, the decision under
+ * both, and the queue still under the reviewer's feet.
+ *
+ * Declares no scrollbar and no checkbox rules: both are canon, declared once
+ * in custom.css. Logical properties throughout, so this mirrors in dir=rtl.
+ */
+
+.kw {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+@media (max-width: 1199.98px) {
+    .kw {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.kw-panel {
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* ── Document viewer ────────────────────────────────────────────────────── */
+
+.kw-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.kw-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--color-surface-soft);
+}
+
+.kw-tab {
+    height: 30px;
+    padding-inline: 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-subtle);
+    font-family: inherit;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.kw-tab.is-active {
+    background: var(--color-card);
+    color: var(--color-text);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.kw-tools {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.kw-zoom {
+    min-inline-size: 48px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    color: var(--color-text-soft);
+}
+
+/*
+ * The stage is dark on purpose: a scanned document is nearly all white, and
+ * on a white page its edges disappear.
+ */
+.kw-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-block-size: 460px;
+    padding: 20px;
+    background: var(--shell-bg-end);
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.kw-doc {
+    display: none;
+    max-inline-size: 100%;
+}
+
+.kw-doc.is-active {
+    display: block;
+}
+
+.kw-stage.is-comparing .kw-doc {
+    display: block;
+    max-inline-size: 48%;
+}
+
+.kw-doc img {
+    display: block;
+    max-inline-size: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+    transition: transform 0.15s ease;
+}
+
+.kw-doc__caption {
+    display: block;
+    margin-block-start: 8px;
+    text-align: center;
+    font-size: var(--font-xs);
+    color: var(--shell-text);
+}
+
+.kw-doc__file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 22px;
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.kw-stage__empty {
+    font-size: var(--font-sm);
+    color: var(--shell-text);
+}
+
+/* ── Evidence column ────────────────────────────────────────────────────── */
+
+.kw-evidence {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.kw-block {
+    padding: 12px 14px;
+}
+
+.kw-block + .kw-block {
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.kw-block__title {
+    margin: 0 0 8px;
+    font-size: var(--font-sm);
+    /* app.css sets every h1–h6 to 500 !important, so this has to answer it. */
+    font-weight: var(--font-semibold) !important;
+    color: var(--color-text);
+}
+
+.kw-facts {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.kw-facts dt {
+    margin: 0;
+    font-size: var(--font-2xs);
+    color: var(--color-text-muted);
+}
+
+.kw-facts dd {
+    margin: 2px 0 0;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* ── Decision bar ───────────────────────────────────────────────────────── */
+
+.kw-decide {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px;
+}
+
+.kw-decide__reason {
+    inline-size: 260px;
+}
+
+.kw-decide__remarks {
+    flex-grow: 1;
+    min-inline-size: 220px;
+}
+
+/*
+ * The form's default button, and it exists only to be disabled.
+ *
+ * Approve and Reject are both submits, so Enter in the remarks field ran the
+ * first one in tree order — Reject. This takes that slot and does nothing,
+ * because a disabled default button makes implicit submission a no-op. It is
+ * never shown, never focusable and never announced; the reasoning sits beside
+ * it in review.blade.php.
+ */
+.kw-decide__noenter {
+    display: none;
+}
+
+.kw-decide__buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kw-note {
+    padding: 9px 14px;
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-surface-soft);
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+}
+
+/*
+ * A submission with no uploads should not hold a 460px dark void open. The
+ * viewer shrinks to a plain note and the evidence — which is all there is to
+ * read — takes the width.
+ */
+.kw--nodocs {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.kw--nodocs .kw-stage {
+    min-block-size: 0;
+    padding: 28px 20px;
+    background: var(--color-surface-alt);
+}
+
+.kw--nodocs .kw-stage__empty {
+    color: var(--color-text-subtle);
+}
+
+.kw--nodocs .kw-toolbar {
+    display: none;
+}
+
+.kw-block__hint {
+    margin-inline-start: 6px;
+    font-size: var(--font-2xs);
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+/* ── Evidence cards ─────────────────────────────────────────────────────── */
+
+/*
+ * A titled card: tile, heading, verdict pill, and a reading pinned to the
+ * row's end. The provider verdict used to be two untitled blocks with a
+ * loose sentence hanging off the second, which read as two unrelated facts
+ * rather than one engine's answer.
+ */
+.kw-card__head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    padding: 11px 14px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.kw-card__title {
+    margin: 0;
+    font-size: var(--font-sm);
+    /* Same reason as .kw-block__title: app.css's 500 !important. */
+    font-weight: var(--font-semibold) !important;
+    color: var(--color-text);
+}
+
+/*
+ * The verdict timestamp, the mismatch count, the "Full profile" link: one
+ * reading at the end of the card's header row. Logical, so it reaches the
+ * other end in Arabic rather than staying pinned to the left.
+ */
+.kw-card__aside {
+    margin-inline-start: auto;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.kw-card__foot {
+    padding: 9px 14px;
+    border-block-start: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+}
+
+.kw-ref {
+    font-family: var(--font-mono);
+    color: var(--color-text);
+}
+
+/* The engine's letter tile, in the accent the provider gallery gives it. */
+.kw-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 22px;
+    block-size: 22px;
+    border-radius: var(--radius-md);
+    background: var(--color-text-soft);
+    color: var(--color-text-inverse);
+    font-size: var(--font-2xs);
+    font-weight: 700;
+    line-height: 1;
+}
+
+.kw-tile--emerald { background: var(--color-success-deep); }
+.kw-tile--azure   { background: var(--color-info-deep); }
+.kw-tile--violet  { background: var(--color-violet); }
+
+.kw-tile--slate {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/* ── Provider checks ────────────────────────────────────────────────────── */
+
+/*
+ * Ported from kyc-review-modal.css, which this page never linked — so these
+ * rows rendered as unstyled list items on the one screen that shows them.
+ * That sheet also carries modal chrome (overlay, gradient header, fixed
+ * sizing), which is why the rules moved rather than the link.
+ */
+.kw-checks {
+    margin: 0;
+    padding-block: 6px;
+    padding-inline: 0;
+    list-style: none;
+}
+
+.kw-check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 14px;
+    font-size: var(--font-xs);
+}
+
+.kw-check__name {
+    flex-grow: 1;
+    min-inline-size: 0;
+    color: var(--color-text-soft);
+}
+
+.kw-check__value {
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+}
+
+.kw-check.is-pass i {
+    color: var(--color-success-strong);
+}
+
+.kw-check.is-pass .kw-check__value {
+    color: var(--color-success-reading);
+}
+
+.kw-check.is-flag {
+    background: var(--tint-danger);
+}
+
+.kw-check.is-flag i {
+    color: var(--color-danger-deep);
+}
+
+.kw-check.is-flag .kw-check__name {
+    color: var(--color-palette-7f1d1d);
+    font-weight: 600;
+}
+
+.kw-check.is-flag .kw-check__value {
+    color: var(--color-danger-deep);
+}
+
+/*
+ * A check the engine never ran is not a failed check. It used to paint red,
+ * which told the reviewer the provider had found something when in fact it
+ * had been asked nothing.
+ */
+.kw-check.is-skip i,
+.kw-check.is-skip .kw-check__name,
+.kw-check.is-skip .kw-check__value {
+    color: var(--color-text-muted);
+}
+
+.kw-check.is-skip i {
+    color: var(--color-text-faint);
+}
+
+/* ── Consent quote ──────────────────────────────────────────────────────── */
+
+/*
+ * The opening quote mark is drawn, so the wording itself is reproduced
+ * exactly as the applicant accepted it. The inline padding is the room that
+ * glyph sits in, and it has to move with the text direction.
+ */
+.kw-quote {
+    position: relative;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    padding-block: 10px;
+    padding-inline: 34px 14px;
+    border-inline-start: 3px solid var(--color-primary-tint);
+    border-start-end-radius: var(--radius-lg);
+    border-end-end-radius: var(--radius-lg);
+    background: var(--color-surface-alt);
+    color: var(--color-text-soft);
+    font-size: var(--font-xs);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.kw-quote::before {
+    content: "\201C";
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-start: 12px;
+    color: var(--color-primary-tint);
+    font-size: 26px;
+    line-height: 1.4;
+}
+
+/* ── Audit trail ────────────────────────────────────────────────────────── */
+
+.kw-trail {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+.kw-trail__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.kw-trail__dot {
+    inline-size: 8px;
+    block-size: 8px;
+    flex-shrink: 0;
+    margin-block-start: 5px;
+    border-radius: 50%;
+    background: var(--color-text-faint);
+}
+
+.kw-trail__dot--primary { background: var(--color-primary); }
+.kw-trail__dot--success { background: var(--color-success-strong); }
+.kw-trail__dot--warning { background: var(--color-warning-strong); }
+.kw-trail__dot--danger  { background: var(--color-danger-strong); }
+.kw-trail__dot--info    { background: var(--color-info-strong); }
+
+/*
+ * The step the reviewer is about to take, drawn hollow: the trail otherwise
+ * ends on whatever the pipeline last did, and nothing on the card says the
+ * next entry is theirs.
+ */
+.kw-trail__dot--pending {
+    background: var(--color-card);
+    border: 2px dashed var(--color-palette-cbd5e1);
+}
+
+.kw-trail__body {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+}
+
+.kw-trail__label {
+    font-size: var(--font-xs);
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.kw-trail__item--pending .kw-trail__label {
+    color: var(--color-text-muted);
+}
+
+.kw-trail__meta {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+/* ── Viewer toolbar ─────────────────────────────────────────────────────── */
+
+/*
+ * `.kt-iconbtn` lives in kyc-template.css, which this page does not load, so
+ * the zoom, rotate and download controls were unsized browser buttons. These
+ * are the same 32px squares the board draws, declared where they are used.
+ */
+.kw-iconbtn,
+.kw-toolbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    block-size: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.kw-iconbtn {
+    inline-size: 32px;
+    padding: 0;
+}
+
+/* Compare is the one control whose meaning an icon alone does not carry. */
+.kw-toolbtn {
+    padding-inline: 11px;
+}
+
+.kw-iconbtn:hover,
+.kw-toolbtn:hover,
+.kw-iconbtn:focus-visible,
+.kw-toolbtn:focus-visible {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.kw-toolbtn[aria-pressed="true"] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-deep);
+}
+
+/* ── Document provenance strip ──────────────────────────────────────────── */
+
+/*
+ * What the board calls the thumbnail strip, reduced to what this
+ * installation can actually say. Neither "scanned clean" nor "stored
+ * outside the web root" is true here — the files sit on the public disk and
+ * nothing scans them — so the strip carries the upload time and the field
+ * the file was filed under, and claims nothing else.
+ */
+.kw-stagefoot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-block-start: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.kw-stagefoot__label {
+    font-weight: 600;
+    color: var(--color-text-soft);
+}
+
+.kw-stagefoot__at {
+    margin-inline-start: auto;
+}
+
+/* ── Account facts ──────────────────────────────────────────────────────── */
+
+/*
+ * Three up, for the account card only. `.kw-facts` is shared with the stated
+ * details and would rewrap those to three columns too, where a stated
+ * address has nowhere near the room.
+ */
+.kw-facts--3up {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 575.98px) {
+    .kw-facts--3up {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.kw-facts dd.is-warning { color: var(--color-warning-deep); }
+.kw-facts dd.is-success { color: var(--color-success-reading); }
+.kw-facts dd.is-danger  { color: var(--color-danger-deep); }
+
+/* ── Decision bar ───────────────────────────────────────────────────────── */
+
+/*
+ * The decision stays under both panes while the reviewer reads down the
+ * evidence. It scrolled away with the page before, so deciding meant
+ * scrolling back past everything you had just read.
+ *
+ * Sticky only where there is room for it: below the single-column
+ * breakpoint the bar is most of a short viewport, and pinning it there
+ * leaves nothing to read.
+ */
+@media (min-width: 1200px) {
+    .kw-decision {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 2;
+        background: var(--color-card);
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+    }
+}
+
+/* ── Decision bar ───────────────────────────────────────────────────────── */
+
+/*
+ * The two decision buttons, in the design's own red and green.
+ *
+ * They were `.btn-danger` and `.btn-success` and nothing on this page
+ * retoned them, so they fell all the way through to CoreUI's raw palette in
+ * app.css: #e55353 and #1b9e3e, both with CoreUI's near-black #080a0c label.
+ * Beside a design drawn in #dc2626 and #16a34a on white that reads as a
+ * different product, which is exactly what the operator saw.
+ *
+ * Retoned by overriding CoreUI's own custom properties rather than
+ * background and color, so hover, active, disabled and the focus ring stay
+ * coherent and no rule needs !important. Scoped to this bar: retinting
+ * .btn-success globally would move every admin screen.
+ */
+.kw-decide__buttons .btn-danger {
+    --cui-btn-color: var(--color-text-inverse);
+    --cui-btn-bg: var(--color-danger-strong);
+    --cui-btn-border-color: var(--color-danger-strong);
+    --cui-btn-hover-color: var(--color-text-inverse);
+    --cui-btn-hover-bg: var(--color-danger-deep);
+    --cui-btn-hover-border-color: var(--color-danger-deep);
+    --cui-btn-active-color: var(--color-text-inverse);
+    --cui-btn-active-bg: var(--color-danger-deep);
+    --cui-btn-active-border-color: var(--color-danger-deep);
+    --cui-btn-disabled-color: var(--color-text-inverse);
+    --cui-btn-disabled-bg: var(--color-danger-strong);
+    --cui-btn-disabled-border-color: var(--color-danger-strong);
+    --cui-btn-focus-shadow-rgb: var(--color-danger-deep-rgb);
+}
+
+.kw-decide__buttons .btn-success {
+    --cui-btn-color: var(--color-text-inverse);
+    --cui-btn-bg: var(--color-success-strong);
+    --cui-btn-border-color: var(--color-success-strong);
+    --cui-btn-hover-color: var(--color-text-inverse);
+    --cui-btn-hover-bg: var(--color-success-deep);
+    --cui-btn-hover-border-color: var(--color-success-deep);
+    --cui-btn-active-color: var(--color-text-inverse);
+    --cui-btn-active-bg: var(--color-success-deep);
+    --cui-btn-active-border-color: var(--color-success-deep);
+    --cui-btn-disabled-color: var(--color-text-inverse);
+    --cui-btn-disabled-bg: var(--color-success-strong);
+    --cui-btn-disabled-border-color: var(--color-success-strong);
+    --cui-btn-focus-shadow-rgb: var(--color-success-strong-rgb);
+    box-shadow: 0 4px 12px rgba(var(--color-success-strong-rgb), 0.26);
+}
+
+/*
+ * And their shape. `.btn` is inline-block, so the gap between a glyph and
+ * its label was a text space rather than a measured one.
+ */
+.kw-decide__buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    block-size: 38px;
+    padding-block: 0;
+    padding-inline: 16px;
+    border-width: 0;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+}
+
+.kw-decide__buttons .btn > i {
+    font-size: var(--font-md);
+    line-height: 1;
+}
+
+/* The two fields beside them, on the same 38px step. */
+.kw-decide .form-control,
+.kw-decide .form-select {
+    block-size: 38px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+}
+
+/*
+ * :not(.is-invalid) is load-bearing — the unqualified selector ties with
+ * app.css's `.form-select.is-invalid` and wins on source order, erasing the
+ * red border a rejected submit needs.
+ */
+.kw-decide .form-control:not(.is-invalid),
+.kw-decide .form-select:not(.is-invalid) {
+    border-color: var(--color-border-strong);
+}
+
+.kw-decide .form-control {
+    padding-inline: 12px;
+}
+
+.kw-decide .form-select {
+    padding-inline: 11px 28px;
+}
+
+/*
+ * The caption above each field. The !important is not stylistic: custom.css
+ * sets `.form-label { margin-bottom: 0.2rem !important }` and otherwise wins.
+ */
+.kw-decide .form-label {
+    margin-block-end: 5px !important;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-soft);
+}
+
+.kw-decide .form-label .text-body-secondary {
+    font-weight: var(--font-normal);
+}
+
+/* ── Readings that are links ────────────────────────────────────────────── */
+
+/*
+ * "Full profile" sits in the same slot as the verdict timestamp and wore the
+ * same muted grey, so the one thing in the card header you can click did not
+ * look clickable. Element-plus-class beats the bare class, so the timestamp
+ * span keeps its colour and no !important is needed.
+ */
+a.kw-card__aside {
+    color: var(--color-primary-hover);
+    font-weight: var(--font-medium);
+}
+
+a.kw-card__aside:hover,
+a.kw-card__aside:focus-visible {
+    color: var(--color-primary-deep);
+}
+
+/*
+ * The verdict pill carries the card's heading, not a table row's caption, so
+ * it takes the larger of the two pill sizes. The queue's rows keep the
+ * tighter one.
+ */
+.kw-card__head .kq-pill {
+    font-size: var(--font-size-px-11);
+}
+
+/* ── The workspace, at two columns ──────────────────────────────────────── */
+
+/*
+ * One surface, not two cards.
+ *
+ * The board draws the document pane and the evidence column as a single
+ * panel split by a hairline. The page drew two detached rounded cards with
+ * a gap between them, which reads as two unrelated things rather than one
+ * workspace. `.kw` becomes the card and its children give up their own
+ * chrome — done at the two-column breakpoint only, because stacked on a
+ * narrow screen they really are separate cards.
+ */
+@media (min-width: 1200px) {
+    .kw {
+        gap: 0;
+        align-items: stretch;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        background: var(--color-card);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .kw > .kw-panel,
+    .kw > .kw-evidence {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .kw > .kw-panel {
+        border-inline-end: 1px solid var(--color-border);
+    }
+
+    /* The evidence column's own cards keep their edges inside it. */
+    .kw-evidence {
+        padding: 14px;
+        overflow-y: auto;
+    }
+
+    .kw-evidence > .kw-panel,
+    .kw-evidence .kw-pair > .kw-panel {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+    }
+
+    /*
+     * The stage takes whatever height is left rather than a fixed 460px, so
+     * the two columns end level instead of one trailing the other.
+     */
+    .kw > .kw-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .kw .kw-stage {
+        flex: 1 1 auto;
+        min-block-size: 0;
+    }
+}
+
+/*
+ * Consent and the audit trail sit side by side under Stated details, as the
+ * board draws them — two short cards rather than one tall one. They stack
+ * again wherever the evidence column itself is too narrow to halve.
+ */
+.kw-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 1600px) {
+    .kw-pair {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+/* The hint that rides in a card's head band beside its title. */
+.kw-card__hint {
+    font-size: var(--font-2xs);
+    color: var(--color-text-muted);
+}
+
+/*
+ * The provider footer carries two things now: the engine's sentence and the
+ * reference it filed under. They sit on one line and wrap as a pair.
+ */
+.kw-card__foot {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+}
+
+.kw-card__foot-ref {
+    margin-inline-start: auto;
+    white-space: nowrap;
+}
+

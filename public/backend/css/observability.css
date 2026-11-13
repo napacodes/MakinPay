@@ -1,0 +1,2070 @@
+/*
+ * Error Management & Observability
+ * ---------------------------------------------------------------------------
+ * Every colour here resolves to a token in _variables.css. There is no raw hex
+ * in this file on purpose: the severity scale is an alias of the existing
+ * danger/warning/info tokens, so re-branding the admin moves the error badges
+ * with it instead of leaving them behind at last year's palette.
+ *
+ * The dark code panes reuse the ayu-dark palette already shipped for
+ * CodeMirror rather than introducing a second dark theme to drift from it.
+ *
+ * Typography is deliberately single-typeface. Every value on these screens —
+ * exception classes, file paths, stack frames, the source excerpt and the
+ * debug report — is set in the admin's Inter, not in a monospace face, so the
+ * module reads as part of this panel rather than as a developer tool bolted
+ * onto it. The <pre> and <code> elements therefore carry an explicit
+ * font-family, because CoreUI's base rule would otherwise pull them back to
+ * monospace. Anywhere digits have to line up in a column, tabular-nums does
+ * the job the monospace face used to.
+ */
+
+.observability {
+    --obs-radius: var(--radius-lg, 0.5rem);
+    --obs-radius-lg: var(--radius-xl, 0.75rem);
+    --obs-border: var(--color-border-soft);
+    --obs-border-strong: var(--color-border-strong);
+    --obs-surface: var(--color-surface-alt);
+    --obs-card: var(--color-card);
+    --obs-text: var(--color-text);
+    --obs-text-soft: var(--color-text-soft);
+    --obs-text-subtle: var(--color-text-subtle);
+    --obs-text-muted: var(--color-text-muted);
+    --obs-text-faint: var(--color-text-faint);
+    --obs-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.035);
+}
+
+/* ---------------------------------------------------------------------------
+ * Severity badge
+ *
+ * Glyph, uppercase label and lightness each carry the level independently, so
+ * the set stays readable in grayscale and to a screen reader. There is
+ * deliberately no icon-only variant: an unlabelled shape has to be learned.
+ * ------------------------------------------------------------------------ */
+
+.obs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 20px;
+    padding: 0 7px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm, 0.35rem);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.obs-badge__glyph {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 11px;
+    fill: currentColor;
+}
+
+.obs-badge--fatal {
+    border-color: var(--color-danger-deep);
+    background: var(--err-fatal);
+    color: var(--color-white);
+}
+
+.obs-badge--error {
+    border-color: rgba(var(--color-danger-rgb), 0.28);
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--err-fatal);
+}
+
+.obs-badge--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.32);
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--err-warning);
+}
+
+.obs-badge--info {
+    border-color: rgba(var(--color-info-rgb), 0.28);
+    background: rgba(var(--color-info-rgb), 0.12);
+    color: var(--err-info);
+}
+
+.obs-badge--muted {
+    border-color: var(--color-border);
+    background: var(--color-surface-soft);
+    color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Saved-view tab strip
+ * ------------------------------------------------------------------------ */
+
+.obs-views {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--obs-border);
+}
+
+.obs-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 13px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-decoration: none;
+    transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.obs-view:hover {
+    color: var(--color-primary);
+}
+
+.obs-view.is-active {
+    border-bottom-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.obs-view__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 17px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+.obs-view.is-active .obs-view__count {
+    background: rgba(var(--color-primary-rgb), 0.12);
+    color: var(--color-primary-deep);
+}
+
+/* ---------------------------------------------------------------------------
+ * Query pills
+ *
+ * An unparseable token renders as an invalid pill rather than throwing. The
+ * wavy underline is what tells a reader the filter is being ignored, which is
+ * the difference between "no results" and "your query was wrong".
+ * ------------------------------------------------------------------------ */
+
+.obs-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.obs-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 6px;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.24);
+    border-radius: var(--radius-sm, 0.35rem);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary-deep);
+    font-size: var(--font-size-px-11);
+    white-space: nowrap;
+}
+
+.obs-pill--invalid {
+    border-color: rgba(var(--color-danger-rgb), 0.4);
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: var(--err-fatal);
+    text-decoration: underline wavy var(--color-danger);
+    text-underline-offset: 2px;
+}
+
+.obs-pill__remove {
+    display: inline-grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.obs-pill__remove:hover {
+    background: rgba(var(--color-primary-rgb), 0.16);
+}
+
+/* ---------------------------------------------------------------------------
+ * Bulk action bar
+ * ------------------------------------------------------------------------ */
+
+.obs-bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.6rem;
+    padding: 8px 10px;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.24);
+    border-radius: var(--obs-radius);
+    background: rgba(var(--color-primary-rgb), 0.06);
+}
+
+.obs-bulk__count {
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    color: var(--color-primary-deep);
+}
+
+.obs-bulk__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--obs-radius);
+    background: transparent;
+    color: var(--color-primary);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.obs-bulk__action:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* ---------------------------------------------------------------------------
+ * Issues table
+ *
+ * table-layout: fixed is the whole fix. Without it the browser sizes columns
+ * to their widest content, and one stack frame — a closure path several
+ * hundred characters long — is enough to push Status and Actions past the
+ * right edge of the card. Fixed widths make the Error column absorb whatever
+ * is left, and everything inside it truncates.
+ * ------------------------------------------------------------------------ */
+
+.obs-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/*
+ * admin-table.css sets min-width: 100% on the same element through a more
+ * specific selector, which lets the table compress below its own column
+ * widths on a narrow screen until the headers overlap. Matching that
+ * selector and adding the class is what makes the floor hold, so the
+ * wrapper scrolls instead of the columns collapsing.
+ *
+ * The floor is 860px because that is what fits. On a 1280px screen with the
+ * sidebar open the card gives this table roughly 880px, and an earlier 940px
+ * floor pushed the Actions column past the right edge — reachable only by
+ * scrolling the table sideways, which is exactly the column somebody came to
+ * the list to click.
+ */
+.card > .card-body > .table-responsive > table.table.obs-table,
+.table-responsive > table.table.obs-table {
+    min-width: 860px;
+}
+
+.obs-table__select {
+    width: 40px;
+    text-align: center;
+}
+
+.obs-table__source {
+    width: 100px;
+}
+
+.obs-table__events {
+    width: 110px;
+}
+
+.obs-table__seen {
+    width: 122px;
+}
+
+.obs-table__status {
+    width: 104px;
+}
+
+.obs-table__actions {
+    width: 200px;
+}
+
+/* The one flexible column. Its children are what need containing. */
+.obs-error {
+    min-width: 0;
+}
+
+.obs-error__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+/*
+ * Truncation lives on the cell contents rather than the cell, because a table
+ * cell with overflow:hidden still stretches its column in a fixed layout.
+ */
+.obs-error-class,
+.obs-error-message,
+.obs-culprit,
+.obs-metric__meta {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-error__head .obs-error-class {
+    flex: 0 1 auto;
+}
+
+.obs-metric {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+    color: var(--obs-text);
+    line-height: 1.2;
+}
+
+.obs-metric__meta {
+    color: var(--obs-text-faint);
+    font-size: var(--font-2xs);
+}
+
+.obs-metric__meta--strong {
+    color: var(--obs-text-soft);
+    font-weight: var(--font-bold);
+}
+
+.obs-table .obs-sparkline {
+    margin-top: 2px;
+}
+
+.obs-table__status .admin-users-pill {
+    margin-bottom: 2px;
+}
+
+/*
+ * Below the min-width the wrapper scrolls sideways on its own. The page body
+ * never does — an admin triaging from a phone should not have to drag the
+ * whole layout to read a row.
+ */
+@media (max-width: 991.98px) {
+    .card > .card-body > .table-responsive > table.table.obs-table,
+    .table-responsive > table.table.obs-table {
+        min-width: 820px;
+    }
+
+    .obs-table__actions {
+        width: 190px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+ * Issues table cells
+ * ------------------------------------------------------------------------ */
+
+.obs-error-class {
+    display: block;
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    color: var(--obs-text);
+    text-decoration: none;
+}
+
+.obs-error-message {
+    color: var(--obs-text-soft);
+    font-size: var(--font-xs);
+}
+
+.obs-culprit {
+    font-size: var(--font-size-px-105);
+    color: var(--obs-text-faint);
+}
+
+.obs-code-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 17px;
+    padding: 0 6px;
+    border: 1px solid var(--color-primary-subtle);
+    border-radius: var(--radius-sm, 0.35rem);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-deep);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    text-decoration: none;
+}
+
+.obs-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 9px;
+    border: 1px solid var(--obs-border);
+    border-radius: 999px;
+    background: var(--obs-surface);
+    color: var(--obs-text-subtle);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.obs-source__dot {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 5px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.obs-sparkline {
+    display: block;
+    width: 62px;
+    height: 20px;
+}
+
+.obs-sparkline polyline {
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------------------
+ * Status pill
+ *
+ * The module carries its own rather than reusing .admin-users-pill: that class
+ * resolves its colours from --aul-* tokens scoped to .admin-users-page, so on
+ * any other wrapper it renders with a transparent border and no background —
+ * the status read as bare text. These resolve from the shared palette, which
+ * every admin page defines.
+ * ------------------------------------------------------------------------ */
+
+.obs-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-height: 20px;
+    padding: 2px 9px;
+    border: 1px solid var(--obs-border);
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--obs-text-subtle);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.obs-status--primary {
+    border-color: rgba(var(--color-primary-rgb), 0.24);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary-deep);
+}
+
+.obs-status--info {
+    border-color: rgba(var(--color-info-rgb), 0.26);
+    background: rgba(var(--color-info-rgb), 0.1);
+    color: var(--err-info);
+}
+
+.obs-status--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.3);
+    background: rgba(var(--color-warning-rgb), 0.12);
+    color: var(--err-warning);
+}
+
+.obs-status--success {
+    border-color: rgba(var(--color-success-rgb), 0.28);
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+}
+
+.obs-status--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.26);
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--err-fatal);
+}
+
+.obs-status--secondary {
+    border-color: var(--obs-border-strong);
+    background: var(--color-surface-soft);
+    color: var(--obs-text-muted);
+}
+
+/*
+ * Row actions are deliberately not restyled here. admin-table.css is the
+ * single visual contract for .admin-table-action and enforces its sizing
+ * with !important; a module-local override would only start a specificity
+ * war with it. The buttons stacked because the column was too narrow, so
+ * the column is what got wider — see .obs-table__actions above.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Detail meta strip
+ *
+ * Replaces two cards that between them held four short values and most of a
+ * screen height. The reader is on their way to the tabs; this is signposting,
+ * not content.
+ * ------------------------------------------------------------------------ */
+
+.obs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-lg);
+    background: var(--obs-border);
+}
+
+.obs-meta__item {
+    display: flex;
+    flex: 0 1 auto;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+    padding: 9px 14px;
+    background: var(--obs-card);
+}
+
+.obs-meta__item--wide {
+    min-width: 170px;
+}
+
+.obs-meta__item--grow {
+    flex: 1 1 260px;
+}
+
+.obs-meta__label {
+    color: var(--obs-text-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.obs-meta__value {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--obs-text);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-meta__value--mono {
+    font-weight: var(--font-medium, 500);
+    color: var(--obs-text-soft);
+}
+
+.obs-meta__value--affected {
+    color: var(--err-fatal);
+}
+
+/* ---------------------------------------------------------------------------
+ * Fact grid
+ *
+ * Environment values are short. A table row each gave them a border and a full
+ * line, which read as more information than is there.
+ * ------------------------------------------------------------------------ */
+
+.obs-facts {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius);
+    background: var(--obs-border);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.obs-facts__item {
+    padding: 8px 12px;
+    background: var(--obs-card);
+}
+
+.obs-facts dt {
+    color: var(--obs-text-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.obs-facts dd {
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    color: var(--obs-text);
+    font-size: var(--font-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Reference material that is not read on every visit. */
+.obs-note > summary {
+    color: var(--obs-text-muted);
+    cursor: pointer;
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.obs-note > summary code {
+    font-family: var(--font-primary);
+    color: var(--obs-text-faint);
+    font-size: var(--font-2xs);
+}
+
+.obs-note > p {
+    margin-top: 6px;
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+}
+
+/* ---------------------------------------------------------------------------
+ * Detail screen
+ * ------------------------------------------------------------------------ */
+
+.obs-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--obs-border);
+    background: var(--obs-card);
+}
+
+.obs-tab {
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-decoration: none;
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.obs-tab:hover {
+    color: var(--color-primary);
+}
+
+.obs-tab.is-active {
+    border-bottom-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.05);
+    color: var(--color-primary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Editor pane
+ *
+ * The one place in this module set in a monospace face. Everything else here
+ * is Inter, deliberately — but code is the exception that proves the rule: an
+ * excerpt in a proportional face is code somebody has to re-read to be sure
+ * of, and the columns a developer navigates by are gone.
+ *
+ * So this is a small editor rather than a styled <pre>: a filename bar, a
+ * ruled gutter, a marked failing line, and a body that scrolls inside itself
+ * in both directions. That last part is what keeps a four-hundred-line report
+ * or one minified line from stretching the document around it.
+ *
+ * The excerpt shown came out of the stored snapshot, not the filesystem.
+ * Re-reading the file would render the trace against whatever moved into those
+ * line numbers since the deploy.
+ * ------------------------------------------------------------------------ */
+
+.obs-editor {
+    overflow: hidden;
+    border: 1px solid var(--err-code-surface);
+    border-radius: var(--obs-radius-lg);
+    background: var(--err-code-bg);
+}
+
+.obs-editor__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-block: 0;
+    padding-inline: 12px 10px;
+    border-bottom: 1px solid var(--err-code-rule);
+    background: var(--err-code-surface);
+    color: var(--err-code-comment);
+    font-size: var(--font-2xs);
+}
+
+/* The filename reads as an open tab, which is where a developer expects to
+   find it. It is the only element in the bar allowed to shrink. */
+.obs-editor__tab {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 0 8px;
+    border-bottom: 2px solid var(--color-primary);
+    color: var(--err-code-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-2xs);
+}
+
+.obs-editor__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: ltr;
+}
+
+.obs-editor__badge {
+    margin-inline-start: auto;
+    padding: 2px 7px;
+    border-radius: var(--radius-sm, 0.35rem);
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--color-warning);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.obs-editor__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-inline-start: auto;
+    padding: 4px 9px;
+    border: 1px solid var(--err-code-rule);
+    border-radius: var(--radius-sm, 0.35rem);
+    background: transparent;
+    color: var(--err-code-comment);
+    font-size: var(--font-2xs);
+    white-space: nowrap;
+    transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+/* With a badge present the badge has already taken the free space; the button
+   then sits against it rather than pushing away from it a second time. */
+.obs-editor__badge + .obs-editor__action {
+    margin-inline-start: 0;
+}
+
+.obs-editor__action:hover {
+    border-color: var(--err-code-line);
+    color: var(--err-code-text);
+}
+
+.obs-editor__action.is-done {
+    border-color: rgba(var(--color-success-rgb), 0.4);
+    color: var(--color-success);
+}
+
+/* The scroll box, not the page, is what a long capture grows into.
+   max-content on the code element is what lets a wide line scroll sideways
+   while the failing line's highlight still runs the full width of it. */
+.obs-editor__scroll {
+    max-height: 60vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    /* The pane is left-to-right in an Arabic panel too. A gutter that swaps
+       sides puts the line numbers where nothing else in the reader's editor
+       has them, and the code inside is Latin either way. */
+    direction: ltr;
+}
+
+.obs-editor__code {
+    display: block;
+    min-width: max-content;
+    margin: 0;
+    padding: 10px 0;
+    color: var(--err-code-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    line-height: 1.6;
+    tab-size: 4;
+}
+
+.obs-editor__line {
+    display: flex;
+    padding-inline-end: 16px;
+    white-space: pre;
+}
+
+.obs-editor__line:hover {
+    background: var(--err-code-active);
+}
+
+/* The gutter is sticky so line numbers stay put while a wide line is scrolled
+   sideways — the same behaviour as the editor this borrows from. */
+.obs-editor__num {
+    position: sticky;
+    inset-inline-start: 0;
+    flex: 0 0 56px;
+    padding-inline: 0 14px;
+    border-inline-end: 1px solid var(--err-code-rule);
+    margin-inline-end: 14px;
+    background: var(--err-code-bg);
+    color: var(--err-code-line);
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+}
+
+/* Code is left to right whatever the panel's direction is. */
+.obs-editor__text {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: embed;
+}
+
+.obs-editor__line.is-offending {
+    background: var(--err-code-offending);
+}
+
+/* The marker rides the gutter rather than the line, because the gutter is the
+   part that stays put. Drawn on the line it scrolled away with the code, and
+   on a long line the one row worth finding was the row with nothing marking
+   it. */
+.obs-editor__line.is-offending .obs-editor__num {
+    background: var(--err-code-offending);
+    box-shadow: inset 3px 0 0 var(--color-danger);
+    color: var(--color-danger);
+    font-weight: var(--font-bold);
+}
+
+.obs-editor__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--err-code-rule);
+    background: var(--err-code-surface);
+    color: var(--err-code-comment);
+    font-size: var(--font-2xs);
+}
+
+/* Syntax tokens. CodeHighlighter emits these class names server-side, so the
+   pane is coloured in its first paint rather than after one. */
+.obs-editor .tok-comment {
+    color: var(--err-code-comment);
+    font-style: italic;
+}
+
+.obs-editor .tok-string {
+    color: var(--err-code-string);
+}
+
+.obs-editor .tok-keyword {
+    color: var(--err-code-keyword);
+}
+
+.obs-editor .tok-variable {
+    color: var(--err-code-variable);
+}
+
+.obs-editor .tok-number {
+    color: var(--err-code-number);
+}
+
+.obs-editor .tok-type {
+    color: var(--err-code-type);
+}
+
+.obs-editor .tok-function {
+    color: var(--err-code-function);
+}
+
+.obs-editor .tok-atom {
+    color: var(--err-code-atom);
+}
+
+/* Frames: application frames read first, vendor frames are visibly secondary.
+ *
+ * The accent is the shared inset, faded rule this admin uses everywhere else
+ * rather than a solid slab. A flat 3px bar against the row's own 1px divider
+ * puts two weights on one rectangle, which is the pattern
+ * .admin-page-header::before was introduced to replace. */
+
+.obs-frame {
+    position: relative;
+    display: block;
+    padding-block: 8px;
+    padding-inline: 15px 12px;
+    border-bottom: 1px solid var(--obs-border);
+    background: var(--obs-card);
+    color: var(--obs-text-soft);
+    font-size: var(--font-xs);
+    text-decoration: none;
+}
+
+.obs-frame::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--admin-accent-width);
+    border-radius: 0 var(--admin-accent-width) var(--admin-accent-width) 0;
+    background: linear-gradient(
+        180deg,
+        rgba(var(--color-primary-rgb), 0) 0%,
+        rgba(var(--color-primary-rgb), var(--admin-accent-alpha)) 22%,
+        rgba(var(--color-primary-rgb), var(--admin-accent-alpha)) 78%,
+        rgba(var(--color-primary-rgb), 0) 100%
+    );
+    content: "";
+}
+
+.obs-frame--vendor {
+    background: var(--obs-surface);
+    color: var(--obs-text-muted);
+}
+
+.obs-frame--vendor::before {
+    background: linear-gradient(
+        180deg,
+        rgba(var(--color-secondary-rgb), 0) 0%,
+        rgba(var(--color-secondary-rgb), var(--admin-accent-alpha)) 22%,
+        rgba(var(--color-secondary-rgb), var(--admin-accent-alpha)) 78%,
+        rgba(var(--color-secondary-rgb), 0) 100%
+    );
+}
+
+.obs-frame__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1px dashed var(--obs-border-strong);
+    border-radius: var(--obs-radius);
+    background: transparent;
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+/* ---------------------------------------------------------------------------
+ * Money at risk
+ *
+ * The fintech-specific panel. It is what turns "an exception" into "this much
+ * has not been credited", which is the sentence that gets a bug prioritised.
+ * ------------------------------------------------------------------------ */
+
+.obs-money {
+    padding: 12px 14px;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.24);
+    border-radius: var(--obs-radius-lg);
+    background: rgba(var(--color-danger-rgb), 0.06);
+}
+
+.obs-money__figure {
+    display: block;
+    font-size: var(--font-size-px-17);
+    font-weight: var(--font-extrabold);
+    color: var(--err-fatal);
+}
+
+.obs-money__label {
+    display: block;
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--obs-text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Redaction report
+ * ------------------------------------------------------------------------ */
+
+.obs-redaction__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--obs-border);
+    font-size: var(--font-2xs);
+}
+
+.obs-verdict {
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.04em;
+}
+
+.obs-verdict--dropped {
+    color: var(--err-fatal);
+}
+
+.obs-verdict--masked {
+    color: var(--err-warning);
+}
+
+.obs-verdict--kept {
+    color: var(--color-success-deep);
+}
+
+.obs-verdict--unclassified {
+    color: var(--err-info);
+}
+
+.obs-pci {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid rgba(var(--color-success-rgb), 0.28);
+    border-radius: 999px;
+    background: rgba(var(--color-success-rgb), 0.1);
+    color: var(--color-success-deep);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.04em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Notification channels
+ *
+ * One rhythm for the whole screen: 16px between every block, 20px inside
+ * every panel, a 12px inner radius under the 16px card radius. The cards,
+ * the two-up row and the log are the same width apart so nothing reads as
+ * nudged into place.
+ * ------------------------------------------------------------------------ */
+
+.obs-channels {
+    --obs-gap: 16px;
+    --obs-pad: 20px;
+    --obs-radius-card: 16px;
+    --obs-radius-inner: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--obs-gap);
+}
+
+.obs-flip {
+    font-size: 0.8em;
+}
+
+[dir="rtl"] .obs-flip {
+    transform: scaleX(-1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Alerting status strip
+ *
+ * The screen's headline answer, not a decoration. Its tone is the answer: a
+ * failing-only setup is as silent as an empty one and is drawn as loudly.
+ * ------------------------------------------------------------------------ */
+
+.obs-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-inner, var(--obs-radius-lg));
+    background: var(--obs-card);
+    box-shadow: var(--obs-shadow);
+}
+
+.obs-strip__icon {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--obs-radius-inner, var(--obs-radius-lg));
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+    font-size: var(--font-lg);
+}
+
+.obs-strip__body {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.obs-strip__title {
+    color: var(--obs-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-semibold);
+    line-height: 1.45;
+}
+
+.obs-strip__note {
+    color: var(--obs-text-subtle);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+.obs-strip__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--obs-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--obs-card);
+    color: var(--obs-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.obs-strip__action:hover,
+.obs-strip__action:focus-visible {
+    border-color: var(--obs-text-faint);
+    color: var(--obs-text);
+}
+
+.obs-strip--down {
+    border-color: rgba(var(--color-danger-rgb), 0.35);
+    background: rgba(var(--color-danger-rgb), 0.05);
+}
+
+.obs-strip--down .obs-strip__icon {
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--color-danger-deep);
+}
+
+.obs-strip--down .obs-strip__title {
+    color: var(--color-danger-deep);
+}
+
+.obs-strip--degraded,
+.obs-strip--silent {
+    border-color: rgba(var(--color-warning-rgb), 0.4);
+    background: rgba(var(--color-warning-rgb), 0.06);
+}
+
+.obs-strip--degraded .obs-strip__icon,
+.obs-strip--silent .obs-strip__icon {
+    background: rgba(var(--color-warning-rgb), 0.16);
+    color: var(--color-warning-deep);
+}
+
+.obs-strip--healthy {
+    border-color: rgba(var(--color-success-rgb), 0.3);
+    background: rgba(var(--color-success-rgb), 0.05);
+}
+
+/* ---------------------------------------------------------------------------
+ * Channel cards
+ *
+ * Three equal columns of equal height. Head, body and actions sit at the
+ * same offsets in every card whatever its state, so the eye compares three
+ * states rather than three layouts.
+ * ------------------------------------------------------------------------ */
+
+.obs-channels__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--obs-gap);
+    align-items: stretch;
+}
+
+.obs-channel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-card);
+    background: var(--obs-card);
+    box-shadow: var(--obs-shadow);
+    text-align: start;
+    scroll-margin-top: 96px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    container-type: inline-size;
+}
+
+.obs-channel:hover {
+    border-color: var(--obs-border-strong);
+}
+
+.obs-channel--connected {
+    border-color: rgba(var(--color-success-rgb), 0.4);
+}
+
+.obs-channel--failing {
+    border-color: rgba(var(--color-danger-rgb), 0.45);
+    box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb), 0.08);
+}
+
+.obs-channel--failing:hover {
+    border-color: rgba(var(--color-danger-rgb), 0.6);
+}
+
+.obs-channel--retrying {
+    border-color: rgba(var(--color-warning-rgb), 0.45);
+}
+
+.obs-channel:target {
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.22);
+}
+
+.obs-channel__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: var(--obs-pad) var(--obs-pad) 0;
+}
+
+.obs-channel__icon {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--obs-radius-inner);
+    background: var(--obs-surface);
+    color: var(--obs-text-soft);
+    font-size: var(--font-xl);
+}
+
+.obs-channel__icon--slack,
+.obs-channel__icon--discord,
+.obs-channel__icon--teams {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary-deep);
+}
+
+.obs-channel__identity {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.obs-channel__name {
+    margin: 0;
+    overflow: hidden;
+    color: var(--obs-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-semibold);
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-channel__kind {
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+}
+
+.obs-channel__state {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--obs-text-subtle);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.obs-channel__state--connected {
+    background: rgba(var(--color-success-rgb), 0.14);
+    color: var(--color-success-deep);
+}
+
+.obs-channel__state--retrying {
+    background: rgba(var(--color-warning-rgb), 0.16);
+    color: var(--color-warning-deep);
+}
+
+.obs-channel__state--failing {
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--color-danger-deep);
+}
+
+.obs-channel__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.obs-channel__state--not_connected .obs-channel__dot {
+    background: var(--obs-text-faint);
+}
+
+.obs-channel__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    padding: 16px var(--obs-pad) var(--obs-pad);
+}
+
+.obs-channel__notice,
+.obs-channel__facts {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--obs-radius-inner);
+    background: var(--obs-surface);
+}
+
+.obs-channel__notice--empty {
+    border: 1px dashed var(--obs-border-strong);
+}
+
+.obs-channel__notice--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.18);
+    background: rgba(var(--color-danger-rgb), 0.06);
+}
+
+.obs-channel__notice--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.24);
+    background: rgba(var(--color-warning-rgb), 0.07);
+}
+
+.obs-channel__notice-title {
+    color: var(--obs-text-soft);
+    font-size: var(--font-base);
+    font-weight: var(--font-medium);
+}
+
+.obs-channel__notice-text {
+    color: var(--obs-text-subtle);
+    font-size: var(--font-sm);
+    line-height: 1.55;
+}
+
+.obs-channel__error {
+    color: var(--color-danger-deep);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+    overflow-wrap: anywhere;
+}
+
+.obs-channel__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.obs-channel__facts > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.obs-channel__facts dt {
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-medium);
+}
+
+.obs-channel__facts dd {
+    margin: 0;
+    color: var(--obs-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.obs-channel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 14px var(--obs-pad);
+    border-top: 1px solid var(--obs-border);
+}
+
+.obs-channel__actions form {
+    margin: 0;
+}
+
+.obs-channel__actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    padding-inline: 14px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+}
+
+.obs-channel__end {
+    margin-inline-start: auto !important;
+}
+
+/*
+ * A third-width card is too narrow for three labelled controls in one row.
+ * Rather than wrap the disconnect button onto a line of its own, the test
+ * button keeps its icon and its accessible name and drops the visible label.
+ */
+@container (max-width: 380px) {
+    .obs-channel__compact-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .obs-channel__actions .obs-channel__compact {
+        width: 38px;
+        padding: 0;
+    }
+}
+
+.obs-channel__connect {
+    flex: 1 1 auto;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.18);
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--color-primary-deep);
+}
+
+.obs-channel__connect:hover,
+.obs-channel__connect:focus-visible {
+    border-color: rgba(var(--color-primary-rgb), 0.35);
+    background: rgba(var(--color-primary-rgb), 0.16);
+    color: var(--color-primary-deep);
+}
+
+.obs-channel__actions .obs-channel__disconnect {
+    width: 38px;
+    padding: 0;
+    border: 1px solid var(--obs-border-strong);
+    background: var(--obs-card);
+    color: var(--obs-text-muted);
+}
+
+.obs-channel__actions .obs-channel__disconnect:hover,
+.obs-channel__actions .obs-channel__disconnect:focus-visible {
+    border-color: rgba(var(--color-danger-rgb), 0.4);
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: var(--color-danger-deep);
+}
+
+.obs-channel__form {
+    padding: 16px var(--obs-pad) var(--obs-pad);
+    border-top: 1px solid var(--obs-border);
+}
+
+.obs-channel__help {
+    display: block;
+    margin-top: 3px;
+    color: var(--obs-text-muted);
+    font-size: var(--font-2xs);
+    line-height: 1.45;
+}
+
+/* ---------------------------------------------------------------------------
+ * Panels: the preview, the routing table and the delivery log
+ * ------------------------------------------------------------------------ */
+
+.obs-channels__split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--obs-gap);
+    align-items: stretch;
+}
+
+.obs-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-card);
+    background: var(--obs-card);
+    box-shadow: var(--obs-shadow);
+    scroll-margin-top: 96px;
+}
+
+.obs-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 16px;
+    padding: var(--obs-pad) var(--obs-pad) 16px;
+}
+
+.obs-panel__intro {
+    display: flex;
+    flex: 1 1 240px;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.obs-panel__title {
+    margin: 0;
+    color: var(--obs-text);
+    font-size: var(--font-lg);
+    font-weight: var(--font-semibold);
+    line-height: 1.5;
+}
+
+.obs-panel__lead {
+    margin: 0;
+    color: var(--obs-text-muted);
+    font-size: var(--font-sm);
+    line-height: 1.55;
+}
+
+.obs-panel__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    padding: 0 var(--obs-pad) var(--obs-pad);
+}
+
+.obs-panel__body > .tab-pane.active {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.obs-panel__foot {
+    padding: 14px var(--obs-pad);
+    border-top: 1px solid var(--obs-border);
+    color: var(--obs-text-muted);
+    font-size: var(--font-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Segmented control for the preview dialects. */
+.obs-seg {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+}
+
+.obs-seg__btn {
+    min-height: 32px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--obs-text-muted);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+}
+
+.obs-seg__btn:hover {
+    color: var(--obs-text);
+}
+
+.obs-seg__btn.active {
+    background: var(--obs-card);
+    color: var(--obs-text);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.1);
+}
+
+.obs-seg__btn:focus-visible,
+.obs-chip:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Message preview
+ *
+ * Neutral surfaces in the admin's own tokens, not imitations of each
+ * vendor's chrome: what differs between the tabs is structure — the
+ * colour bar, the fields, the buttons — which is what the adapters differ in.
+ * ------------------------------------------------------------------------ */
+
+.obs-msg {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-inner);
+    background: var(--obs-surface);
+}
+
+.obs-msg__avatar {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-lg);
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: var(--font-sm);
+}
+
+.obs-msg--discord .obs-msg__avatar,
+.obs-msg--teams .obs-msg__avatar {
+    border-radius: 999px;
+}
+
+.obs-msg__main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.obs-msg__byline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-sm);
+}
+
+.obs-msg__sender {
+    color: var(--obs-text);
+    font-weight: var(--font-semibold);
+}
+
+.obs-msg__tag {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--color-surface-soft);
+    color: var(--obs-text-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.04em;
+}
+
+.obs-msg__title {
+    color: var(--obs-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    line-height: 1.45;
+}
+
+a.obs-msg__title {
+    color: var(--color-primary);
+}
+
+.obs-msg__text {
+    color: var(--obs-text-soft);
+    font-size: var(--font-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.obs-msg__embed,
+.obs-msg__card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--obs-border);
+    border-radius: var(--radius-lg);
+    background: var(--obs-card);
+}
+
+.obs-msg__embed {
+    border-inline-start: 4px solid var(--err-error);
+}
+
+.obs-msg__embed--fatal { border-inline-start-color: var(--err-fatal); }
+.obs-msg__embed--warning { border-inline-start-color: var(--err-warning); }
+.obs-msg__embed--info { border-inline-start-color: var(--err-info); }
+
+.obs-msg__fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.obs-msg__fields dt {
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+}
+
+.obs-msg__fields dd {
+    margin: 0;
+    color: var(--obs-text);
+    font-size: var(--font-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.obs-msg__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.obs-msg__button {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--obs-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--obs-card);
+    color: var(--obs-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+}
+
+.obs-msg__button--primary {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* ---------------------------------------------------------------------------
+ * Severity routing
+ * ------------------------------------------------------------------------ */
+
+.obs-routing-box,
+.obs-log {
+    border-top: 1px solid var(--obs-border);
+}
+
+.obs-routing-box {
+    border: 1px solid var(--obs-border);
+    border-radius: var(--obs-radius-inner);
+}
+
+.obs-routing th,
+.obs-log__table th {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--obs-border);
+    background: var(--obs-surface);
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+}
+
+.obs-routing td,
+.obs-log__table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--obs-border);
+    color: var(--obs-text-soft);
+    font-size: var(--font-sm);
+    vertical-align: middle;
+    white-space: normal;
+}
+
+.obs-routing tbody tr:last-child td,
+.obs-log__table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.obs-routing__limit {
+    color: var(--obs-text) !important;
+}
+
+.obs-routing__strong {
+    color: var(--color-danger-deep) !important;
+    font-weight: var(--font-semibold);
+}
+
+.obs-meter {
+    display: flex;
+    gap: 3px;
+    width: 72px;
+}
+
+.obs-meter__seg {
+    flex: 1 1 0;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-surface-soft);
+}
+
+.obs-meter--fatal .obs-meter__seg.is-on { background: var(--err-fatal); }
+.obs-meter--error .obs-meter__seg.is-on { background: var(--err-error); }
+.obs-meter--warning .obs-meter__seg.is-on { background: var(--color-warning); }
+.obs-meter--info .obs-meter__seg.is-on { background: var(--color-info); }
+
+/* ---------------------------------------------------------------------------
+ * Delivery log
+ * ------------------------------------------------------------------------ */
+
+.obs-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.obs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--obs-border-strong);
+    border-radius: 999px;
+    background: var(--obs-card);
+    color: var(--obs-text-soft);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+}
+
+.obs-chip:hover {
+    border-color: var(--obs-text-faint);
+    color: var(--obs-text);
+}
+
+.obs-chip__count {
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.obs-chip.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.obs-chip.is-active .obs-chip__count {
+    color: rgba(var(--color-white-rgb), 0.8);
+}
+
+.obs-log__table {
+    min-width: 820px;
+}
+
+.obs-log__table th:first-child,
+.obs-log__table td:first-child {
+    padding-inline-start: var(--obs-pad);
+}
+
+.obs-log__table th:last-child,
+.obs-log__table td:last-child {
+    padding-inline-end: var(--obs-pad);
+}
+
+.obs-log__table tbody tr:hover td {
+    background: var(--obs-surface);
+}
+
+.obs-log__when {
+    white-space: nowrap;
+}
+
+.obs-log__time {
+    color: var(--obs-text);
+    font-weight: var(--font-medium);
+    font-variant-numeric: tabular-nums;
+}
+
+.obs-log__day,
+.obs-log__muted {
+    margin-inline-start: 6px;
+    color: var(--obs-text-muted);
+    font-size: var(--font-xs);
+}
+
+.obs-log__channel {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--obs-text);
+    white-space: nowrap;
+}
+
+.obs-log__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-md);
+    background: var(--obs-surface);
+    color: var(--obs-text-soft);
+    font-size: var(--font-sm);
+}
+
+.obs-log__response {
+    max-width: 320px;
+    overflow: hidden;
+    color: var(--obs-text-soft);
+    font-family: var(--font-mono);
+    font-size: var(--font-xs) !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.obs-log__num {
+    color: var(--obs-text-subtle);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    white-space: nowrap;
+}
+
+.obs-status {
+    gap: 6px;
+}
+
+.obs-status__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+@media (max-width: 1199.98px) {
+    .obs-channels__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .obs-channels__split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .obs-channels {
+        --obs-pad: 16px;
+    }
+
+    .obs-channels__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .obs-strip__action {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+ * Breadcrumb timeline
+ * ------------------------------------------------------------------------ */
+
+.obs-timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.obs-timeline__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+}
+
+.obs-timeline__time {
+    flex: 0 0 86px;
+    color: var(--obs-text-faint);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--font-2xs);
+    text-align: end;
+}
+
+.obs-timeline__dot {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 11px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 0 3px var(--obs-card), 0 0 0 4px currentColor;
+    color: var(--color-primary);
+}
+
+/* The context a logged warning carried — the provider's own reason, usually. */
+.obs-timeline__data {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin-top: 2px;
+    color: var(--obs-text-muted);
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-2xs);
+    overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------------
+ * Responsive
+ *
+ * The tables scroll inside their own container. The page body never scrolls
+ * sideways, because an admin triaging from a phone should not have to.
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 767.98px) {
+    .obs-views {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .obs-timeline__time {
+        flex-basis: 62px;
+    }
+
+    .obs-editor__num {
+        flex-basis: 40px;
+        padding-inline-end: 8px;
+        margin-inline-end: 8px;
+    }
+
+    /* Half a phone screen is enough of a code pane; the rest of the report is
+       below it and has to stay reachable by scrolling the page. */
+    .obs-editor__scroll {
+        max-height: 46vh;
+    }
+}
+
+/*
+ * Right-to-left. Only the properties that are genuinely directional are
+ * flipped; everything above already uses logical values where one exists.
+ */
+/* The editor pane needs no flip: .obs-editor__scroll pins itself to LTR, so
+   the gutter, the failing-line marker and the horizontal scroll all keep the
+   arrangement a developer's own editor uses. */
+
+[dir="rtl"] .obs-frame::before {
+    right: 0;
+    left: auto;
+    border-radius: var(--admin-accent-width) 0 0 var(--admin-accent-width);
+}

@@ -1,0 +1,3027 @@
+/*
+ * Admin dashboard home.
+ *
+ * Every colour, radius and elevation below resolves to a token in
+ * _variables.css. Nothing here introduces a palette entry; the tokens this
+ * screen needed and the file did not already carry were added there, under
+ * "Admin dashboard home", rather than hard-coded into this stylesheet.
+ *
+ * The card system is borderless on purpose: a panel's edge is the 3% hairline
+ * in --dash-shadow-card, so a column of them reads as one page of lifted paper
+ * instead of a stack of boxed regions.
+ *
+ * Text never goes lighter than --color-text-muted (4.8:1 on white).
+ * --color-text-faint is decoration and units only, never a sentence.
+ *
+ * This file is loaded by backend/dashboard/index.blade.php and nothing else,
+ * which is why the two shell overrides at the top are safe: they cannot reach
+ * a page that does not pull this stylesheet in.
+ */
+
+/* ══ Page shell ═══════════════════════════════════════════════════════════ */
+
+/*
+ * The shell leaves 24px under the top bar and this page adds 24px of its
+ * own, which stacked into a 48px band of nothing above the title. The page
+ * keeps its padding — the tint has to start at the top of the content, not
+ * below a gap — and the shell's margin goes.
+ */
+.dk-top {
+    margin-block-end: 0;
+}
+
+/*
+ * The wash behind the header is painted here, on the full-width content
+ * column, and not on .dk-page. .dk-page is centred and stops at 1488px, so on
+ * a screen wider than that the tint stopped with it and left a vertical seam
+ * down each side — the eye reads that as a coloured rectangle laid over the
+ * page rather than as the page's own top. This element runs the whole width
+ * between the rail and the window edge, so there is no side to see: the only
+ * boundary left is the soft fall at the bottom.
+ *
+ * Both elements start at the same y, under the top bar, so the gradient's
+ * origin is unchanged by the move.
+ */
+.body {
+    padding-inline: 0 !important;
+    background: var(--dash-header-band) no-repeat;
+}
+
+.container-lg.dk-page {
+    max-width: 1488px;
+    padding: 24px 24px 40px;
+}
+
+.dk-dash {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    color: var(--color-text);
+    font-family: var(--font-primary);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+.dk-dash__body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/*
+ * 999 against 1 is not a ratio, it is a statement: the main column takes every
+ * spare pixel and the rail keeps its 320px base, so the two only ever wrap
+ * when there is genuinely no room for both.
+ */
+.dk-dash__main {
+    flex: 999 1 600px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dk-dash__rail {
+    flex: 1 1 320px;
+    max-width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    align-content: start;
+}
+
+.dk-dash [dir="ltr"],
+.dk-dash .dk-mono {
+    font-family: var(--font-mono);
+}
+
+.dk-t-end {
+    text-align: end;
+}
+
+.dk-dash a {
+    text-decoration: none;
+}
+
+.dk-dash a:focus-visible,
+.dk-dash button:focus-visible,
+.dk-dash input:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--dash-radius-chip);
+}
+
+/* Thin, quiet scrollbars inside the cards that scroll. */
+
+/* ══ Page header ══════════════════════════════════════════════════════════ */
+
+.dk-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dk-head__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.dk-head__line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dk-head__title {
+    margin: 0;
+    font-size: var(--font-3xl);
+    /*
+     * app.css carries `h1..h6 { font-weight: 500 !important }`, which is a
+     * theme-wide rule this page cannot reach around with specificity. The
+     * headings here are set at the weight the design asks for, and !important
+     * is what it takes to say so — the previous dashboard declared 600 and
+     * shipped 500 for exactly this reason.
+     */
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.025em;
+    color: var(--color-text);
+}
+
+.dk-head__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+}
+
+.dk-head__tz {
+    color: var(--color-text-muted);
+}
+
+.dk-head__sep {
+    color: var(--color-text-faint);
+}
+
+/*
+ * A separator that ends a wrapped line points at nothing.
+ *
+ * The meta line is three facts and two dots in a wrapping flex row. It fits on
+ * one line under a mouse; on a 360px phone "Refreshed 2m ago" drops to a line
+ * of its own and leaves the second dot hanging off the end of the first, as if
+ * a fourth fact had failed to load. A dot cannot know it is about to be last,
+ * so on the widths where the row wraps it steps out and the gap separates the
+ * facts instead. The desktop row is untouched.
+ */
+@media (max-width: 575.98px) {
+    .dk-head__sep {
+        display: none;
+    }
+
+    .dk-head__meta {
+        gap: 2px 14px;
+    }
+}
+
+.dk-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-live-pill__dot,
+.dk-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success);
+    flex: 0 0 auto;
+    animation: dkPulse 2s infinite;
+}
+
+@keyframes dkPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--color-success-rgb), 0.45);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(var(--color-success-rgb), 0);
+    }
+}
+
+/* ══ Buttons, pills, segmented controls ═══════════════════════════════════ */
+
+.dk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--dash-radius-chip);
+    border: 1px solid transparent;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.dk-btn i {
+    font-size: var(--font-xs);
+}
+
+.dk-btn--outline {
+    padding: 5px 10px;
+    border-color: var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text);
+}
+
+.dk-btn--outline:hover,
+.dk-btn--outline:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.dk-head .dk-btn--outline {
+    height: 34px;
+    padding-inline: 12px;
+    border-radius: var(--dash-radius-control);
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-soft);
+}
+
+.dk-btn--primary {
+    padding: 0 16px;
+    height: 36px;
+    border-radius: var(--dash-radius-control);
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: var(--font-sm);
+}
+
+.dk-btn--primary:hover,
+.dk-btn--primary:focus-visible {
+    background: var(--color-primary-hover);
+    color: var(--color-white);
+}
+
+.dk-btn--ghost {
+    padding: 0 14px;
+    height: 36px;
+    border-radius: var(--dash-radius-control);
+    border-color: var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    font-size: var(--font-sm);
+}
+
+.dk-btn--ghost:hover {
+    background: var(--color-surface-alt);
+}
+
+.dk-link {
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-primary);
+}
+
+.dk-link:hover {
+    color: var(--color-primary-hover);
+}
+
+.dk-seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--dash-radius-control);
+    background: var(--color-surface-soft);
+}
+
+.dk-seg__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.dk-seg__btn:hover {
+    color: var(--color-text);
+}
+
+.dk-seg__btn.is-active {
+    background: var(--color-card);
+    color: var(--color-text);
+    box-shadow: var(--dash-shadow-seg);
+}
+
+.dk-seg__btn i {
+    font-size: var(--font-xs);
+}
+
+.dk-seg__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-medium);
+    color: var(--color-text-muted);
+}
+
+.dk-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-status-pill--warn {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.dk-status-pill--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.dk-status-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-danger);
+}
+
+.dk-chip {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.dk-chip:hover {
+    border-color: var(--color-primary-tint);
+    background: var(--color-surface-alt);
+}
+
+.dk-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ══ Card system ══════════════════════════════════════════════════════════ */
+
+.dk-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--color-card);
+    border: 0;
+    border-radius: var(--dash-radius-card);
+    box-shadow: var(--dash-shadow-card);
+    overflow: hidden;
+}
+
+.dk-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.dk-card__head--tight {
+    padding-bottom: 8px;
+    border-bottom: 0;
+}
+
+.dk-card__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dk-card__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: var(--font-md);
+    /* See .dk-head__title. */
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.dk-card__tile {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    border-radius: 7px;
+    font-size: var(--font-xs);
+}
+
+.dk-card__tile--brand {
+    background: var(--tint-brand);
+    color: var(--color-primary);
+}
+
+.dk-card__tile--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.dk-card__sub {
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+}
+
+.dk-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 12px;
+    padding: 10px 20px 12px;
+    border-top: 1px solid var(--color-border-soft);
+    background: var(--color-surface-veil);
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+    margin-top: auto;
+}
+
+.dk-card__foot strong {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+.dk-card__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.dk-card__actions {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/*
+ * Tables scroll inside their own card, never by moving the page. The inner
+ * grid keeps a min-width so the columns hold their designed proportions
+ * instead of collapsing into each other on a narrow rail.
+ */
+.dk-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.dk-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 20px 32px;
+    text-align: center;
+}
+
+.dk-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--dash-radius-tile);
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+    font-size: var(--font-lg);
+}
+
+.dk-empty__title {
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.dk-empty__body {
+    max-width: 42ch;
+    font-size: var(--font-size-px-125);
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.dk-empty .dk-btn {
+    margin-top: 4px;
+}
+
+.dk-empty--chart {
+    padding-block: 44px 48px;
+}
+
+.dk-veil {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(var(--color-white-rgb), 0.72);
+    z-index: 2;
+}
+
+.dk-veil[hidden] {
+    display: none;
+}
+
+.dk-veil__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--color-card);
+    box-shadow: var(--dash-shadow-card);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-soft);
+}
+
+/* ══ Counter strip ════════════════════════════════════════════════════════ */
+
+/*
+ * Five counters, and five is prime.
+ *
+ * No column count except one and five divides it, so an equal-width grid
+ * orphans a card at almost every width: measured on this page, six columns at
+ * 1440 with one slot empty, four at 1024 with three empty beside a single
+ * card, three at 860 with one. Only a narrow band around 1200 came out even.
+ *
+ * Flex instead of grid, so the last row's cards grow into the space rather
+ * than leaving a hole — and the column count is stated rather than derived,
+ * because auto-fit kept landing on four and six, the two counts that strand a
+ * card on its own. Five, three, two, one: every one of those leaves a last
+ * row that fills.
+ *
+ * Queried on the container, not the viewport. The sidebar is 264px open and
+ * 76px shut, so at a 1440px window this row is 1122px or 1314px depending on
+ * a state no media query can see — measured, and the reason the old grid
+ * mislanded on a screen wide enough to know better.
+ */
+.dk-counters {
+    container-type: inline-size;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.dk-counter {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /*
+     * Five across, and grow to fill whatever the last row has left. A row of
+     * two where three fit gives cards half again as wide — which reads as the
+     * row being full, rather than as a card having gone missing.
+     */
+    flex: 1 1 calc((100% - 56px) / 5);
+    gap: 14px;
+    min-width: 0;
+    padding: 16px 18px 14px;
+    border: 0;
+    border-radius: var(--dash-radius-card);
+    background: var(--color-card);
+    box-shadow: var(--dash-shadow-card);
+    color: inherit;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.dk-counter:hover,
+.dk-counter:focus-visible {
+    color: inherit;
+    transform: translateY(-2px);
+    box-shadow: var(--dash-shadow-lift);
+}
+
+/* The soft wash in the corner. Decorative, and behind everything. */
+.dk-counter__glow {
+    position: absolute;
+    inset-inline-end: -28px;
+    inset-block-start: -28px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--dk-accent-bg);
+    opacity: 0.7;
+}
+
+.dk-counter > *:not(.dk-counter__glow) {
+    position: relative;
+}
+
+.dk-counter__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dk-counter__labels {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dk-counter__eyebrow {
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-counter__sub {
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-counter__tile {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border-radius: var(--dash-radius-tile);
+    background: var(--dk-accent-bg);
+    color: var(--dk-accent-fg);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-white-rgb), 0.6);
+    font-size: var(--font-lg);
+}
+
+.dk-counter__figure {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dk-counter__value {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-28);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.dk-counter__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+.dk-counter__delta i {
+    font-size: var(--font-size-px-9);
+}
+
+.dk-counter__delta--down {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.dk-counter__foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.dk-counter__note {
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-spark {
+    width: 84px;
+    height: 28px;
+    flex: 0 0 auto;
+}
+
+.dk-spark__area {
+    fill: var(--dk-accent-fg);
+    opacity: 0.12;
+}
+
+.dk-spark__line {
+    fill: none;
+    stroke: var(--dk-accent-fg);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.dk-spark__tip {
+    fill: var(--dk-accent-fg);
+}
+
+/*
+ * One custom-property pair per card. The tile, the accent bar, the glow and
+ * all three sparkline parts read the same two values, so a tone is one change
+ * rather than six.
+ */
+.dk-counter--brand {
+    --dk-accent-bg: var(--tint-brand);
+    --dk-accent-fg: var(--color-primary);
+}
+
+.dk-counter--success {
+    --dk-accent-bg: var(--tint-success);
+    --dk-accent-fg: var(--color-success-deep);
+}
+
+.dk-counter--teal {
+    --dk-accent-bg: var(--tint-teal);
+    --dk-accent-fg: var(--color-teal);
+}
+
+.dk-counter--info {
+    --dk-accent-bg: var(--tint-info);
+    --dk-accent-fg: var(--color-info-deep);
+}
+
+.dk-counter--warning {
+    --dk-accent-bg: var(--tint-warning);
+    --dk-accent-fg: var(--color-warning-deep);
+}
+
+/* ══ Needs your action ════════════════════════════════════════════════════ */
+
+/*
+ * The panel an operator opens the dashboard for, laid out for triage rather
+ * than for reading: the breaches are counted beside the title, the queues
+ * that need a decision are listed, and the ones that are clear fold into a
+ * single line. Two collapsibles, both shut on arrival, keep the quiet halves
+ * of the panel out of the first glance without hiding them.
+ */
+
+/* ── Head ───────────────────────────────────────────────────────────────── */
+
+.dk-queues__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 24px 18px;
+    /*
+     * A wash that starts at the card's top edge and is gone before the column
+     * heads, so the head reads as the card's own lift rather than as a tinted
+     * band with a line under it. The heads below carry the only rule here.
+     */
+    background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.04), rgba(var(--color-primary-rgb), 0));
+}
+
+.dk-queues__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.dk-queues__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.dk-queues__h {
+    margin: 0;
+    /* See .dk-head__title: app.css weights every heading 500 !important. */
+    font-size: var(--font-xl);
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+}
+
+.dk-queues__summary {
+    margin: 0;
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+}
+
+.dk-queues__summary strong {
+    font-weight: var(--font-semibold);
+    color: var(--color-text-soft);
+}
+
+.dk-queues__sorting {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.dk-queues__sort-label {
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.dk-seg--queues .dk-seg__btn {
+    height: 28px;
+    padding: 0 12px;
+}
+
+/* ── Status pills ───────────────────────────────────────────────────────── */
+
+.dk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-pill__dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentcolor;
+}
+
+.dk-pill--late {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.dk-pill--late .dk-pill__dot {
+    animation: dkPulseLate 2s infinite;
+}
+
+/*
+ * The same ring at the same timing as dkPulse, in the deep red — so the late
+ * dot here and the live dot up in the page header read as one behaviour in
+ * two meanings rather than as two different animations.
+ */
+@keyframes dkPulseLate {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--color-danger-deep-rgb), 0.45);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(var(--color-danger-deep-rgb), 0);
+    }
+}
+
+/* ── The table ──────────────────────────────────────────────────────────── */
+
+.dk-queues__grid {
+    min-width: 680px;
+}
+
+.dk-queues__cols,
+.dk-queue {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1.6fr) 64px 96px minmax(210px, 1.5fr) 84px;
+    gap: 14px;
+    align-items: center;
+}
+
+.dk-queues__cols {
+    padding: 10px 24px;
+    border-top: 1px solid var(--color-border-soft);
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface-veil);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.dk-queue {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--color-border-soft);
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.dk-queue:hover {
+    background: var(--color-surface-alt);
+    color: inherit;
+}
+
+/* ── Row: identity ──────────────────────────────────────────────────────── */
+
+.dk-queue__tile {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--dash-radius-tile);
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+    font-size: var(--font-md);
+    /* Lifts the glyph off its own tint without adding a border to count. */
+    box-shadow: inset 0 0 0 1px rgba(var(--color-white-rgb), 0.6);
+}
+
+/*
+ * One tint per queue, on the tile and on the small glyph that stands in for
+ * the row in the two collapsed lists below. Keyed on the queue rather than on
+ * a modifier class, so a queue cannot be given one colour in one place and a
+ * different one in another.
+ */
+.dk-queue[data-queue="deposit"] .dk-queue__tile,
+[data-queue-tint="deposit"] {
+    --dk-queue-bg: var(--tint-brand);
+    --dk-queue-fg: var(--color-primary);
+}
+
+.dk-queue[data-queue="withdraw"] .dk-queue__tile,
+[data-queue-tint="withdraw"] {
+    --dk-queue-bg: var(--tint-warning);
+    --dk-queue-fg: var(--color-warning-deep);
+}
+
+.dk-queue[data-queue="kyc"] .dk-queue__tile,
+[data-queue-tint="kyc"] {
+    --dk-queue-bg: var(--tint-info);
+    --dk-queue-fg: var(--color-info-deep);
+}
+
+.dk-queue[data-queue="merchant"] .dk-queue__tile,
+[data-queue-tint="merchant"] {
+    --dk-queue-bg: var(--tint-teal);
+    --dk-queue-fg: var(--color-teal);
+}
+
+.dk-queue[data-queue="cardholder"] .dk-queue__tile,
+[data-queue-tint="cardholder"] {
+    --dk-queue-bg: var(--color-surface-soft);
+    --dk-queue-fg: var(--color-text-soft);
+}
+
+.dk-queue[data-queue="vc_request"] .dk-queue__tile,
+[data-queue-tint="vc_request"] {
+    --dk-queue-bg: var(--tint-cyan);
+    --dk-queue-fg: var(--color-cyan);
+}
+
+.dk-queue[data-queue="ticket"] .dk-queue__tile,
+[data-queue-tint="ticket"] {
+    --dk-queue-bg: var(--tint-violet);
+    --dk-queue-fg: var(--color-violet);
+}
+
+.dk-queue[data-queue="dispute"] .dk-queue__tile,
+[data-queue-tint="dispute"] {
+    --dk-queue-bg: var(--color-palette-fff1f2);
+    --dk-queue-fg: var(--color-rose);
+}
+
+.dk-queue[data-queue="bill_payment"] .dk-queue__tile,
+[data-queue-tint="bill_payment"] {
+    --dk-queue-bg: var(--tint-success);
+    --dk-queue-fg: var(--color-success-deep);
+}
+
+/* The one tint left unclaimed, and a held payout is something that went wrong. */
+.dk-queue[data-queue="mass_payment"] .dk-queue__tile,
+[data-queue-tint="mass_payment"] {
+    --dk-queue-bg: var(--tint-danger);
+    --dk-queue-fg: var(--color-danger-deep);
+}
+
+.dk-queue:not(.dk-queue--none) .dk-queue__tile {
+    background: var(--dk-queue-bg);
+    color: var(--dk-queue-fg);
+}
+
+.dk-queue__name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dk-queue__title {
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.005em;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-queue__sub {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Row: the two figures ───────────────────────────────────────────────── */
+
+.dk-queue__waiting,
+.dk-queue__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    white-space: nowrap;
+}
+
+/*
+ * The count is the largest thing on the row on purpose: it is the figure the
+ * panel is scanned down, and at 22px it can be read without stopping on it.
+ */
+.dk-queue__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-22);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.025em;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.dk-queue__unit {
+    font-size: var(--font-size-px-11);
+    color: var(--color-text-muted);
+}
+
+.dk-queue__value {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.dk-queue__note {
+    font-size: var(--font-size-px-11);
+    color: var(--color-text-muted);
+}
+
+/* A queue holding no money shows a dash, and a dash is not a figure. */
+.dk-queue__value--none,
+.dk-queue--none .dk-queue__value {
+    font-weight: var(--font-normal);
+    color: var(--color-text-muted);
+}
+
+/* ── Row: the meter ─────────────────────────────────────────────────────── */
+
+.dk-queue__sla {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.dk-queue__sla-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.dk-queue__since {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: var(--font-xs);
+}
+
+.dk-queue__since-label {
+    font-weight: var(--font-medium);
+    color: var(--color-text-muted);
+}
+
+.dk-queue__age {
+    font-family: var(--font-mono);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.dk-queue__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--dk-sla-bg);
+    color: var(--dk-sla);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.dk-queue__dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentcolor;
+}
+
+.dk-queue__track {
+    display: block;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    overflow: hidden;
+}
+
+/*
+ * Full strength, not a tint.
+ *
+ * This bar was briefly drawn at 38% alpha to calm it down, which was the wrong
+ * instrument: alpha over a white card desaturates toward pink, and a pink bar
+ * reads cheap rather than quiet. What it needed was a better hue, not less of
+ * one — so the ramp now runs between two saturated stops of the same family,
+ * lighter where the wait began and deepest at the deadline, and never through
+ * transparency.
+ */
+.dk-queue__bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(var(--dk-meter-dir, 90deg), var(--dk-sla-soft), var(--dk-sla));
+}
+
+.dk-queue--over {
+    --dk-sla: var(--color-danger-deep);
+    --dk-sla-soft: var(--color-danger);
+    --dk-sla-bg: rgba(var(--color-danger-rgb), 0.1);
+}
+
+.dk-queue--near {
+    --dk-sla: var(--color-warning-deep);
+    --dk-sla-soft: var(--color-warning);
+    --dk-sla-bg: var(--color-warning-soft);
+}
+
+.dk-queue--in {
+    --dk-sla: var(--color-success-deep);
+    --dk-sla-soft: var(--color-success-strong);
+    --dk-sla-bg: var(--tint-success);
+}
+
+.dk-queue--none {
+    --dk-sla: var(--color-text-muted);
+    --dk-sla-soft: var(--color-border-strong);
+    --dk-sla-bg: transparent;
+}
+
+.dk-queue--none .dk-queue__dot {
+    background: var(--color-border-strong);
+}
+
+/* ── Row: the action ────────────────────────────────────────────────────── */
+
+.dk-queue__action {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--dash-radius-control);
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.15s, background 0.15s;
+}
+
+.dk-queue__chev {
+    font-size: var(--font-size-px-9);
+}
+
+.dk-queue:hover .dk-queue__action {
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+/*
+ * Past its target, the action stops being one option among several.
+ *
+ * This button was outlined until the redesign, on the argument that a filled
+ * crimson is the shape this system uses for destructive confirmations, and
+ * that five of them in a column read as five things about to go wrong. The
+ * panel that argument was about no longer exists: the breaches are counted
+ * beside the title, the clear queues fold away, and what is left under a red
+ * pill is a short list of work that is genuinely late. It is filled because
+ * being late is the strongest fact on the row.
+ */
+.dk-queue--over .dk-queue__action {
+    border-color: var(--color-danger-deep);
+    background: var(--color-danger-deep);
+    color: var(--color-text-inverse);
+    box-shadow: var(--dash-shadow-btn-late);
+}
+
+.dk-queue--over:hover .dk-queue__action {
+    box-shadow: var(--dash-shadow-btn-late-hover);
+}
+
+/* Nothing waiting, nothing to review: drawn, but no longer an invitation. */
+.dk-queue--none .dk-queue__action {
+    border-color: var(--color-border-soft);
+    color: var(--color-text-faint);
+    box-shadow: none;
+}
+
+.dk-queue--none:hover .dk-queue__action {
+    box-shadow: none;
+}
+
+/* ── The queues that are clear ──────────────────────────────────────────── */
+
+.dk-quiet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    padding: 12px 24px;
+    border: 0;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--font-size-px-125);
+    text-align: start;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dk-quiet:hover {
+    background: var(--color-surface-alt);
+}
+
+.dk-quiet__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.dk-quiet__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-success-deep);
+    white-space: nowrap;
+}
+
+.dk-quiet__disc {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--tint-success);
+    font-size: var(--font-size-px-8);
+}
+
+.dk-quiet__names {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dk-quiet__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+}
+
+.dk-quiet__name i {
+    font-size: var(--font-2xs);
+    color: var(--dk-queue-fg);
+    opacity: 0.7;
+}
+
+.dk-quiet__right {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+}
+
+.dk-quiet__chev {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    font-size: var(--font-size-px-8);
+    transition: transform 0.2s;
+}
+
+.dk-quiet[aria-expanded="true"] .dk-quiet__chev {
+    transform: rotate(180deg);
+}
+
+.dk-quiet__rows {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+/*
+ * `display: none` stated, not inherited.
+ *
+ * The user agent's `[hidden] { display: none }` is outranked by any author
+ * `display` declaration, and .dk-queue sets `display: grid` — so without this
+ * the panel would open shut and close open, with the DOM reading back correct
+ * the whole time. This has already caught the dashboard once, on the
+ * transaction tabs.
+ */
+.dk-quiet__rows[hidden],
+.dk-limits__grid[hidden] {
+    display: none;
+}
+
+.dk-quiet__rows .dk-queue {
+    padding: 11px 24px;
+}
+
+.dk-quiet__rows .dk-queue__title {
+    color: var(--color-text-subtle);
+}
+
+.dk-quiet__rows .dk-queue__sub {
+    color: var(--color-text-muted);
+}
+
+.dk-quiet__rows .dk-queue__count {
+    font-size: var(--font-2xl);
+    letter-spacing: -0.02em;
+    color: var(--color-text-muted);
+}
+
+/* ── Response time limits ───────────────────────────────────────────────── */
+
+.dk-limits {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    border-top: 1px solid var(--color-border-soft);
+    background: linear-gradient(180deg, var(--color-surface-veil), var(--color-surface-alt));
+}
+
+.dk-limits__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 24px;
+}
+
+.dk-limits__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    text-align: start;
+    cursor: pointer;
+}
+
+.dk-limits__tile {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: var(--dash-radius-chip);
+    background: var(--color-card);
+    color: var(--color-primary);
+    font-size: var(--font-size-px-11);
+    box-shadow: var(--dash-ring-raised);
+}
+
+.dk-limits__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.dk-limits__title {
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.dk-limits__meta {
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.dk-limits__range {
+    font-family: var(--font-mono);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-soft);
+}
+
+.dk-limits__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dk-limits__toggle,
+.dk-limits__edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    border-radius: var(--dash-radius-chip);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.dk-limits__toggle {
+    padding: 0 11px;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+}
+
+.dk-limits__toggle:hover {
+    border-color: var(--color-primary-tint);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.dk-limits__chev {
+    font-size: var(--font-size-px-8);
+    color: var(--color-text-muted);
+    transition: transform 0.2s;
+}
+
+.dk-limits__toggle[aria-expanded="true"] .dk-limits__chev {
+    transform: rotate(180deg);
+}
+
+/*
+ * Ink, not brand. Editing a target changes what every row on this panel
+ * measures itself against, and the panel already spends its indigo on the
+ * queues themselves — so the one control that rewrites them is the darkest
+ * thing in the footer rather than another blue button among blue buttons.
+ */
+.dk-limits__edit {
+    padding: 0 12px;
+    border: 1px solid var(--color-text);
+    background: var(--color-text);
+    color: var(--color-text-inverse);
+    box-shadow: var(--dash-shadow-btn-ink);
+}
+
+.dk-limits__edit:hover {
+    box-shadow: 0 0 0 3px rgba(var(--color-text-rgb), 0.12);
+}
+
+.dk-limits__edit i {
+    font-size: var(--font-2xs);
+}
+
+.dk-limits__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+    padding: 0 24px 16px;
+}
+
+.dk-limits__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    height: 38px;
+    padding-inline: 10px 12px;
+    border-radius: var(--dash-radius-control);
+    background: var(--color-card);
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-soft);
+    white-space: nowrap;
+    box-shadow: var(--dash-ring-raised);
+}
+
+.dk-limits__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-limits__name i {
+    font-size: var(--font-2xs);
+    color: var(--dk-queue-fg);
+}
+
+.dk-limits__hours {
+    display: inline-grid;
+    place-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+/* ══ Money in & out ═══════════════════════════════════════════════════════ */
+
+.dk-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    padding: 8px 8px 4px;
+}
+
+.dk-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    min-width: 0;
+    transition: background 0.15s;
+}
+
+.dk-kpi:hover {
+    background: var(--color-surface-alt);
+}
+
+.dk-kpi__label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-subtle);
+}
+
+.dk-kpi__swatch {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 2px;
+    background: var(--dk-kpi-swatch);
+}
+
+.dk-kpi--in {
+    --dk-kpi-swatch: var(--color-primary);
+}
+
+.dk-kpi--out {
+    --dk-kpi-swatch: var(--color-primary-tint);
+}
+
+.dk-kpi--payments {
+    --dk-kpi-swatch: var(--color-text-faint);
+}
+
+.dk-kpi--fees {
+    --dk-kpi-swatch: var(--color-success-strong);
+}
+
+.dk-kpi__value {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-22);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--color-text);
+}
+
+.dk-kpi__delta {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.dk-kpi__change {
+    font-weight: var(--font-semibold);
+    color: var(--color-success-strong);
+}
+
+/*
+ * More money leaving is not good news. The money-out cell warns on a rise
+ * instead of colouring it like growth.
+ */
+.dk-kpi__change--warn {
+    color: var(--color-warning-deep);
+}
+
+.dk-money .dk-card__head {
+    padding-bottom: 6px;
+}
+
+.dk-plot {
+    padding: 8px 20px 6px;
+}
+
+.dk-plot__frame {
+    display: flex;
+    gap: 10px;
+}
+
+.dk-plot__axis {
+    position: relative;
+    width: 40px;
+    height: 190px;
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-105);
+    color: var(--color-text-muted);
+}
+
+.dk-plot__axis span {
+    position: absolute;
+    inset-inline-end: 0;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+.dk-plot__bars {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 190px;
+    display: grid;
+    grid-template-columns: repeat(var(--dk-cols, 7), minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.dk-plot__grid {
+    position: absolute;
+    inset-inline: 0;
+    border-top: 1px dashed var(--color-border-soft);
+    pointer-events: none;
+}
+
+.dk-plot__col {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+}
+
+.dk-plot__bar {
+    flex: 1 1 0;
+    max-width: 14px;
+    border-radius: 4px 4px 0 0;
+}
+
+.dk-plot__bar--in {
+    background: var(--dash-bar-in);
+}
+
+.dk-plot__bar--out {
+    background: var(--color-primary-tint);
+}
+
+/*
+ * The fee line is drawn in a 100x100 box stretched over the bars, so its
+ * points are percentages and it never needs to know the pixel height.
+ */
+.dk-plot__fees {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.dk-plot__fees polyline {
+    fill: none;
+    stroke: var(--color-success-strong);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.dk-plot__labels {
+    display: grid;
+    grid-template-columns: repeat(var(--dk-cols, 7), minmax(0, 1fr));
+    gap: 6px;
+    padding-block: 6px 0;
+    padding-inline: 50px 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.dk-card__foot--legend {
+    padding-block: 12px 16px;
+    background: transparent;
+    font-size: var(--font-size-px-125);
+}
+
+.dk-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dk-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dk-legend__swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.dk-legend__swatch--in {
+    background: var(--color-primary);
+}
+
+.dk-legend__swatch--out {
+    background: var(--color-primary-tint);
+}
+
+.dk-legend__swatch--fee {
+    width: 14px;
+    height: 2px;
+    border-radius: 0;
+    background: var(--color-success-strong);
+}
+
+.dk-money__net {
+    font-family: var(--font-mono);
+    color: var(--color-success-deep);
+}
+
+.dk-money__net.is-negative {
+    color: var(--color-danger-deep);
+}
+
+.dk-money__peak {
+    color: var(--color-text);
+}
+
+/* ══ Latest transactions ══════════════════════════════════════════════════ */
+
+.dk-activity .dk-card__head {
+    /* The column band below carries the rule; two of them read as a seam. */
+    border-bottom: 0;
+}
+
+/* ══ Platform health ══════════════════════════════════════════════════════ */
+
+.dk-health .dk-card__head {
+    border-bottom: 0;
+    padding-bottom: 12px;
+}
+
+.dk-health__rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.dk-health__row {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding-block: 10px;
+    padding-inline: 17px 20px;
+    border-top: 1px solid var(--color-border-soft);
+    border-inline-start: 3px solid transparent;
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.dk-health__row:hover {
+    background: var(--color-surface-alt);
+    color: inherit;
+}
+
+.dk-health__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dk-health-dot);
+    box-shadow: 0 0 0 3px var(--dk-health-halo);
+}
+
+.dk-health__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.dk-health__name {
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-health__note {
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-health__value {
+    max-width: 132px;
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: var(--dk-health-chip-bg);
+    color: var(--dk-health-chip-fg);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    text-align: end;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * A healthy row's figure is a measurement, not a verdict — money moved, jobs
+ * queued — so it sits on the neutral chip rather than being coloured green as
+ * though the number itself were good news.
+ */
+.dk-health__value.is-mono {
+    font-family: var(--font-mono);
+}
+
+.dk-health__row--ok {
+    --dk-health-dot: var(--color-success);
+    --dk-health-halo: rgba(var(--color-success-rgb), 0.16);
+    --dk-health-chip-bg: rgba(var(--color-success-rgb), 0.1);
+    --dk-health-chip-fg: var(--color-success-deep);
+}
+
+.dk-health__row--ok .dk-health__value.is-mono {
+    background: var(--color-surface-alt);
+    color: var(--color-text-soft);
+}
+
+.dk-health__row--warn {
+    border-inline-start-color: var(--color-warning);
+    --dk-health-dot: var(--color-warning);
+    --dk-health-halo: rgba(var(--color-warning-rgb), 0.18);
+    --dk-health-chip-bg: rgba(var(--color-warning-rgb), 0.12);
+    --dk-health-chip-fg: var(--color-warning-deep);
+}
+
+.dk-health__row--down {
+    border-inline-start-color: var(--color-danger);
+    --dk-health-dot: var(--color-danger);
+    --dk-health-halo: rgba(var(--color-danger-rgb), 0.16);
+    --dk-health-chip-bg: rgba(var(--color-danger-rgb), 0.1);
+    --dk-health-chip-fg: var(--color-danger-deep);
+}
+
+/* ══ Customer balances ════════════════════════════════════════════════════ */
+
+.dk-vault {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 14px 14px;
+    padding: 16px 18px;
+    border-radius: var(--dash-radius-tile);
+    background: var(--dash-treasury);
+    overflow: hidden;
+}
+
+.dk-vault__orb {
+    position: absolute;
+    inset-inline-end: -30px;
+    inset-block-start: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(var(--shell-accent-rgb), 0.18);
+}
+
+.dk-vault > *:not(.dk-vault__orb) {
+    position: relative;
+}
+
+.dk-vault__label {
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-medium);
+    letter-spacing: 0.02em;
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+.dk-vault__total {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-28);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--color-white);
+}
+
+.dk-vault__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: var(--font-xs);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+.dk-vault__delta {
+    font-weight: var(--font-semibold);
+    color: var(--color-success-mint);
+}
+
+.dk-vault__delta.is-negative {
+    color: var(--color-warning-tint);
+}
+
+.dk-share {
+    display: flex;
+    gap: 2px;
+    height: 8px;
+    margin: 0 20px 12px;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.dk-share__slice {
+    height: 100%;
+    background: var(--dk-swatch);
+}
+
+.dk-vault__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 20px 16px;
+}
+
+.dk-vault__row {
+    display: grid;
+    grid-template-columns: 10px 44px 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    font-size: var(--font-sm);
+}
+
+.dk-vault__swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--dk-swatch);
+}
+
+.dk-vault__swatch.is-off {
+    opacity: 0.4;
+}
+
+.dk-vault__code {
+    font-family: var(--font-mono);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.dk-vault__name {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-vault__tag {
+    color: var(--color-text-muted);
+}
+
+.dk-vault__amount {
+    font-family: var(--font-mono);
+    color: var(--color-text-soft);
+}
+
+.dk-vault__pct {
+    width: 38px;
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+    text-align: end;
+}
+
+/* Savings vaults. ".dk-vault" above is the treasury tile's historical name;
+   these blocks are customers' savings vaults, kept beside it. */
+.dk-vault__split {
+    display: grid;
+    gap: 4px;
+    margin-block-start: 4px;
+    padding-block-start: 8px;
+    border-block-start: 1px solid rgba(var(--color-white-rgb), 0.14);
+}
+
+.dk-vault__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: var(--font-xs);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+.dk-vault__line-value {
+    font-family: var(--font-mono);
+    font-weight: var(--font-semibold);
+    color: var(--color-white);
+}
+
+.dk-savings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-inline: 20px;
+    padding-block: 12px 16px;
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.dk-savings__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-muted);
+}
+
+.dk-savings__mark {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 1px solid var(--color-text-faint);
+}
+
+.dk-savings__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+    text-align: end;
+    white-space: nowrap;
+}
+
+.dk-savings__more {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.dk-swatch--0 { --dk-swatch: var(--color-primary); }
+.dk-swatch--1 { --dk-swatch: var(--color-primary-light); }
+.dk-swatch--2 { --dk-swatch: var(--color-info); }
+.dk-swatch--3 { --dk-swatch: var(--color-success); }
+.dk-swatch--4 { --dk-swatch: var(--color-warning); }
+.dk-swatch--5 { --dk-swatch: var(--color-text-faint); }
+
+/* ══ Risk & fraud watch ═══════════════════════════════════════════════════ */
+
+.dk-risk .dk-card__head {
+    align-items: flex-start;
+    border-bottom: 0;
+    padding-bottom: 12px;
+}
+
+.dk-risk__levels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--color-border-soft);
+    border-top: 1px solid var(--color-border-soft);
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.dk-risk__level {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 14px;
+    background: var(--color-card);
+}
+
+.dk-risk__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-xl);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    color: var(--dk-risk-fg);
+}
+
+.dk-risk__level-label {
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.dk-risk__level--high,
+.dk-risk__row--high {
+    --dk-risk-fg: var(--color-danger-deep);
+    --dk-risk-bg: var(--color-danger-soft);
+}
+
+.dk-risk__level--medium,
+.dk-risk__row--medium {
+    --dk-risk-fg: var(--color-warning-deep);
+    --dk-risk-bg: var(--color-warning-soft);
+}
+
+.dk-risk__level--low,
+.dk-risk__row--low {
+    --dk-risk-fg: var(--color-info-deep);
+    --dk-risk-bg: var(--tint-info);
+}
+
+.dk-risk__rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.dk-risk__row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+    padding-block: 12px;
+    padding-inline: 17px 20px;
+    border-top: 1px solid var(--color-border-soft);
+    border-inline-start: 3px solid var(--dk-risk-fg);
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.dk-risk__row:first-child {
+    border-top: 0;
+}
+
+.dk-risk__row:hover {
+    background: var(--color-surface-alt);
+    color: inherit;
+}
+
+.dk-risk__tile {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--dk-risk-bg);
+    color: var(--dk-risk-fg);
+    font-size: var(--font-base);
+}
+
+.dk-risk__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dk-risk__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.dk-risk__title {
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-risk__tag {
+    flex: 0 0 auto;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--dk-risk-bg);
+    color: var(--dk-risk-fg);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/*
+ * Two lines and no more. A signal that needs a paragraph to explain itself is
+ * a page, not a row; the row's job is to be worth opening.
+ */
+.dk-risk__detail {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--font-xs);
+    line-height: 1.4;
+    color: var(--color-text-muted);
+}
+
+/*
+ * Why a correct signal is firing on a site whose normal state produces it -
+ * currently only demo mode, where one shared account really is signed into
+ * from everywhere at once.
+ *
+ * Deliberately not red and carrying no icon: the row already holds the
+ * alarm, and a second alarming element beside it reads as a second problem.
+ * The rail and inset are logical properties, so the aside stays on the
+ * reading-start edge in Arabic instead of crossing to the wrong side.
+ */
+.dk-risk__note {
+    margin-block-start: 6px;
+    padding-block: 5px;
+    padding-inline: 8px;
+    border-inline-start: 2px solid var(--color-border-soft);
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
+    background: var(--color-surface-soft);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+    color: var(--color-text-muted);
+}
+
+.dk-risk__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.dk-risk__who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+}
+
+.dk-risk__subject {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-soft);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+    white-space: nowrap;
+}
+
+.dk-risk__when {
+    white-space: nowrap;
+}
+
+.dk-risk__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+    color: var(--color-primary);
+    white-space: nowrap;
+}
+
+.dk-risk__action i {
+    font-size: var(--font-size-px-9);
+}
+
+/* ══ Modals ═══════════════════════════════════════════════════════════════ */
+
+.dk-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+
+.dk-modal[hidden] {
+    display: none;
+}
+
+.dk-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(var(--color-text-rgb), 0.45);
+    backdrop-filter: blur(3px);
+}
+
+.dk-modal__dialog {
+    position: relative;
+    width: min(560px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 22px 22px 18px;
+    border-radius: var(--dash-radius-modal);
+    background: var(--color-card);
+    box-shadow: var(--dash-shadow-modal);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dk-modal__dialog--range {
+    width: min(440px, 100%);
+}
+
+.dk-modal__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dk-modal__title {
+    margin: 0;
+    font-size: var(--font-lg);
+    /* See .dk-head__title. */
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.dk-modal__sub {
+    margin: 3px 0 0;
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+}
+
+.dk-modal__close {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: var(--dash-radius-chip);
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dk-modal__close:hover {
+    background: var(--color-border);
+}
+
+.dk-modal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dk-modal__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.dk-modal__note {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.dk-modal__note.is-invalid {
+    color: var(--color-danger-deep);
+}
+
+.dk-modal__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.dk-modal__error {
+    margin: 0;
+    font-size: var(--font-size-px-125);
+    color: var(--color-danger-deep);
+}
+
+.dk-modal__error[hidden] {
+    display: none;
+}
+
+.dk-range-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.dk-range-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-subtle);
+}
+
+.dk-range-fields input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-card);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    outline: 0;
+}
+
+.dk-range-fields input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+.dk-btn[disabled],
+.dk-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Response time limits ──────────────────────────────────────────────── */
+
+/*
+ * The dialog behind the queue panel's "Edit limits", drawn in the panel's own
+ * language: the same icon tiles under the same per-queue tints, the same
+ * ringed group the footer's target list uses, the same mono hour chips and
+ * the same ink primary.
+ *
+ * It used to carry a naming set of its own — "Manual deposits", "KYC
+ * reviews", "P2P disputes" — against a panel that had been renamed around it.
+ * Both read DashboardQueueService::naming() now, so the row an operator taps
+ * "Edit limits" from is the row they land on.
+ */
+
+.dk-modal__dialog--limits {
+    width: min(620px, 100%);
+}
+
+.dk-modal__heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+
+/*
+ * One ring around the group rather than one per row. Eight ringed boxes in a
+ * column is eight edges to read past; a single frame with hairlines inside it
+ * is one object with eight lines in it, which is what the list actually is.
+ */
+.dk-sla {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--dash-radius-tile);
+    background: var(--color-card);
+    box-shadow: var(--dash-ring-raised);
+    overflow: hidden;
+}
+
+.dk-sla__row,
+.dk-sla__setting {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 96px 48px;
+    gap: 12px;
+    align-items: center;
+    /*
+     * The start border is the tuned marker's slot, held open on every row so
+     * that colouring one moves nothing. Without it the eight numbers all look
+     * alike, and which of them somebody deliberately changed — the question
+     * this dialog is usually opened to answer — cannot be seen at all.
+     */
+    border-inline-start: 2px solid transparent;
+    padding-inline: 10px 12px;
+    padding-block: 9px;
+}
+
+.dk-sla__row + .dk-sla__row,
+.dk-sla__setting + .dk-sla__setting {
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.dk-sla__row--head {
+    padding-block: 8px;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-surface-veil);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.dk-sla__row.is-tuned {
+    border-inline-start-color: var(--color-primary);
+}
+
+.dk-sla__setting {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+}
+
+.dk-sla__tile {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--dash-radius-chip);
+    background: var(--dk-queue-bg, var(--color-surface-soft));
+    color: var(--dk-queue-fg, var(--color-text-faint));
+    font-size: var(--font-xs);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-white-rgb), 0.6);
+}
+
+/* The two switches below the queues are settings, not queues: no tint. */
+.dk-sla__tile--plain {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.dk-sla__name {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.dk-sla__title {
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-sla__sub {
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dk-sla__row .dk-sla__sub {
+    white-space: nowrap;
+}
+
+/*
+ * The default is a reference, not a second input — so it is stated in the
+ * same mono chip the panel's own target list uses, one step back from the
+ * figure being edited beside it.
+ */
+.dk-sla__default {
+    justify-self: end;
+    display: inline-grid;
+    place-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-muted);
+}
+
+.dk-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--dash-radius-chip);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.dk-field:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+.dk-field input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.dk-field__unit {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.dk-switch {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.dk-switch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.dk-switch__track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--color-border);
+    transition: background 0.15s;
+}
+
+.dk-switch__track::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-start: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s;
+}
+
+.dk-switch input:checked + .dk-switch__track {
+    background: var(--color-primary);
+}
+
+.dk-switch input:checked + .dk-switch__track::after {
+    transform: translateX(18px);
+}
+
+.dk-switch input:focus-visible + .dk-switch__track {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.dk-link-btn {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--color-primary);
+    font-family: inherit;
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+/* ══ Setup checklist ══════════════════════════════════════════════════════ */
+
+.dk-setup {
+    display: flex;
+    flex-direction: column;
+}
+
+.dk-setup__progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.dk-setup__count {
+    white-space: nowrap;
+}
+
+.dk-setup__track {
+    display: block;
+    width: 120px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    overflow: hidden;
+}
+
+.dk-setup__bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-primary);
+}
+
+.dk-setup__step {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.dk-setup__dot {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+    font-size: var(--font-size-px-9);
+}
+
+.dk-setup__step.is-done .dk-setup__dot {
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+}
+
+.dk-setup__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dk-setup__title {
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.dk-setup__why {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+/* ══ Narrow viewports ═════════════════════════════════════════════════════ */
+
+@media (max-width: 991.98px) {
+    .container-lg.dk-page {
+        padding: 16px 16px 32px;
+    }
+
+    .dk-dash,
+    .dk-dash__body,
+    .dk-dash__main,
+    .dk-dash__rail {
+        gap: 16px;
+    }
+
+    /*
+     * The rows keep their designed columns and the wrapper scrolls, so the
+     * only thing narrowing here is the gutter around them — which is the one
+     * measurement that buys back width without changing the layout inside.
+     */
+    .dk-queues__head,
+    .dk-queues__cols,
+    .dk-queue,
+    .dk-quiet,
+    .dk-limits__row {
+        padding-inline: 16px;
+    }
+
+    .dk-limits__grid {
+        padding-inline: 16px;
+    }
+
+    .dk-queue {
+        padding-block: 9px;
+    }
+
+    .dk-quiet__rows .dk-queue {
+        padding-block: 8px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .dk-head__title {
+        font-size: var(--font-2xl);
+    }
+
+    .dk-range-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .dk-plot__axis {
+        display: none;
+    }
+
+    .dk-plot__labels {
+        padding-inline-start: 0;
+    }
+}
+
+/*
+ * Motion off means motion off.
+ *
+ * Transitions are switched off outright — one that never starts costs nothing
+ * to cancel. The pulsing dots are stopped by holding them on their resting
+ * frame rather than by `animation: none`, which would restart them from the
+ * first keyframe the moment the preference changed.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .dk-dash *,
+    .dk-dash *::before,
+    .dk-dash *::after {
+        transition: none !important;
+    }
+
+    .dk-live-pill__dot,
+    .dk-pill__dot,
+    .dk-pulse {
+        animation-play-state: paused;
+        box-shadow: none;
+    }
+
+    .dk-counter:hover {
+        transform: none;
+    }
+}
+
+/*
+ * The steps. Four and six are skipped on purpose — those are the counts that
+ * leave one card alone at the end of a row, which is the whole complaint.
+ *
+ * Each threshold is the width below which that many cards no longer clear
+ * 210px: five need 1106, three need 658, two need 434.
+ */
+@container (max-width: 1105px) {
+    .dk-counter {
+        flex-basis: calc((100% - 28px) / 3);
+    }
+}
+
+@container (max-width: 659px) {
+    .dk-counter {
+        flex-basis: calc((100% - 14px) / 2);
+    }
+}
+
+@container (max-width: 433px) {
+    .dk-counter {
+        flex-basis: 100%;
+    }
+}
+
+/* ── Mirroring ──────────────────────────────────────────────────────────── */
+
+/*
+ * The arrow following "All transactions" or "Hold payout" points the way the
+ * sentence is going, so in an Arabic panel it points the other way. Left
+ * alone it pointed back at the text it was meant to lead away from.
+ *
+ * Only the horizontal one. fa-arrow-up and fa-circle-down say which way the
+ * money moved and which way a figure went — up is up in every language, and
+ * mirroring those would turn a deposit into a withdrawal.
+ */
+[dir='rtl'] .dk-dash .fa-arrow-right,
+[dir='rtl'] .dk-dash .fa-chevron-right {
+    transform: scaleX(-1);
+}
+
+/*
+ * The SLA meter fills from the inline start, so its ramp has to run that way
+ * too. A block's width already grows from the start edge in both directions;
+ * the gradient inside it does not, and left alone an Arabic row ran deepest
+ * where the wait began and palest at the deadline — the reading backwards.
+ *
+ * Stated as an angle rather than as `to right` because it is consumed by one
+ * `linear-gradient()` that has no logical keyword to reach for.
+ */
+[dir='rtl'] .dk-dash .dk-queue {
+    --dk-meter-dir: 270deg;
+}

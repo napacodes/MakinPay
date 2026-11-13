@@ -1,0 +1,1651 @@
+/*
+ * Media library — scoped to .mlib.
+ *
+ * Every colour resolves to a token in _variables.css. The file is loaded after
+ * custom.css and admin-table.css, so it wins at equal specificity without
+ * !important. Physical sides are never used: the folder rail, the inspector
+ * and every chip mirror in Arabic.
+ */
+
+.mlib {
+    --mlib-card: var(--color-card);
+    --mlib-text: var(--color-text);
+    --mlib-soft: var(--color-text-soft);
+    --mlib-subtle: var(--color-text-subtle);
+    --mlib-muted: var(--color-text-muted);
+    --mlib-faint: var(--color-text-faint);
+    --mlib-border: var(--color-border);
+    --mlib-border-soft: var(--color-border-soft);
+    --mlib-border-strong: var(--color-border-strong);
+    --mlib-surface: var(--color-surface-alt);
+    --mlib-surface-soft: var(--color-surface-soft);
+    --mlib-veil: var(--color-surface-veil);
+    --mlib-primary: var(--color-primary);
+    --mlib-primary-hover: var(--color-primary-hover);
+    --mlib-ring: var(--top-border-hover);
+    --mlib-shadow-card: var(--dash-shadow-card);
+    --mlib-shadow-flat: 0 0 0 1px rgba(var(--color-text-rgb), 0.03), 0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    --mlib-radius-lg: var(--dash-radius-card);
+    --mlib-radius-md: 0.875rem;
+    --mlib-ease: var(--shell-ease);
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--mlib-text);
+}
+
+/* ───────────────────────────────  buttons  ─────────────────────────────── */
+
+.mlib-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding-inline: 0.875rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--shell-radius);
+    background: var(--mlib-card);
+    color: var(--mlib-soft);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    transition: background-color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease);
+}
+
+.mlib-btn:hover,
+.mlib-btn:focus-visible {
+    background: var(--mlib-surface);
+    border-color: var(--mlib-ring);
+    color: var(--mlib-soft);
+}
+
+.mlib-btn--primary {
+    border: 0;
+    padding-inline: 0.75rem 1rem;
+    background: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+    box-shadow: 0 8px 18px -8px rgba(var(--color-primary-rgb), 0.55);
+}
+
+.mlib-btn--primary:hover,
+.mlib-btn--primary:focus-visible {
+    background: var(--mlib-primary-hover);
+    border-color: transparent;
+    color: rgb(var(--color-white-rgb));
+}
+
+.mlib-btn--primary:active {
+    transform: scale(0.98);
+}
+
+.mlib-btn:focus-visible,
+.mlib-tab:focus-visible,
+.mlib-chip:focus-visible,
+.mlib-folder:focus-visible,
+.mlib-view:focus-visible {
+    outline: none;
+    box-shadow: var(--top-focus-ring);
+}
+
+/* ─────────────────────────────────  tabs  ──────────────────────────────── */
+
+.mlib-tabs {
+    display: inline-flex;
+    align-self: flex-start;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--mlib-border-soft);
+    border-radius: var(--dash-radius-tile);
+    background: var(--mlib-surface-soft);
+}
+
+.mlib-tab {
+    height: 2rem;
+    padding-inline: 0.875rem;
+    border: 0;
+    border-radius: var(--dash-radius-control);
+    background: transparent;
+    color: var(--mlib-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s var(--mlib-ease), color 0.2s var(--mlib-ease);
+}
+
+.mlib-tab.is-active {
+    background: var(--mlib-card);
+    color: var(--mlib-text);
+    box-shadow: var(--dash-shadow-seg);
+}
+
+/* ──────────────────────────────────  kpi  ──────────────────────────────── */
+
+.mlib-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+    gap: 0.75rem;
+}
+
+.mlib-kpi {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--mlib-radius-lg);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-card);
+}
+
+.mlib-kpi__icon {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--dash-radius-tile);
+}
+
+.mlib-kpi__icon--brand {
+    background: var(--tint-brand);
+    color: var(--color-primary);
+}
+
+.mlib-kpi__icon--success {
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+}
+
+.mlib-kpi__icon--warning {
+    background: var(--tint-warning);
+    color: var(--color-warning-deep);
+}
+
+.mlib-kpi__icon--info {
+    background: var(--tint-info);
+    color: var(--color-info-deep);
+}
+
+.mlib-kpi__body {
+    min-width: 0;
+}
+
+.mlib-kpi__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mlib-muted);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.mlib-kpi__value {
+    margin-top: 0.125rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlib-kpi__delta {
+    margin-inline-start: auto;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mlib-muted);
+    white-space: nowrap;
+}
+
+/* ────────────────────────────────  layout  ─────────────────────────────── */
+
+/*
+ * The rail stands the full height of the grid beside it.
+ *
+ * With `flex-start` the three columns each ended wherever their own content
+ * ran out, so a short rail floated at the top of a tall column of dead space
+ * next to a very long grid — three unrelated pieces rather than one screen.
+ * `stretch` makes the rail match the assets pane, and the folder list inside
+ * it takes up the slack.
+ */
+.mlib-panes {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.mlib-rail {
+    flex: 1 1 12.5rem;
+    max-width: 15rem;
+    min-width: 11.25rem;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--mlib-radius-lg);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-card);
+    overflow: hidden;
+}
+
+.mlib-assets {
+    flex: 10 1 26.25rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ─────────────────────────────  folders rail  ──────────────────────────── */
+
+.mlib-rail__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* Same reason as the rows: neither end of the rail may be squeezed. */
+    flex-shrink: 0;
+    padding: 0.875rem 0.875rem 0.5rem;
+}
+
+.mlib-rail__caption {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--mlib-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/*
+ * `padding: 0`, because a <button> does not start at zero.
+ *
+ * The user agent gives every button `1px 6px`, which left this 24px box a
+ * 12px content column — so the glyph centred itself inside that instead of
+ * inside the button, and sat 7px from one edge and 3px from the other.
+ * Measured. Every icon-only control here resets it, whether it is a button
+ * today or becomes one later.
+ */
+.mlib-rail__add,
+.mlib-view,
+.mlib-icon-btn {
+    padding: 0;
+}
+
+.mlib-rail__add {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: 0.4375rem;
+    background: var(--mlib-card);
+    color: var(--mlib-muted);
+    transition: color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease);
+}
+
+.mlib-rail__add:hover,
+.mlib-rail__add:focus-visible {
+    color: var(--mlib-primary);
+    border-color: var(--mlib-ring);
+}
+
+/*
+ * The folder list is the part that gives.
+ *
+ * `flex-basis: 0` is the load-bearing value: it keeps the list out of the
+ * rail's natural height, so the rail never drives the row and always takes
+ * the assets pane's height instead — then the list grows into whatever that
+ * turns out to be, and scrolls the rest.
+ *
+ * Both alternatives were measured and both were wrong. `flex-basis: auto`
+ * let sixty folders make the rail 2000px tall beside a 1100px grid; a fixed
+ * `max-height` stopped that but left a column of dead space under the list
+ * whenever the grid was the taller of the two.
+ */
+.mlib-rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    flex: 1 1 0;
+    min-height: 12rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 0.5rem 0.5rem;
+}
+
+/* The slim thumb the rest of the admin uses, not the platform's own bar. */
+
+/*
+ * `flex-shrink: 0` or the height is a suggestion.
+ *
+ * These rows are flex children of a scrolling column, and a flex item shrinks
+ * to min-content before its container overflows. With enough folders every
+ * row was squashed to 19.5px — measured — while still declaring 36px, so the
+ * rail arrived dense and cramped and the scrollbar appeared anyway. The rows
+ * must keep their height and let the list scroll.
+ */
+.mlib-folder {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+    height: 2.25rem;
+    padding-inline: 0.625rem;
+    border: 0;
+    border-radius: var(--dash-radius-control);
+    text-align: start;
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: transparent;
+    color: var(--mlib-soft);
+    transition: background-color 0.2s var(--mlib-ease);
+}
+
+.mlib-folder:hover {
+    background: var(--mlib-surface-soft);
+    color: var(--mlib-soft);
+}
+
+.mlib-folder.is-active {
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--mlib-primary-hover);
+    font-weight: 600;
+}
+
+.mlib-folder__swatch {
+    flex-shrink: 0;
+    width: 0.875rem;
+    height: 0.6875rem;
+    border-radius: 0.125rem 0.1875rem 0.1875rem 0.1875rem;
+    box-shadow: inset 0 2px 0 rgba(var(--color-white-rgb), 0.35);
+}
+
+.mlib-folder__swatch--c1 { background: var(--color-primary); }
+.mlib-folder__swatch--c2 { background: var(--color-warning); }
+.mlib-folder__swatch--c3 { background: var(--color-info); }
+.mlib-folder__swatch--c4 { background: var(--color-success); }
+.mlib-folder__swatch--c5 { background: var(--color-text-faint); }
+.mlib-folder__swatch--c6 { background: var(--color-violet); }
+.mlib-folder__swatch--all { background: var(--color-primary-light); }
+
+.mlib-folder__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mlib-folder__name--path {
+    font-family: var(--font-mono);
+}
+
+.mlib-folder__count {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mlib-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.mlib-rail__foot {
+    margin-top: auto;
+    flex-shrink: 0;
+    padding: 0.875rem;
+    border-top: 1px solid var(--mlib-border-soft);
+    background: var(--mlib-veil);
+}
+
+.mlib-usage {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--mlib-muted);
+}
+
+.mlib-usage__value {
+    color: var(--mlib-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.mlib-usage__bar {
+    margin-top: 0.5rem;
+    height: 0.375rem;
+    border-radius: 999px;
+    background: var(--mlib-border-soft);
+    overflow: hidden;
+}
+
+.mlib-usage__fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-primary-lift), var(--color-primary));
+}
+
+.mlib-usage__active {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    font-size: 0.6875rem;
+    color: var(--mlib-muted);
+}
+
+.mlib-usage__dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: var(--color-success);
+    box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.18);
+}
+
+.mlib-usage__provider {
+    color: var(--mlib-text);
+    font-weight: 600;
+}
+
+/* ────────────────────────────────  toolbar  ────────────────────────────── */
+
+.mlib-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    padding: 0.625rem;
+    border-radius: var(--mlib-radius-md);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-flat);
+}
+
+.mlib-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 12.5rem;
+    height: 2.25rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-surface);
+    transition: background-color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease);
+}
+
+.mlib-search:hover,
+.mlib-search:focus-within {
+    border-color: var(--mlib-ring);
+    background: var(--mlib-card);
+}
+
+.mlib-search__icon {
+    flex-shrink: 0;
+    color: var(--mlib-muted);
+    display: inline-flex;
+}
+
+.mlib-search__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.8125rem;
+    color: var(--mlib-text);
+    outline: none;
+}
+
+.mlib-chips {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.mlib-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.875rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: 999px;
+    background: var(--mlib-card);
+    color: var(--mlib-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease), color 0.2s var(--mlib-ease);
+}
+
+.mlib-chip:hover {
+    border-color: var(--mlib-ring);
+    color: var(--mlib-soft);
+}
+
+.mlib-chip.is-active {
+    background: var(--mlib-primary);
+    border-color: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+}
+
+.mlib-chip__count {
+    font-size: 0.65625rem;
+    font-weight: 700;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+.mlib-toolbar__end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+}
+
+.mlib-select {
+    height: 2.25rem;
+    padding-inline: 0.625rem 1.75rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-control);
+    background-color: var(--mlib-card);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mlib-soft);
+    appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+        linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+    background-position: calc(100% - 0.9375rem) 0.9375rem, calc(100% - 0.625rem) 0.9375rem;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+
+[dir='rtl'] .mlib-select {
+    background-image:
+        linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%),
+        linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%);
+    background-position: 0.625rem 0.9375rem, 0.9375rem 0.9375rem;
+}
+
+.mlib-views {
+    display: inline-flex;
+    gap: 0.125rem;
+    padding: 0.1875rem;
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-surface-soft);
+}
+
+.mlib-view {
+    display: inline-grid;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    border: 0;
+    border-radius: 0.4375rem;
+    background: transparent;
+    color: var(--mlib-muted);
+}
+
+.mlib-view.is-active {
+    background: var(--mlib-card);
+    color: var(--mlib-text);
+    box-shadow: var(--dash-shadow-seg);
+}
+
+/* ───────────────────────────────  drop zone  ───────────────────────────── */
+
+.mlib-drop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border: 1.5px dashed var(--mlib-ring);
+    border-radius: var(--mlib-radius-md);
+    background: rgba(var(--color-primary-rgb), 0.03);
+    color: var(--color-primary-hover);
+    font-size: 0.78125rem;
+    font-weight: 500;
+    text-align: center;
+    transition: background-color 0.2s var(--mlib-ease);
+}
+
+.mlib-drop:hover,
+.mlib-drop.is-dragging {
+    background: rgba(var(--color-primary-rgb), 0.06);
+}
+
+.mlib-drop__icon {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--dash-radius-chip);
+    background: var(--mlib-card);
+    color: var(--mlib-primary);
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.18);
+}
+
+.mlib-drop__hint {
+    color: var(--mlib-muted);
+    font-weight: 500;
+}
+
+.mlib-drop__progress {
+    margin-inline-start: 0.5rem;
+    font-weight: 700;
+}
+
+/* ────────────────────────────────  grid  ───────────────────────────────── */
+
+.mlib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.75rem, 1fr));
+    gap: 0.75rem;
+}
+
+.mlib-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    text-align: start;
+    cursor: pointer;
+    background: var(--mlib-card);
+    border-radius: var(--mlib-radius-md);
+    overflow: hidden;
+    box-shadow: var(--mlib-shadow-flat);
+    transition: transform 0.2s var(--mlib-ease), box-shadow 0.2s var(--mlib-ease);
+}
+
+.mlib-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dash-shadow-lift);
+}
+
+.mlib-card.is-selected {
+    box-shadow: 0 0 0 2px var(--mlib-primary);
+}
+
+.mlib-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--mlib-primary), var(--top-focus-ring);
+}
+
+.mlib-preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    display: grid;
+    place-items: center;
+    /* A broken image lays its alt text out at full size; clip it to the tile. */
+    overflow: hidden;
+    background: var(--mlib-surface-soft);
+}
+
+.mlib-preview--missing,
+.mlib-inspector__preview.mlib-preview--missing {
+    background: linear-gradient(180deg, var(--color-surface-alt), var(--color-palette-cbd5e1));
+}
+
+.mlib-page-card--missing {
+    color: var(--color-text-faint);
+}
+
+/*
+ * Pinned to the tile, not sized by percentage.
+ *
+ * `height: 100%` cannot resolve against a parent whose own height comes from
+ * `aspect-ratio` — the percentage is treated as auto, the image falls back to
+ * its intrinsic ratio, and a square logo rendered 184x184 inside a 184x138
+ * tile. `overflow: hidden` then did the cropping and `object-fit` never got a
+ * say. Measured, both before and after.
+ */
+.mlib-preview img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/*
+ * Vector artwork is shown whole, never cropped.
+ *
+ * An SVG in this library is a logo or an icon, and filling the tile sliced the
+ * wordmark off every payment-method badge — bKash, Nagad and Rocket all
+ * arrived with their names cut in half. A photograph still wants to fill;
+ * a logo wants to be legible.
+ */
+.mlib-preview--vector img,
+.mlib-inspector__preview.mlib-preview--vector img {
+    object-fit: contain;
+    padding: 9%;
+}
+
+.mlib-list__thumb--vector img {
+    object-fit: contain;
+    padding: 2px;
+}
+
+.mlib-preview--document { background: linear-gradient(180deg, var(--color-palette-fff7ed), var(--color-palette-fed7aa)); }
+.mlib-preview--archive { background: linear-gradient(180deg, var(--color-surface-soft), var(--color-palette-cbd5e1)); }
+.mlib-preview--video { background: linear-gradient(180deg, var(--tint-violet), var(--color-palette-c4b5fd)); }
+.mlib-preview--audio { background: linear-gradient(180deg, var(--color-palette-ecfdf5), var(--color-palette-6ee7b7)); }
+.mlib-preview--other { background: linear-gradient(180deg, var(--color-surface-alt), var(--color-palette-cbd5e1)); }
+
+.mlib-page-card {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 3.375rem;
+    border-radius: 0.375rem 0.75rem 0.375rem 0.375rem;
+    background: var(--color-card);
+    box-shadow: 0 6px 16px -6px rgba(var(--color-text-rgb), 0.25);
+    font-size: 0.65625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--color-text-soft);
+}
+
+.mlib-page-card--pdf { color: var(--color-danger-deep); }
+.mlib-page-card--zip { color: var(--color-text-subtle); }
+.mlib-page-card--mp4 { color: var(--color-violet-deep); }
+.mlib-page-card--mp3,
+.mlib-page-card--csv { color: var(--color-success-deep); }
+.mlib-page-card--docx { color: var(--color-palette-1e40af); }
+
+.mlib-type {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-start: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    height: 1.25rem;
+    padding-inline: 0.4375rem;
+    border-radius: 999px;
+    background: rgba(var(--color-text-rgb), 0.55);
+    backdrop-filter: blur(6px);
+    color: rgb(var(--color-white-rgb));
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.mlib-check {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-end: 0.5rem;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+    box-shadow: 0 0 0 2px var(--mlib-card);
+}
+
+.mlib-card__body {
+    display: block;
+    min-width: 0;
+    padding: 0.625rem 0.75rem 0.75rem;
+}
+
+/*
+ * `display: block` is load-bearing. The title is a <span> inside a <button>,
+ * and an inline box ignores overflow — the name ran straight out of the card
+ * instead of ellipsing at its edge.
+ */
+.mlib-card__title {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--mlib-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlib-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--mlib-muted);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.mlib-card__sep {
+    color: var(--mlib-border-strong);
+}
+
+.mlib-card__provider {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ────────────────────────────────  list  ───────────────────────────────── */
+
+.mlib-list {
+    border-radius: var(--mlib-radius-md);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-flat);
+    overflow: hidden;
+}
+
+.mlib-list__scroll {
+    overflow-x: auto;
+}
+
+/*
+ * The narrowest width every column still fits in — the column minimums plus
+ * the gaps — not `max-content`. `max-content` lets the flexible Asset column
+ * claim whatever the longest filename wants and pushes the last columns off
+ * the end rather than ellipsing the name.
+ */
+.mlib-list__inner {
+    min-width: 47.5rem;
+}
+
+.mlib-list__head,
+.mlib-list__row {
+    display: grid;
+    grid-template-columns: minmax(12.5rem, 2fr) 5.625rem 5.625rem minmax(6.875rem, 1fr) minmax(6.875rem, 1fr) 6.25rem;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.mlib-list__head {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--mlib-border-soft);
+    background: var(--mlib-surface);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--mlib-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.mlib-list__row {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--mlib-border-soft);
+    background: transparent;
+    text-align: start;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--mlib-text);
+}
+
+.mlib-list__row:hover {
+    background: var(--mlib-surface);
+}
+
+.mlib-list__row.is-selected {
+    background: rgba(var(--color-primary-rgb), 0.05);
+}
+
+.mlib-list__asset {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.mlib-list__thumb {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--dash-radius-chip);
+    overflow: hidden;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    color: var(--mlib-soft);
+}
+
+.mlib-list__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/*
+ * The wrapper must be a block with min-width 0 or the ellipsis below never
+ * engages — an inline box sizes to its content and the name ran over the
+ * Type column.
+ */
+.mlib-list__names,
+.mlib-provider__body {
+    display: block;
+    min-width: 0;
+}
+
+.mlib-list__name {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlib-list__dims {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--mlib-muted);
+}
+
+.mlib-list__cell {
+    font-size: 0.75rem;
+    color: var(--mlib-soft);
+    font-weight: 500;
+}
+
+.mlib-list__cell--num {
+    font-variant-numeric: tabular-nums;
+}
+
+.mlib-list__cell--mono {
+    font-family: var(--font-mono);
+    color: var(--mlib-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlib-list__cell--muted {
+    color: var(--mlib-muted);
+}
+
+/* ───────────────────────────  footer + paging  ─────────────────────────── */
+
+.mlib-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--mlib-muted);
+}
+
+.mlib-foot strong {
+    color: var(--mlib-text);
+    font-weight: 600;
+}
+
+.mlib-foot .pagination {
+    margin: 0;
+    gap: 0.25rem;
+}
+
+.mlib-foot .page-link {
+    height: 1.875rem;
+    min-width: 1.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-chip);
+    background: var(--mlib-card);
+    color: var(--mlib-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.mlib-foot .page-item.active .page-link {
+    border-color: var(--mlib-primary);
+    background: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+    font-weight: 700;
+}
+
+.mlib-foot .page-item.disabled .page-link {
+    color: var(--mlib-faint);
+}
+
+/* ──────────────────────────────  inspector  ────────────────────────────── */
+
+/*
+ * The inspector keeps its own height and follows the grid down.
+ *
+ * Stretching it to match would only add empty card below the delete button.
+ * Sticky instead: on a long page the details of the file you picked stay in
+ * view while you scroll past the rest.
+ */
+.mlib-inspector {
+    flex: 1 1 16.25rem;
+    max-width: 18.75rem;
+    min-width: 15rem;
+    align-self: flex-start;
+    position: sticky;
+    top: calc(var(--top-height, 64px) + var(--demo-banner-total, 0px) + 1rem);
+    border-radius: var(--mlib-radius-lg);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-card);
+    overflow: hidden;
+    animation: dkPop 0.32s var(--mlib-ease) both;
+}
+
+.mlib-inspector__preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--mlib-surface-soft);
+}
+
+.mlib-inspector__preview img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mlib-inspector__preview .mlib-page-card {
+    width: 3.5rem;
+    height: 4.25rem;
+    border-radius: 0.5rem 1rem 0.5rem 0.5rem;
+    font-size: 0.75rem;
+    box-shadow: 0 10px 24px -8px rgba(var(--color-text-rgb), 0.3);
+}
+
+.mlib-inspector__body {
+    padding: 0.875rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.mlib-inspector__file {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--mlib-text);
+    word-break: break-word;
+}
+
+.mlib-inspector__by {
+    margin-top: 0.1875rem;
+    font-size: 0.71875rem;
+    color: var(--mlib-muted);
+}
+
+.mlib-inspector__by strong {
+    color: var(--mlib-soft);
+    font-weight: 600;
+}
+
+.mlib-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--dash-radius-tile);
+    background: var(--mlib-surface);
+    font-size: 0.75rem;
+}
+
+.mlib-meta__label {
+    font-size: 0.65625rem;
+    font-weight: 700;
+    color: var(--mlib-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mlib-meta__value {
+    margin-top: 0.125rem;
+    font-weight: 600;
+    color: var(--mlib-text);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.mlib-meta__value--mono {
+    font-family: var(--font-mono);
+    font-size: 0.71875rem;
+}
+
+.mlib-url__label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--mlib-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mlib-url {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 2.25rem;
+    padding-inline: 0.625rem 0.25rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-surface);
+}
+
+.mlib-url__value {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--mlib-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mlib-url__copy {
+    height: 1.75rem;
+    padding-inline: 0.625rem;
+    border: 0;
+    border-radius: 0.4375rem;
+    background: var(--mlib-card);
+    color: var(--mlib-primary);
+    font-size: 0.71875rem;
+    font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.18);
+}
+
+.mlib-url__copy:hover {
+    background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.mlib-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.mlib-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mlib-soft);
+}
+
+.mlib-field input,
+.mlib-field textarea {
+    padding-inline: 0.75rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-card);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--mlib-text);
+    outline: none;
+}
+
+.mlib-field input {
+    height: 2.375rem;
+}
+
+.mlib-field textarea {
+    padding-block: 0.5625rem;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+.mlib-field input:focus,
+.mlib-field textarea:focus {
+    border-color: var(--mlib-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.mlib-inspector__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+}
+
+.mlib-save {
+    flex: 1;
+    height: 2.375rem;
+    border: 0;
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.mlib-save:hover {
+    background: var(--mlib-primary-hover);
+}
+
+.mlib-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--mlib-card);
+    color: var(--mlib-subtle);
+    transition: color 0.2s var(--mlib-ease), background-color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease);
+}
+
+.mlib-icon-btn:hover {
+    border-color: var(--mlib-ring);
+    color: var(--mlib-primary);
+}
+
+.mlib-icon-btn--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.2);
+    background: rgba(var(--color-danger-rgb), 0.06);
+    color: var(--color-danger-deep);
+}
+
+.mlib-icon-btn--danger:hover {
+    border-color: var(--color-danger-strong);
+    background: var(--color-danger-strong);
+    color: rgb(var(--color-white-rgb));
+}
+
+/* ─────────────────────────────  storage tab  ───────────────────────────── */
+
+.mlib-storage {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.mlib-storage__top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+    gap: 1rem;
+}
+
+.mlib-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem;
+    border-radius: var(--mlib-radius-lg);
+    color: rgb(var(--color-white-rgb));
+    background: var(--dash-treasury);
+    box-shadow: 0 18px 44px -20px rgba(var(--color-text-rgb), 0.45);
+}
+
+.mlib-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(var(--color-white-rgb), 0.07) 1px, transparent 1px) 0 0 / 44px 44px,
+        linear-gradient(0deg, rgba(var(--color-white-rgb), 0.05) 1px, transparent 1px) 0 0 / 44px 44px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.mlib-hero__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.mlib-hero__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid rgba(var(--color-white-rgb), 0.18);
+    border-radius: 0.875rem;
+    background: rgba(var(--color-white-rgb), 0.1);
+    color: rgb(var(--color-white-rgb));
+}
+
+.mlib-hero__eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(var(--color-white-rgb), 0.7);
+}
+
+.mlib-hero__name {
+    margin-top: 0.125rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.mlib-hero__spec {
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    color: rgba(var(--color-white-rgb), 0.7);
+    font-family: var(--font-mono);
+}
+
+.mlib-hero__note {
+    position: relative;
+    margin: 1rem 0 0;
+    font-size: 0.78125rem;
+    line-height: 1.5;
+    color: rgba(var(--color-white-rgb), 0.75);
+    text-wrap: pretty;
+}
+
+.mlib-form-card {
+    padding: 1.25rem;
+    border-radius: var(--mlib-radius-lg);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-card);
+}
+
+.mlib-form-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.mlib-form-card__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700 !important;
+}
+
+.mlib-form-card__pill {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--mlib-primary);
+    padding: 0.1875rem 0.5rem;
+    border-radius: 999px;
+    background: var(--color-primary-soft);
+}
+
+.mlib-providers {
+    border-radius: var(--mlib-radius-lg);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-card);
+    overflow: hidden;
+}
+
+.mlib-providers__scroll {
+    overflow-x: auto;
+}
+
+.mlib-providers__inner {
+    min-width: 47.5rem;
+}
+
+.mlib-providers__head,
+.mlib-providers__row {
+    display: grid;
+    grid-template-columns: minmax(12.5rem, 2fr) 6.25rem minmax(7.5rem, 1fr) 5rem minmax(8.75rem, 1fr) 13.75rem;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.mlib-providers__head {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--mlib-border-soft);
+    background: var(--mlib-surface);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--mlib-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.mlib-providers__row {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--mlib-border-soft);
+    font-size: 0.8125rem;
+}
+
+.mlib-providers__row:hover {
+    background: var(--mlib-surface);
+}
+
+.mlib-provider {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.mlib-provider__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--mlib-faint);
+    box-shadow: 0 0 0 3px rgba(var(--color-text-faint-rgb), 0.18);
+}
+
+.mlib-provider__dot--active {
+    background: var(--color-success);
+    box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.18);
+}
+
+.mlib-provider__dot--untested {
+    background: var(--color-warning);
+    box-shadow: 0 0 0 3px rgba(var(--color-warning-rgb), 0.18);
+}
+
+.mlib-provider__name {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+}
+
+.mlib-provider__active {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 999px;
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+    letter-spacing: 0.04em;
+}
+
+.mlib-provider__slug {
+    display: block;
+    font-size: 0.71875rem;
+    color: var(--mlib-muted);
+    font-family: var(--font-mono);
+}
+
+.mlib-driver {
+    display: inline-flex;
+    align-self: center;
+    width: fit-content;
+    height: 1.375rem;
+    align-items: center;
+    padding-inline: 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: var(--mlib-surface-soft);
+    color: var(--mlib-subtle);
+}
+
+.mlib-test {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.mlib-test__status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mlib-muted);
+}
+
+.mlib-test__status--success { color: var(--color-success-deep); }
+.mlib-test__status--failed { color: var(--color-danger-deep); }
+.mlib-test__status--untested { color: var(--color-warning-deep); }
+
+.mlib-test__at {
+    font-size: 0.6875rem;
+    color: var(--mlib-muted);
+}
+
+.mlib-providers__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.mlib-mini {
+    height: 1.875rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--mlib-border);
+    border-radius: var(--dash-radius-chip);
+    background: var(--mlib-card);
+    color: var(--mlib-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background-color 0.2s var(--mlib-ease), border-color 0.2s var(--mlib-ease), color 0.2s var(--mlib-ease);
+}
+
+.mlib-mini:hover {
+    border-color: var(--mlib-ring);
+    color: var(--mlib-soft);
+}
+
+.mlib-mini--activate {
+    border-color: rgba(var(--color-primary-rgb), 0.24);
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--mlib-primary);
+    font-weight: 700;
+}
+
+.mlib-mini--activate:hover {
+    background: var(--mlib-primary);
+    color: rgb(var(--color-white-rgb));
+}
+
+.mlib-mini--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.2);
+    color: var(--color-danger-deep);
+}
+
+.mlib-mini--danger:hover {
+    border-color: var(--color-danger-strong);
+    background: var(--color-danger-strong);
+    color: rgb(var(--color-white-rgb));
+}
+
+.mlib-provider-edit {
+    padding: 1rem 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--mlib-border-soft);
+    background: var(--mlib-veil);
+}
+
+.mlib-empty {
+    padding: 2rem 1rem;
+    border-radius: var(--mlib-radius-md);
+    background: var(--mlib-card);
+    box-shadow: var(--mlib-shadow-flat);
+}
+
+/* ──────────────────────────────  responsive  ───────────────────────────── */
+
+@media (max-width: 991.98px) {
+    .mlib-rail,
+    .mlib-inspector {
+        max-width: none;
+        flex-basis: 100%;
+    }
+
+    /* Stacked below the grid, a sticky inspector would pin itself over it. */
+    .mlib-inspector {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .mlib-toolbar__end {
+        margin-inline-start: 0;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .mlib-select {
+        flex: 1 1 8rem;
+    }
+
+    /*
+     * 172px cards leave room for exactly one column on a 375px screen, and a
+     * single full-width 4:3 preview per row turns twelve files into a very
+     * long scroll. Two narrower cards read as a library.
+     */
+    .mlib-grid {
+        grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    }
+}
+
+/* ───────────────────────────────  dark mode  ───────────────────────────── */
+
+[data-coreui-theme='dark'] .mlib {
+    --mlib-card: var(--cui-body-bg);
+    --mlib-text: rgba(var(--color-white-rgb), 0.92);
+    --mlib-soft: rgba(var(--color-white-rgb), 0.78);
+    --mlib-subtle: rgba(var(--color-white-rgb), 0.7);
+    --mlib-muted: rgba(var(--color-white-rgb), 0.62);
+    --mlib-faint: rgba(var(--color-white-rgb), 0.45);
+    --mlib-border: rgba(var(--color-white-rgb), 0.12);
+    --mlib-border-soft: rgba(var(--color-white-rgb), 0.08);
+    --mlib-border-strong: rgba(var(--color-white-rgb), 0.2);
+    --mlib-surface: rgba(var(--color-white-rgb), 0.04);
+    --mlib-surface-soft: rgba(var(--color-white-rgb), 0.06);
+    --mlib-veil: rgba(var(--color-white-rgb), 0.03);
+    --mlib-ring: rgba(var(--color-primary-rgb), 0.5);
+    --mlib-shadow-card: 0 1rem 2.2rem rgba(var(--color-black-rgb), 0.22);
+    --mlib-shadow-flat: 0 0 0 1px rgba(var(--color-white-rgb), 0.06);
+}
+
+[data-coreui-theme='dark'] .mlib-kpi__icon--brand,
+[data-coreui-theme='dark'] .mlib-kpi__icon--success,
+[data-coreui-theme='dark'] .mlib-kpi__icon--warning,
+[data-coreui-theme='dark'] .mlib-kpi__icon--info {
+    background: rgba(var(--color-white-rgb), 0.08);
+}
+
+/* ────────────────────────────  reduced motion  ─────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .mlib-inspector {
+        animation: none;
+    }
+
+    .mlib-card,
+    .mlib-btn,
+    .mlib-chip,
+    .mlib-folder,
+    .mlib-tab,
+    .mlib-icon-btn,
+    .mlib-mini,
+    .mlib-drop {
+        transition: none;
+    }
+
+    .mlib-card:hover {
+        transform: none;
+    }
+}

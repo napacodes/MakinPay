@@ -1,0 +1,3507 @@
+/* =====================================================================
+ * Site Settings
+ *
+ * One screen, thirteen sections, ninety-eight fields. It used to be a card
+ * inside a card inside a scroll area, with every label carrying a tooltip
+ * nobody hovered and every field laid out on a Bootstrap grid that put a
+ * one-word label beside a full-width textarea.
+ *
+ * This sheet replaces that with a reading layout: a rail that lists the
+ * sections and searches all of them, and a body where each setting is a row —
+ * what it is and what it costs on the left, the control on the right.
+ *
+ * It also holds the three dialogues the page owns (storage health, the mail
+ * test, and the confirmation before a switch that can lock you out). Those
+ * moved here from custom.css unchanged in intent; they are page furniture,
+ * not shared components.
+ *
+ * Prefix: ss- for anything new. The older settings-* names stay where the
+ * Blade partials and their tests already read them.
+ * ===================================================================== */
+
+.ss-page {
+	--ss-gap: 20px;
+	--ss-radius-control: 10px;
+	--ss-radius-card: 16px;
+	--ss-ring: 0 0 0 1px rgba(var(--color-text-rgb), 0.05), 0 1px 2px rgba(var(--color-text-rgb), 0.03);
+	--ss-separator: rgba(var(--color-text-rgb), 0.06);
+	--ss-rail-width: 272px;
+	--ss-tint-bg: rgba(var(--color-primary-rgb), 0.1);
+	--ss-tint-fg: var(--color-primary);
+
+	position: relative;
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+}
+
+/* ── The shell card ───────────────────────────────────────────────────────
+ *
+ * The settings shell wraps whatever it yields in a `.card.px-3.py-3`. Every
+ * other admin page puts its header straight onto the page background, so
+ * here that card read as a second surface: a white slab sitting behind the
+ * rail, the section head and every group card, none of which need one.
+ *
+ * Neutralised from this page rather than removed from the shell, because the
+ * Integration Center still extends the same layout and still wants the card.
+ * The spacing utilities carry !important, so undoing them has to as well.
+ */
+body:has(.ss-page) .wrapper > .body > .dk-page > .card {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	padding-inline: 0 !important;
+	padding-block: 0 !important;
+}
+
+body:has(.ss-page) .wrapper > .body > .dk-page > .card > .py-3 {
+	padding-block: 0 !important;
+}
+
+/* ── The full-height model ────────────────────────────────────────────────
+ *
+ * On a wide screen the page itself does not scroll: the rail and the body
+ * each scroll on their own, so choosing a section never means scrolling back
+ * up to find the list again.
+ *
+ * Scoped through :has() rather than a body class because the shell layout is
+ * shared with every other admin page and this is the only one that wants it.
+ * Below 992px it is all switched off and the page scrolls normally.
+ */
+@media (min-width: 992px) {
+	body:has(.ss-page) {
+		overflow: hidden;
+	}
+
+	body:has(.ss-page) .wrapper {
+		height: 100vh;
+		min-height: 100vh;
+	}
+
+	/*
+	 * The column above is a fixed 100vh flex stack, and a flex item shrinks
+	 * below its own height unless told not to. The header asks for exactly
+	 * `--top-height` and has nothing to give, so it was the one that gave:
+	 * measured 41px here against 64px on every other admin screen, which is
+	 * the search field and the avatar clipped against the top of the window.
+	 *
+	 * It belongs here and not in admin-shell.css because nothing else asks
+	 * the shell to fit the viewport — this page created the constraint, so
+	 * this page pins the one thing it must not break.
+	 */
+	body:has(.ss-page) .wrapper > header {
+		flex-shrink: 0;
+	}
+
+	body:has(.ss-page) .wrapper > .body {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+
+		/*
+		 * The same air underneath as the page has above it.
+		 *
+		 * The margin is zeroed because it is Bootstrap's `mb-3` and carries
+		 * !important; the padding then sets the real figure. Measured before:
+		 * 24px above the header and 0 below the workspace, so the section
+		 * list ended flush on the window edge and its rounded bottom corner
+		 * read as a card cut in half.
+		 */
+		margin-bottom: 0 !important;
+		padding-block-end: 24px;
+	}
+
+	body:has(.ss-page) .wrapper > .body > .dk-page {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	body:has(.ss-page) .wrapper > .body > .dk-page > .card {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+		margin-bottom: 0;
+	}
+
+	body:has(.ss-page) .wrapper > .body > .dk-page > .card > .py-3 {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	/* The footer is 40-odd pixels of copyright the operator never reads while
+	   configuring, and it is the only thing competing for the height the two
+	   scroll areas need. */
+	body:has(.ss-page) .wrapper > footer {
+		display: none;
+	}
+
+}
+
+/* ── Header chips ─────────────────────────────────────────────────────────
+ *
+ * Status an operator reads without clicking, and a control when they want
+ * more. These live inside <x-page-header>, outside .ss-page, so they resolve
+ * shared tokens only — never a --ss-* one.
+ */
+.ss-health {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.ss-health::before {
+	block-size: 22px;
+	background: var(--color-border);
+	content: "";
+	inline-size: 1px;
+	margin-inline: 4px;
+}
+
+.ss-health__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	block-size: 34px;
+	padding-inline: 7px 11px;
+	border: 1px solid var(--color-border);
+	border-radius: 999px;
+	color: var(--color-text-subtle);
+	background: var(--color-card);
+	box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.04);
+	font-family: var(--font-primary);
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.ss-health__chip:hover,
+.ss-health__chip:focus-visible {
+	border-color: var(--color-primary-tint);
+	color: var(--color-text);
+	background: var(--color-surface-alt);
+}
+
+.ss-health__chip b {
+	color: var(--color-text);
+	font-weight: var(--font-semibold);
+}
+
+.ss-health__icon {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 20px;
+	block-size: 20px;
+	border-radius: 6px;
+}
+
+.ss-health__icon--success {
+	color: var(--color-success-strong);
+	background: rgba(var(--color-success-rgb), 0.12);
+}
+
+.ss-health__icon--warning {
+	color: var(--color-warning-strong);
+	background: rgba(var(--color-warning-rgb), 0.14);
+}
+
+.ss-health__icon--danger {
+	color: var(--color-danger-strong);
+	background: rgba(var(--color-danger-rgb), 0.12);
+}
+
+/* ── Workspace ──────────────────────────────────────────────────────────── */
+
+.ss-workspace {
+	display: grid;
+	flex: 1 1 auto;
+	grid-template-columns: var(--ss-rail-width) minmax(0, 1fr);
+	grid-template-rows: minmax(0, 1fr);
+	gap: var(--ss-gap);
+	align-items: stretch;
+	min-height: 0;
+}
+
+/* ── Rail ───────────────────────────────────────────────────────────────── */
+
+.ss-rail {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 0;
+	block-size: 100%;
+}
+
+.ss-search {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 0 0 auto;
+	block-size: 40px;
+	padding-inline: 12px 8px;
+	border-radius: 12px;
+	background: var(--color-card);
+	box-shadow: var(--ss-ring);
+	cursor: text;
+	transition: box-shadow 0.16s ease;
+}
+
+.ss-search:focus-within {
+	box-shadow: 0 0 0 1px var(--color-primary-tint), 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.ss-search__icon {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	color: var(--color-text-faint);
+}
+
+.ss-search__input {
+	flex: 1 1 auto;
+	min-inline-size: 0;
+	border: 0;
+	color: var(--color-text);
+	background: transparent;
+	font-size: var(--font-sm);
+	outline: none;
+}
+
+.ss-search__input::placeholder {
+	color: var(--color-text-faint);
+}
+
+.ss-search__input::-webkit-search-cancel-button {
+	display: none;
+}
+
+.ss-search__kbd {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 20px;
+	block-size: 20px;
+	border-radius: 6px;
+	color: var(--color-text-faint);
+	background: var(--color-surface-alt);
+	font-family: var(--font-mono);
+	font-size: var(--font-2xs);
+}
+
+.ss-search:focus-within .ss-search__kbd {
+	display: none;
+}
+
+.ss-search__clear {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 20px;
+	block-size: 20px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	color: var(--color-text-muted);
+	background: var(--color-surface-alt);
+	cursor: pointer;
+}
+
+.ss-search__clear:hover {
+	color: var(--color-text);
+}
+
+/* ── Results ────────────────────────────────────────────────────────────── */
+
+.ss-results {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 8px;
+	border-radius: 14px;
+	background: var(--color-card);
+	box-shadow: var(--ss-ring);
+	overflow-y: auto;
+	animation: ss-pop 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ss-results__caption,
+.ss-nav__caption {
+	display: block;
+	padding: 6px 10px;
+	color: var(--color-text-faint);
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.ss-results__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	inline-size: 100%;
+	padding: 8px 10px;
+	border: 0;
+	border-radius: 9px;
+	background: transparent;
+	text-align: start;
+	cursor: pointer;
+}
+
+.ss-results__item:hover,
+.ss-results__item:focus-visible {
+	background: var(--color-surface-alt);
+}
+
+.ss-results__text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-inline-size: 0;
+}
+
+.ss-results__title {
+	color: var(--color-text);
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ss-results__sub {
+	color: var(--color-text-faint);
+	font-size: var(--font-xs);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ss-results__empty {
+	margin: 0;
+	padding: 10px;
+	color: var(--color-text-muted);
+	font-size: var(--font-sm);
+}
+
+/* ── Section list ───────────────────────────────────────────────────────── */
+
+.ss-nav {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 4px;
+	min-height: 0;
+	padding: 8px;
+	border-radius: 14px;
+	background: var(--color-card);
+	box-shadow: var(--ss-ring);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	/* Same treatment as the body column, sized to this card's own radius. */
+	scrollbar-gutter: stable;
+	--scrollbar-inset: 14px;
+}
+
+.ss-nav__caption:first-child {
+	padding-block-start: 2px;
+}
+
+.ss-nav__item {
+	display: grid;
+	grid-template-columns: 30px minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+	flex: 0 0 auto;
+	padding: 8px 10px;
+	border: 0;
+	border-radius: 10px;
+	background: transparent;
+	text-align: start;
+	cursor: pointer;
+	transition: background-color 0.14s ease;
+}
+
+.ss-nav__item:hover,
+.ss-nav__item:focus-visible {
+	background: var(--color-surface-alt);
+}
+
+.ss-nav__item.active {
+	background: var(--color-surface-soft);
+}
+
+.ss-nav__icon {
+	display: inline-grid;
+	place-items: center;
+	inline-size: 30px;
+	block-size: 30px;
+	border-radius: 8px;
+	color: var(--ss-tint-fg);
+	background: var(--ss-tint-bg);
+}
+
+.ss-nav__text {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-inline-size: 0;
+}
+
+.ss-nav__title {
+	color: var(--color-text);
+	font-size: var(--font-sm);
+	font-weight: var(--font-medium);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ss-nav__item.active .ss-nav__title {
+	font-weight: var(--font-semibold);
+}
+
+.ss-nav__desc {
+	color: var(--color-text-faint);
+	font-size: var(--font-xs);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* An amber dot, and only when the section is holding an edit. Present but
+   transparent otherwise, so the grid column never changes width mid-scan. */
+.ss-nav__flag {
+	inline-size: 8px;
+	block-size: 8px;
+	border-radius: 50%;
+	background: transparent;
+}
+
+.ss-nav__flag.is-dirty {
+	background: var(--color-warning);
+}
+
+/* ── Section tints ──────────────────────────────────────────────────────── */
+
+.ss-tint--general_settings       { --ss-tint-bg: rgba(var(--color-primary-rgb), 0.1);      --ss-tint-fg: var(--color-primary); }
+
+.ss-tint--role_branding_settings { --ss-tint-bg: rgba(var(--color-rose-rgb), 0.1);         --ss-tint-fg: var(--color-rose); }
+
+.ss-tint--media_settings         { --ss-tint-bg: rgba(var(--color-rgb-15-118-110), 0.1);   --ss-tint-fg: var(--color-teal); }
+
+.ss-tint--site_security          { --ss-tint-bg: rgba(var(--color-danger-rgb), 0.1);       --ss-tint-fg: var(--color-danger-strong); }
+
+.ss-tint--kyc_settings           { --ss-tint-bg: rgba(var(--color-info-rgb), 0.12);        --ss-tint-fg: var(--color-info-strong); }
+
+.ss-tint--maintenance_mode       { --ss-tint-bg: rgba(var(--color-warning-rgb), 0.14);     --ss-tint-fg: var(--color-warning-strong); }
+
+.ss-tint--system_health_settings { --ss-tint-bg: rgba(var(--color-text-rgb), 0.08);        --ss-tint-fg: var(--color-text-subtle); }
+
+.ss-tint--mail_settings          { --ss-tint-bg: rgba(var(--color-rgb-124-58-237), 0.1);   --ss-tint-fg: var(--color-violet); }
+
+.ss-tint--notification_settings  { --ss-tint-bg: rgba(var(--color-warning-rgb), 0.12);     --ss-tint-fg: var(--color-warning-deep); }
+
+.ss-tint--cookie_settings        { --ss-tint-bg: rgba(var(--color-rose-rgb), 0.08);        --ss-tint-fg: var(--color-rose); }
+
+.ss-tint--signup_bonus_settings  { --ss-tint-bg: rgba(var(--color-success-rgb), 0.12);     --ss-tint-fg: var(--color-success-strong); }
+
+.ss-tint--agent_settings         { --ss-tint-bg: rgba(var(--color-rgb-249-115-22), 0.12);  --ss-tint-fg: var(--color-warning-deep); }
+
+.ss-tint--pwa_settings           { --ss-tint-bg: rgba(var(--color-primary-rgb), 0.12);     --ss-tint-fg: var(--color-primary-deep); }
+
+/* ── Body ───────────────────────────────────────────────────────────────── */
+
+/*
+ * Room for the cards to draw their own outline.
+ *
+ * `overflow-y: auto` computes the other axis to `auto` as well, so anything
+ * flush against an edge of this scrollport loses whatever it paints outside
+ * its border box. The cards carry a 1px ring and a 2px shadow, and with zero
+ * room on the inline-start edge every group card and the section head lost
+ * their left side entirely — which reads as the card being cut off, not as a
+ * missing shadow. Measured at a 944px content width: 0px of room on the left,
+ * 14px on the right.
+ *
+ * Only the inline sides need it. The first thing in here is the sticky head,
+ * and a toolbar pinned to the top of a scroll area has nothing above it to
+ * shadow — block-start padding there only made the head move on scroll.
+ */
+.ss-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	min-inline-size: 0;
+	padding-inline: 4px 8px;
+	padding-block-end: 6rem;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	/*
+	 * The gutter is always there, and the bar starts where the cards do.
+	 *
+	 * Without `stable` the bar comes and goes with the length of the
+	 * section: System Health is short enough not to scroll, so opening it
+	 * widened every card by 6px and the whole column twitched on the way
+	 * in. And the bar ran the full height of the column, so it began
+	 * level with a card's 16px corner, alongside the curve — which is
+	 * what made it read as stuck on rather than part of the page. The
+	 * inset matches the radius, so it starts where the straight edge does.
+	 */
+	scrollbar-gutter: stable;
+	--scrollbar-inset: 16px;
+
+	/*
+	 * The rows size against this column, not against the window.
+	 *
+	 * A media query cannot see the navigation rail, and the rail is 192px
+	 * wide when it is open. At a 992px window with it open this column is
+	 * 364px, while a row's two tracks floor at 200px and 220px — so the
+	 * control spilled 118px out over the card's edge, measured. A container
+	 * query asks the only question that matters: how much room is there
+	 * here.
+	 */
+	container-type: inline-size;
+	container-name: ss-body;
+}
+
+.ss-body > .tab-pane {
+	display: none;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.ss-body > .tab-pane.active {
+	display: flex;
+}
+
+.ss-form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+/* ── Sticky section head ────────────────────────────────────────────────── */
+
+.ss-section-head {
+	position: sticky;
+	/*
+	 * Flush with the top of the scrollport, and there from the first pixel.
+	 *
+	 * It was -4px for a while, to cover a matching 4px of block-start padding
+	 * on the body. That padding gave the head's own top ring room to draw at
+	 * rest, and the negative offset stopped the cards scrolling past in the
+	 * window it opened — but between the two the head rode 4px upwards over
+	 * the first 4px of scroll, which reads as the header jumping.
+	 *
+	 * The padding is gone and this is 0. A toolbar pinned to the top of a
+	 * scroll area has nothing above it to shadow, so losing that hairline at
+	 * rest costs nothing and the head never moves.
+	 */
+	top: 0;
+	z-index: 5;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px 14px;
+	flex: 0 0 auto;
+	padding: 14px 20px;
+	border-radius: var(--ss-radius-card);
+	background: var(--color-card);
+	box-shadow: var(--ss-ring);
+}
+
+.ss-section-head__tile {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 38px;
+	block-size: 38px;
+	border-radius: 11px;
+	color: var(--ss-tint-fg);
+	background: var(--ss-tint-bg);
+}
+
+.ss-section-head__copy {
+	flex: 1 1 260px;
+	min-inline-size: 0;
+}
+
+/* app.css sets h1–h6 to 500 with !important; a heading that must be 600 has
+   to say so just as loudly. */
+.ss-section-head__title {
+	margin: 0;
+	color: var(--color-text);
+	font-size: var(--font-lg);
+	font-weight: var(--font-semibold) !important;
+	letter-spacing: -0.015em;
+	line-height: 1.25;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ss-section-head__desc {
+	margin: 2px 0 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-xs);
+	line-height: 1.4;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ss-section-head__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 0 0 auto;
+	flex-wrap: nowrap;
+}
+
+/* The section's own action (Send Test Email, Server Limits, Preview Tune)
+   reads as a secondary control here — the primary one is Save. */
+.ss-section-head__actions .btn:not(.settings-site-header-save) {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	block-size: 30px;
+	padding-inline: 12px;
+	border: 1px solid var(--color-primary-tint);
+	border-radius: 8px;
+	color: var(--color-primary);
+	background: transparent;
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+}
+
+.ss-section-head__actions .btn:not(.settings-site-header-save):hover {
+	color: var(--color-primary-deep);
+	background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.ss-section-head__actions .settings-site-header-save {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	block-size: 34px;
+	padding-inline: 14px;
+	border-radius: 8px;
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+}
+
+/* ── Jump to ────────────────────────────────────────────────────────────── */
+
+.ss-jump {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-basis: 100%;
+	padding-block-start: 10px;
+	border-block-start: 1px solid var(--ss-separator);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.ss-jump::-webkit-scrollbar {
+	display: none;
+}
+
+.ss-jump__label {
+	flex: 0 0 auto;
+	color: var(--color-text-faint);
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.ss-jump__chip {
+	flex: 0 0 auto;
+	block-size: 24px;
+	padding-inline: 10px;
+	border: 0;
+	border-radius: 999px;
+	color: var(--color-text-subtle);
+	background: var(--color-surface-alt);
+	font-size: var(--font-xs);
+	font-weight: var(--font-medium);
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.ss-jump__chip:hover,
+.ss-jump__chip:focus-visible {
+	color: var(--color-primary-deep);
+	background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+/* ── Info and error banners ─────────────────────────────────────────────── */
+
+.ss-info,
+.settings-site-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	flex: 0 0 auto;
+	margin: 0;
+	padding: 12px 16px;
+	border: 0;
+	border-radius: 12px;
+}
+
+.ss-info--info {
+	color: var(--color-info-strong);
+	background: rgba(var(--color-info-rgb), 0.08);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-info-rgb), 0.25);
+}
+
+.ss-info--warning {
+	color: var(--color-warning-strong);
+	background: rgba(var(--color-warning-rgb), 0.08);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-warning-rgb), 0.3);
+}
+
+.settings-site-alert {
+	color: var(--color-danger-strong);
+	background: rgba(var(--color-danger-rgb), 0.08);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-danger-rgb), 0.25);
+}
+
+.ss-info__icon {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 28px;
+	block-size: 28px;
+	border-radius: 8px;
+	background: var(--color-card);
+}
+
+/* pre-line so the numbered steps in the PWA notice stay on their own lines.
+   No overflow and no max-height: a scrollbar inside a scrolling body is a
+   trap the reader cannot get out of. */
+.ss-info__description {
+	color: var(--color-text-subtle);
+	font-size: var(--font-sm);
+	line-height: 1.55;
+	white-space: pre-line;
+}
+
+/* ── Group card ─────────────────────────────────────────────────────────── */
+
+.ss-group {
+	flex: 0 0 auto;
+	border-radius: var(--ss-radius-card);
+	background: var(--color-card);
+	box-shadow: var(--ss-ring);
+	overflow: hidden;
+	scroll-margin-top: 16px;
+}
+
+.ss-group__head {
+	padding: 16px 20px 14px;
+	border-block-end: 1px solid var(--ss-separator);
+}
+
+.ss-group__title {
+	margin: 0 0 2px;
+	color: var(--color-text);
+	font-size: var(--font-md);
+	font-weight: var(--font-semibold) !important;
+	letter-spacing: -0.005em;
+	line-height: 1.3;
+}
+
+.ss-group__desc {
+	max-inline-size: 72ch;
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-sm);
+	line-height: 1.55;
+	text-wrap: pretty;
+}
+
+.ss-group__body {
+	display: flex;
+	flex-direction: column;
+}
+
+/* ── Row ────────────────────────────────────────────────────────────────── */
+
+.ss-row {
+	display: grid;
+	grid-template-columns: minmax(200px, 1fr) clamp(220px, 46%, 420px);
+	gap: 12px 24px;
+	align-items: center;
+	padding: 16px 20px;
+	border-block-end: 1px solid var(--ss-separator);
+	transition: background-color 0.4s ease;
+}
+
+.ss-row:last-child {
+	border-block-end: 0;
+}
+
+.ss-row:hover {
+	background: var(--color-surface-alt);
+}
+
+.ss-row--switch {
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ss-row--stacked {
+	align-items: start;
+}
+
+.ss-row.is-dirty {
+	background: rgba(var(--color-warning-rgb), 0.06);
+}
+
+.ss-row.is-found {
+	background: rgba(var(--color-primary-rgb), 0.09);
+}
+
+.ss-row__copy {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-inline-size: 0;
+}
+
+.ss-row__label {
+	margin: 0;
+	color: var(--color-text);
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	line-height: 1.4;
+}
+
+.ss-row__hint {
+	max-inline-size: 52ch;
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-xs);
+	line-height: 1.55;
+	text-wrap: pretty;
+}
+
+.ss-row__risk {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	max-inline-size: 52ch;
+	margin: 2px 0 0;
+	color: var(--color-warning-strong);
+	font-size: var(--font-xs);
+	line-height: 1.5;
+}
+
+.ss-row__risk svg {
+	flex: 0 0 auto;
+	margin-block-start: 2px;
+}
+
+/* What the file picker will take, said before the picker is opened. */
+.ss-row__constraint {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin: 2px 0 0;
+	color: var(--color-text-faint);
+	font-size: var(--font-2xs);
+}
+
+.ss-row__constraint svg {
+	flex: 0 0 auto;
+}
+
+.ss-row__default {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 2px 0 0;
+	color: var(--color-text-faint);
+	font-size: var(--font-2xs);
+}
+
+.ss-row__default[hidden] {
+	display: none;
+}
+
+.ss-row__default code {
+	padding: 0 5px;
+	border-radius: 4px;
+	color: var(--color-text-subtle);
+	background: var(--color-surface-alt);
+	font-family: var(--font-mono);
+	font-size: var(--font-2xs);
+}
+
+.ss-row__reset {
+	padding: 0;
+	border: 0;
+	color: var(--color-primary);
+	background: transparent;
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	cursor: pointer;
+}
+
+.ss-row__reset:hover {
+	text-decoration: underline;
+}
+
+.ss-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	margin-inline-start: 6px;
+	padding: 1px 6px;
+	border-radius: 5px;
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	vertical-align: middle;
+}
+
+.ss-badge--modified {
+	color: var(--color-warning-strong);
+	background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+.ss-badge--risk {
+	color: var(--color-danger-strong);
+	background: rgba(var(--color-danger-rgb), 0.1);
+}
+
+.ss-row__control {
+	min-inline-size: 0;
+}
+
+.ss-row--switch .ss-row__control {
+	justify-self: end;
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+
+/*
+ * The colour swatch is a `.form-control` too, but it is a 2rem square, not a
+ * field: it wants none of the width, the minimum height, the border, the
+ * radius or the background below. Excluded here rather than overridden in its
+ * own rule, because a minimum height always wins over a height — `!important`
+ * does not enter into it — so the swatch stood 40px inside a 3px frame and
+ * made the whole control 48px beside 40px neighbours.
+ */
+.ss-row__control .form-control:not(.form-control-color),
+.ss-row__control .form-select {
+	inline-size: 100%;
+	min-block-size: 40px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--ss-radius-control);
+	color: var(--color-text);
+	background-color: var(--color-card);
+	font-size: var(--font-sm);
+}
+
+/*
+ * The colour swatch is excluded here for the same reason as above: it is a
+ * 26px square sitting inside a frame that shows focus itself, and this rule
+ * drew a second indigo border and a 3px ring around the square — a halo on a
+ * thumbnail, inside a control that was already lit.
+ */
+.ss-row__control .form-control:not(.form-control-color):focus,
+.ss-row__control .form-select:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+.ss-row__control .form-control::placeholder {
+	color: var(--color-text-faint);
+}
+
+.ss-row__control .form-control.is-invalid {
+	border-color: var(--color-danger);
+	background-color: rgba(var(--color-danger-rgb), 0.05);
+}
+
+.ss-row.is-dirty .ss-row__control .form-control,
+.ss-row.is-dirty .ss-row__control .form-select {
+	border-color: var(--color-warning);
+}
+
+.ss-row__control textarea.form-control {
+	min-block-size: 0;
+	padding: 0.6rem 0.75rem;
+	line-height: 1.55;
+	resize: vertical;
+}
+
+.ss-control--number {
+	font-variant-numeric: tabular-nums;
+}
+
+.ss-row__control .invalid-feedback {
+	display: block;
+	margin-block-start: 6px;
+	color: var(--color-danger-strong);
+	font-size: var(--font-xs);
+	font-weight: var(--font-medium);
+}
+
+/* ── Switch ─────────────────────────────────────────────────────────────── */
+
+.settings-site-switch-control {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.settings-site-switch-card {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	block-size: 32px;
+	margin: 0;
+	cursor: pointer;
+}
+
+/* The real checkbox stays: it carries the name, it is what the form posts and
+   what a screen reader announces. It is laid over the track it draws. */
+.settings-site-switch-card__input {
+	position: absolute;
+	inset-inline-end: 0;
+	inline-size: 46px !important;
+	block-size: 24px !important;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.settings-site-switch-card__track {
+	position: relative;
+	flex: 0 0 auto;
+	inline-size: 46px;
+	block-size: 24px;
+	border-radius: 999px;
+	background: var(--color-border);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.06);
+	transition: background-color 0.2s ease;
+}
+
+.settings-site-switch-card__track::after {
+	position: absolute;
+	top: 2px;
+	inset-inline-start: 2px;
+	inline-size: 20px;
+	block-size: 20px;
+	border-radius: 50%;
+	background: var(--color-white);
+	box-shadow: 0 1px 3px rgba(var(--color-text-rgb), 0.25);
+	content: "";
+	transition: inset-inline-start 0.2s ease;
+}
+
+.settings-site-switch-card__input:checked + .settings-site-switch-card__track {
+	background: var(--color-primary);
+	box-shadow: none;
+}
+
+.settings-site-switch-card__input:checked + .settings-site-switch-card__track::after {
+	inset-inline-start: 24px;
+}
+
+.settings-site-switch-card__input:focus-visible + .settings-site-switch-card__track {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+/* The word sits before the track, which is the reading order; the markup
+   keeps it after so the checked selector can still reach it. */
+.settings-site-switch-card__meta {
+	order: -1;
+	min-inline-size: 1.8rem;
+	color: var(--color-text-faint);
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+	text-align: end;
+}
+
+.settings-site-switch-card__state--enabled {
+	display: none;
+	color: var(--color-primary-deep);
+}
+
+.settings-site-switch-card__state--disabled {
+	display: inline;
+}
+
+.settings-site-switch-card__input:checked ~ .settings-site-switch-card__meta .settings-site-switch-card__state--enabled {
+	display: inline;
+}
+
+.settings-site-switch-card__input:checked ~ .settings-site-switch-card__meta .settings-site-switch-card__state--disabled {
+	display: none;
+}
+
+/* ── Value with a leading toggle and/or a trailing unit ─────────────────── */
+
+.settings-site-toggle-input {
+	display: flex;
+	align-items: stretch;
+	inline-size: 100%;
+	flex-wrap: nowrap;
+}
+
+.settings-site-toggle-input .form-control {
+	flex: 1 1 auto;
+	min-inline-size: 0;
+	border-radius: var(--ss-radius-control);
+}
+
+.ss-group-text--toggled .form-control {
+	border-start-start-radius: 0;
+	border-end-start-radius: 0;
+}
+
+.ss-group-text--united .form-control {
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+}
+
+.settings-site-toggle-input__toggle,
+.settings-site-toggle-input__unit {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	min-block-size: 40px;
+	border: 1px solid var(--color-border);
+	color: var(--color-text-muted);
+	background: var(--color-surface-alt);
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+}
+
+.settings-site-toggle-input__toggle {
+	gap: 8px;
+	min-inline-size: 6.5rem;
+	padding-inline: 10px;
+	border-inline-end: 0;
+	border-start-start-radius: var(--ss-radius-control);
+	border-end-start-radius: var(--ss-radius-control);
+}
+
+.settings-site-toggle-input__unit {
+	min-inline-size: 4rem;
+	padding-inline: 12px;
+	border-inline-start: 0;
+	border-start-end-radius: var(--ss-radius-control);
+	border-end-end-radius: var(--ss-radius-control);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.settings-site-toggle-input__check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-block-size: 0;
+	padding: 0;
+}
+
+.settings-site-toggle-input__check .form-check-input {
+	flex: 0 0 auto;
+	inline-size: 36px !important;
+	block-size: 18px !important;
+	margin: 0;
+}
+
+.settings-site-toggle-input__check .form-check-label {
+	margin: 0;
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+}
+
+.settings-site-toggle-input__state--enabled {
+	display: none;
+	color: var(--color-primary-deep);
+}
+
+.settings-site-toggle-input__state--disabled {
+	display: inline;
+	color: var(--color-text-faint);
+}
+
+.settings-site-toggle-input__check .form-check-input:checked ~ .form-check-label .settings-site-toggle-input__state--enabled {
+	display: inline;
+}
+
+.settings-site-toggle-input__check .form-check-input:checked ~ .form-check-label .settings-site-toggle-input__state--disabled {
+	display: none;
+}
+
+/* ── Colour ─────────────────────────────────────────────────────────────── */
+
+/* ── Colour field ───────────────────────────────────────────────────────── */
+
+/*
+ * One control end to end: the swatch showing the value, the hex you can type,
+ * and the five starting points, all inside a single frame.
+ *
+ * It began as two boxes stuck together, each with its own border, and every
+ * state landed on the hex box alone — so a touched row drew an amber ring
+ * around the text and left the swatch grey beside it. The frame, the radius,
+ * the focus ring and both state colours live here now, on the one element
+ * that holds all three parts; everything inside is transparent.
+ */
+.ss-color {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	inline-size: 100%;
+	min-block-size: 40px;
+	padding-block: 6px;
+	padding-inline: 8px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--ss-radius-control);
+	background: var(--color-card);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/*
+ * The border alone, with no ring around it.
+ *
+ * Every other control on this page glows 3px on focus, and at a text field's
+ * size that reads as a highlight. This frame is the full width of the column
+ * and wraps the presets too, so the same ring became a halo around a third of
+ * the row. The border going from near-white to indigo is a large enough
+ * change to see on its own, and the control stays quiet while it is used.
+ *
+ * `:focus-visible` is no help here: a text box matches it on a plain mouse
+ * click, by specification, so the ring could not be kept for keyboards only.
+ */
+.ss-color:focus-within {
+	/*
+	 * Primary at 0.7 rather than full strength. Measured against white, that
+	 * is 3.39:1 — the softest this edge can be drawn and still clear the 3:1
+	 * a focus indicator is expected to hold. 0.6 falls to 2.79 and 0.42, the
+	 * value custom.css uses admin-wide, to 1.99; both are prettier than they
+	 * are visible. Full strength is 6.29 and reads as a hard blue line around
+	 * a frame this wide.
+	 */
+	border-color: rgba(var(--color-primary-rgb), 0.7);
+}
+
+.ss-row.is-dirty .ss-row__control .ss-color {
+	border-color: var(--color-warning);
+}
+
+.ss-color:has(.is-invalid) {
+	border-color: var(--color-danger);
+	background: rgba(var(--color-danger-rgb), 0.05);
+}
+
+/* Bootstrap's input-group, reduced to the swatch beside the hex. */
+.settings-site-color-field {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1 1 8rem;
+	flex-wrap: nowrap;
+	min-inline-size: 0;
+	min-block-size: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.settings-site-color-field__swatch-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.settings-site-color-field__picker {
+	inline-size: 26px;
+	block-size: 26px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+/*
+ * custom.css gives every `.form-control` a focus ring and a tinted border,
+ * admin-wide. On a 26px square inside a frame that already shows focus that
+ * is a halo on a thumbnail, so it is switched off here. The swatch still
+ * carries its own hairline, drawn on the colour itself below.
+ */
+.ss-row__control .settings-site-color-field__picker:focus {
+	border: 0;
+	box-shadow: none;
+}
+
+.settings-site-color-field__picker::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+/*
+ * An inset hairline rather than a border: a border sits outside the colour
+ * and squares off the corners, and white — a legitimate brand colour — was
+ * otherwise an invisible patch on a white field.
+ */
+.settings-site-color-field__picker::-webkit-color-swatch {
+	border: 0;
+	border-radius: 8px;
+	box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.14);
+}
+
+.settings-site-color-field__picker::-moz-color-swatch {
+	border: 0;
+	border-radius: 8px;
+	box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.14);
+}
+
+/*
+ * The hex box keeps the name `.form-control` for the scripts that bind to it,
+ * so these have to out-rank the blanket control rules above rather than sit
+ * beside them — hence the doubled class.
+ */
+.ss-row__control .settings-site-color-field__hex.form-control {
+	flex: 1 1 auto;
+	min-inline-size: 0;
+	min-block-size: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	font-family: var(--font-mono);
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.ss-row__control .settings-site-color-field__hex.form-control:focus,
+.ss-row__control .settings-site-color-field__hex.form-control.is-invalid,
+.ss-row.is-dirty .ss-row__control .settings-site-color-field__hex.form-control {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+/* Pushed to the far end, so the hex has room and the choices stay together. */
+.ss-color__presets {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	margin-inline-start: auto;
+}
+
+.ss-color__preset {
+	inline-size: 22px;
+	block-size: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: var(--ss-preset);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.14);
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ss-color__preset:hover {
+	transform: translateY(-1px);
+}
+
+.ss-color__preset:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+.ss-color__preset.is-selected {
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--color-text-rgb), 0.14),
+		0 0 0 2px var(--color-card),
+		0 0 0 3px var(--ss-preset);
+}
+
+/* ── Copy field and secret field ────────────────────────────────────────── */
+
+.settings-site-copy-field,
+.settings-site-secret-field {
+	position: relative;
+}
+
+.settings-site-copy-field__input,
+.settings-site-secret-field__input {
+	padding-inline-end: 2.6rem !important;
+}
+
+.settings-site-copy-field__input {
+	font-family: var(--font-mono);
+}
+
+.settings-site-copy-field__button,
+.settings-site-secret-field__button {
+	position: absolute;
+	inset-inline-end: 6px;
+	top: 50%;
+	display: inline-grid;
+	place-items: center;
+	inline-size: 28px;
+	block-size: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	color: var(--color-primary);
+	background: transparent;
+	transform: translateY(-50%);
+	cursor: pointer;
+}
+
+.settings-site-copy-field__button:hover,
+.settings-site-secret-field__button:hover {
+	background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.settings-site-secret-field__button {
+	color: var(--color-text-muted);
+}
+
+.settings-site-secret-field__tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-block-start: 6px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	color: var(--color-text-muted);
+	background: var(--color-surface-alt);
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+}
+
+.settings-site-secret-field__tag.is-saved {
+	color: var(--color-success-strong);
+	background: rgba(var(--color-success-rgb), 0.12);
+}
+
+.settings-site-secret-warning {
+	margin-block-start: 6px;
+	color: var(--color-danger-strong);
+	font-size: var(--font-xs);
+}
+
+/* ── Image field ────────────────────────────────────────────────────────── */
+
+/*
+ * A contained row rather than a bare picture: thumbnail, what the file is,
+ * and the two things you can do to it. The stored path is never shown —
+ * `general/static/logo/digikash-mark.svg` tells an administrator nothing they
+ * can act on, and the file name already says which picture this is.
+ */
+.ss-image {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 10px 12px;
+	border: 1px solid var(--color-border-soft);
+	border-radius: 12px;
+	background: var(--color-surface-alt);
+}
+
+/*
+ * Checkerboard, because most of these are transparent PNGs and SVGs: on a
+ * flat panel a white mark on a white plate looks like a failed upload.
+ */
+.ss-image__frame {
+	flex: 0 0 auto;
+	display: grid;
+	place-items: center;
+	inline-size: 56px;
+	block-size: 56px;
+	padding: 4px;
+	border: 1px solid var(--color-border);
+	border-radius: 10px;
+	background-color: var(--color-card);
+	background-image:
+		linear-gradient(45deg, rgba(var(--color-text-rgb), 0.05) 25%, transparent 25%),
+		linear-gradient(-45deg, rgba(var(--color-text-rgb), 0.05) 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, rgba(var(--color-text-rgb), 0.05) 75%),
+		linear-gradient(-45deg, transparent 75%, rgba(var(--color-text-rgb), 0.05) 75%);
+	background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+	background-size: 10px 10px;
+}
+
+.ss-image__thumb {
+	inline-size: 100%;
+	block-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+}
+
+.ss-image__meta {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-inline-size: 0;
+}
+
+.ss-image__name {
+	overflow: hidden;
+	color: var(--color-text);
+	font-size: var(--font-xs);
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.ss-image__facts {
+	color: var(--color-text-faint);
+	font-family: var(--font-mono);
+	font-size: var(--font-2xs);
+	letter-spacing: 0.02em;
+}
+
+.ss-image__facts:empty {
+	display: none;
+}
+
+/* Says what the next save will do, so the buttons need not say it twice. */
+.ss-image__pending {
+	align-self: flex-start;
+	margin-block-start: 2px;
+	padding: 1px 7px;
+	border-radius: 999px;
+	color: var(--color-primary);
+	background: var(--color-primary-soft);
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+}
+
+.ss-image__pending[hidden] {
+	display: none;
+}
+
+.ss-image__actions {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/*
+ * A rejected upload: the message below says what went wrong, but with eleven
+ * of these on one screen the card has to say which one it is talking about.
+ */
+.ss-row__control:has(.invalid-feedback) .ss-image {
+	border-color: var(--color-danger);
+	background: rgba(var(--color-danger-rgb), 0.05);
+}
+
+/* The label is the button; the input is reachable by keyboard, never seen. */
+.ss-image__input {
+	position: absolute;
+	overflow: hidden;
+	inline-size: 1px;
+	block-size: 1px;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	clip-path: inset(50%);
+}
+
+.ss-image__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 11px;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.ss-image__btn[hidden] {
+	display: none;
+}
+
+.ss-image__btn svg {
+	flex: 0 0 auto;
+}
+
+.ss-image__btn--primary {
+	border-color: var(--color-border);
+	color: var(--color-text);
+	background: var(--color-card);
+}
+
+.ss-image__btn--primary:hover,
+.ss-image__input:focus-visible + .ss-image__btn--primary {
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+}
+
+.ss-image__input:focus-visible + .ss-image__btn--primary {
+	box-shadow: var(--top-focus-ring);
+}
+
+.ss-image__btn--ghost {
+	color: var(--color-text-muted);
+	background: transparent;
+}
+
+.ss-image__btn--ghost:hover {
+	color: var(--color-primary);
+	background: var(--color-primary-soft);
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+
+@keyframes ss-pop {
+	from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+
+	to   { opacity: 1; transform: translateY(0) scale(1); }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ss-results {
+		animation: none;
+	}
+
+}
+
+/* ── Below 992px: one column, normal page scrolling ─────────────────────── */
+
+@media (max-width: 991.98px) {
+	.ss-health {
+		display: none;
+	}
+
+	.ss-workspace {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr);
+	}
+
+	.ss-rail {
+		block-size: auto;
+	}
+
+	.ss-results {
+		flex: 0 0 auto;
+		max-block-size: 60vh;
+	}
+
+	/* The section list becomes a chip row: a vertical list of thirteen would
+	   be the whole first screen on a phone. */
+	.ss-nav {
+		flex-direction: row;
+		padding: 0 0 4px;
+		background: transparent;
+		box-shadow: none;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scrollbar-width: none;
+	}
+
+	.ss-nav::-webkit-scrollbar {
+		display: none;
+	}
+
+	.ss-nav__caption {
+		display: none;
+	}
+
+	.ss-nav__item {
+		grid-template-columns: 26px auto auto;
+		flex: 0 0 auto;
+		padding-block: 6px;
+		padding-inline: 6px 10px;
+		background: var(--color-card);
+		box-shadow: var(--ss-ring);
+	}
+
+	.ss-nav__item.active {
+		background: rgba(var(--color-primary-rgb), 0.12);
+	}
+
+	.ss-nav__icon {
+		inline-size: 26px;
+		block-size: 26px;
+	}
+
+	.ss-nav__desc {
+		display: none;
+	}
+
+	.ss-body {
+		padding-inline: 0;
+		padding-block: 0 5.5rem;
+		overflow: visible;
+	}
+
+	.ss-section-head {
+		position: static;
+		padding: 14px 16px;
+	}
+
+	.ss-section-head__title,
+	.ss-section-head__desc {
+		white-space: normal;
+	}
+
+	.ss-section-head__actions {
+		flex-wrap: wrap;
+		inline-size: 100%;
+	}
+
+	.ss-row,
+	.ss-row--switch {
+		grid-template-columns: minmax(0, 1fr);
+		padding: 14px 16px;
+	}
+
+	.ss-row--switch .ss-row__control {
+		justify-self: start;
+	}
+
+	.settings-site-switch-control {
+		justify-content: flex-start;
+	}
+
+	/* The phone-sized switch: 52x28 clears WCAG 2.5.8's 24px floor with room
+	   for a thumb, and the knob moves with the track rather than staying
+	   parked against the old edge. */
+	.settings-site-switch-card__input {
+		inline-size: 52px !important;
+		block-size: 28px !important;
+	}
+
+	.settings-site-switch-card__track {
+		inline-size: 52px;
+		block-size: 28px;
+	}
+
+	.settings-site-switch-card__track::after {
+		top: 3px;
+		inset-inline-start: 3px;
+		inline-size: 22px;
+		block-size: 22px;
+	}
+
+	.settings-site-switch-card__input:checked + .settings-site-switch-card__track::after {
+		inset-inline-start: 27px;
+	}
+
+	/*
+	 * The toggle, the value and the unit stay one joined control on a phone.
+	 * They were once wrapped into three full-width blocks, each with every
+	 * corner rounded and nothing between them, so "5" and "MB" read as two
+	 * unrelated boxes stuck together. The value is the flexible part; the
+	 * ends only give up the minimum widths they carry on a desktop.
+	 */
+	.settings-site-toggle-input__toggle {
+		min-inline-size: 0;
+	}
+
+	.settings-site-toggle-input__unit {
+		min-inline-size: 3rem;
+	}
+
+}
+
+@media (max-width: 575.98px) {
+	.ss-section-head__actions .btn,
+	.ss-section-head__actions .settings-site-header-save {
+		flex: 1 1 100%;
+		justify-content: center;
+	}
+
+}
+
+/* ── Narrow column ──────────────────────────────────────────────────────
+ *
+ * Under 560px of column there is no room for a label beside its control, so
+ * the row stacks — the same shape the phone layout uses, arrived at by
+ * measuring the column instead of the window.
+ *
+ * It sits here, after the rules it has to beat: a container query carries no
+ * extra weight of its own, so a later `.ss-row` would simply win. Putting it
+ * beside `.ss-body` was the first attempt and did nothing at all.
+ */
+@container ss-body (max-width: 560px) {
+	.ss-row,
+	.ss-row--switch {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.ss-row--switch .ss-row__control {
+		justify-self: start;
+	}
+
+	.settings-site-switch-control {
+		justify-content: flex-start;
+	}
+
+	/* Below this width the two buttons and the file name fight for the row. */
+	.ss-image {
+		flex-wrap: wrap;
+	}
+
+	.ss-image__actions {
+		inline-size: 100%;
+		justify-content: flex-end;
+	}
+
+	/* The touch floor the rest of the admin's narrow controls keep to. */
+	.ss-image__btn {
+		min-block-size: 36px;
+	}
+
+}
+
+/* ── Right to left ──────────────────────────────────────────────────────── */
+
+html[dir="rtl"] .ss-row__default code {
+	direction: ltr;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────── */
+
+[data-coreui-theme="dark"] .ss-section-head {
+	background: var(--color-surface-soft);
+}
+
+[data-coreui-theme="dark"] .ss-tint {
+	--ss-tint-bg: rgba(var(--color-white-rgb), 0.06);
+}
+
+[data-coreui-theme="dark"] .ss-row:hover {
+	background: rgba(var(--color-white-rgb), 0.03);
+}
+
+/* =====================================================================
+ * Storage health — the panel and its dialogue
+ *
+ * Moved here from custom.css with the rest of this page. The rules are the
+ * ones that shipped; only their address changed.
+ * ===================================================================== */
+
+.settings-storage-link-panel {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    background:
+        linear-gradient(135deg, rgba(var(--color-info-rgb), 0.08), rgba(var(--color-success-rgb), 0.05)),
+        var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-storage-link-panel--success {
+    border-color: rgba(var(--color-success-rgb), 0.24);
+}
+
+.settings-storage-link-panel--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.3);
+    background:
+        linear-gradient(135deg, rgba(var(--color-warning-rgb), 0.12), rgba(var(--color-info-rgb), 0.05)),
+        var(--color-card);
+}
+
+.settings-storage-link-panel--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.28);
+    background:
+        linear-gradient(135deg, rgba(var(--color-danger-rgb), 0.1), rgba(var(--color-warning-rgb), 0.06)),
+        var(--color-card);
+}
+
+.settings-storage-link-panel__main {
+    display: flex;
+    gap: 0.9rem;
+    min-width: 0;
+}
+
+.settings-storage-link-panel__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.12);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+    font-size: var(--font-base);
+}
+
+.settings-storage-link-panel__content {
+    min-width: 0;
+}
+
+.settings-storage-link-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.2rem;
+}
+
+.settings-storage-link-panel__eyebrow {
+    color: var(--color-primary-deep);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.settings-storage-link-panel__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.65rem;
+    padding: 0.25rem 0.55rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    background: rgba(var(--color-white-rgb), 0.82);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-link-panel--success .settings-storage-link-panel__badge {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-link-panel--warning .settings-storage-link-panel__badge {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.settings-storage-link-panel--danger .settings-storage-link-panel__badge {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.settings-storage-link-panel h5 {
+    margin-bottom: 0.25rem;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-link-panel p {
+    max-width: 56rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+    line-height: 1.45;
+}
+
+.settings-storage-link-panel__paths {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.settings-storage-link-panel__paths span {
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+    background: rgba(var(--color-white-rgb), 0.78);
+}
+
+.settings-storage-link-panel__paths strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--color-text-soft);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-transform: uppercase;
+}
+
+.settings-storage-link-panel__paths code {
+    display: block;
+    overflow: hidden;
+    color: var(--color-primary-deep);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-storage-link-panel__action {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+}
+
+.settings-storage-modal .modal-dialog {
+    max-width: min(48rem, calc(100vw - 1.5rem));
+}
+
+.settings-storage-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-lg);
+}
+
+.settings-storage-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    background:
+        linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.12), rgba(var(--color-info-rgb), 0.07)),
+        var(--color-card);
+}
+
+.settings-storage-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.settings-storage-modal__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: var(--radius-lg);
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+}
+
+.settings-storage-modal__eyebrow {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.settings-storage-modal__status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-inline-start: auto;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.settings-storage-modal__status-badge--success {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-modal__status-badge--warning {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.settings-storage-modal__status-badge--danger {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.settings-storage-modal__header--success .settings-storage-modal__icon {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-modal__header--warning .settings-storage-modal__icon {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.settings-storage-modal__header--danger .settings-storage-modal__icon {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+/* PHP function requirement notice inside the storage modal */
+.settings-storage-requirement {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+}
+
+.settings-storage-requirement--ok {
+    border-color: rgba(var(--color-success-rgb), 0.28);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-requirement--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    background: var(--color-danger-soft);
+}
+
+.settings-storage-requirement__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    background: rgba(var(--color-white-rgb), 0.7);
+}
+
+.settings-storage-requirement--ok .settings-storage-requirement__icon {
+    color: var(--color-success-strong);
+}
+
+.settings-storage-requirement--danger .settings-storage-requirement__icon {
+    color: var(--color-danger-deep);
+}
+
+.settings-storage-requirement__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.settings-storage-requirement__content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.settings-storage-requirement__content strong {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-requirement__content p {
+    margin: 0.2rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+}
+
+/* The one-word answer: can the link be made on this server or not. */
+.settings-storage-requirement__verdict {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.settings-storage-requirement__verdict--ok {
+    color: var(--color-text-inverse);
+    background: var(--color-success-strong);
+}
+
+.settings-storage-requirement__verdict--danger {
+    color: var(--color-text-inverse);
+    background: var(--color-danger-deep);
+}
+
+/* One row per function: mark, name + role, purpose, live state. */
+.settings-storage-requirement__list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.settings-storage-requirement__row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--color-border-soft);
+    border-inline-start-width: 3px;
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+}
+
+.settings-storage-requirement__row--ok {
+    border-inline-start-color: var(--color-success-strong);
+}
+
+.settings-storage-requirement__row--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.35);
+    border-inline-start-color: var(--color-danger-deep);
+}
+
+.settings-storage-requirement__row--muted {
+    border-inline-start-color: var(--color-border-strong);
+}
+
+.settings-storage-requirement__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    font-size: var(--font-xs);
+}
+
+.settings-storage-requirement__row--ok .settings-storage-requirement__mark {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-requirement__row--danger .settings-storage-requirement__mark {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.settings-storage-requirement__row--muted .settings-storage-requirement__mark {
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+}
+
+.settings-storage-requirement__row-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.settings-storage-requirement__row-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.settings-storage-requirement__row-title code {
+    padding: 0;
+    color: var(--color-text);
+    background: none;
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-requirement__row-copy p {
+    margin: 0.15rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+}
+
+.settings-storage-requirement__content p code,
+.settings-storage-requirement__row-copy p code {
+    padding: 0;
+    color: var(--color-text);
+    background: none;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+}
+
+.settings-storage-requirement__role {
+    padding: 0.08rem 0.45rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: 0.68rem;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.settings-storage-requirement__role--required {
+    color: var(--color-primary);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
+    background: var(--color-primary-soft);
+}
+
+.settings-storage-requirement__role--optional {
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+.settings-storage-requirement__state {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.4rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.settings-storage-requirement__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.settings-storage-requirement__state--ok {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-storage-requirement__state--danger {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.settings-storage-requirement__state--muted {
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+}
+
+/* Steps to fix, shown only while a required function is off. */
+.settings-storage-requirement__fix {
+    padding: 0.75rem 0.85rem;
+    border: 1px dashed rgba(var(--color-danger-rgb), 0.4);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+}
+
+.settings-storage-requirement__fix strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--color-text);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-requirement__fix ol {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding-inline-start: 1.1rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+}
+
+.settings-storage-requirement__fix code {
+    padding: 0.05rem 0.3rem;
+    border-radius: var(--radius-sm);
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+    font-size: var(--font-xs);
+}
+
+@media (max-width: 575.98px) {
+    .settings-storage-requirement__row {
+        flex-wrap: wrap;
+    }
+
+    .settings-storage-requirement__state {
+        margin-inline-start: 2.5rem;
+    }
+}
+
+.settings-storage-modal__title h5 {
+    margin-bottom: 0;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+}
+
+.settings-storage-modal__body {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--color-surface-alt);
+}
+
+.settings-storage-modal__body .settings-storage-link-panel {
+    margin-bottom: 0;
+}
+
+.settings-storage-modal__form {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.settings-storage-modal__progress {
+    display: none;
+    padding: 0.85rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.16);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+}
+
+.settings-storage-modal__form.is-processing .settings-storage-modal__progress {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.settings-storage-modal__progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+}
+
+.settings-storage-modal__progress-header strong {
+    color: var(--color-primary);
+    font-size: var(--font-xs);
+    text-transform: uppercase;
+}
+
+.settings-storage-modal__progressbar {
+    height: 0.55rem;
+    border-radius: var(--radius-xl);
+    background: var(--color-primary-soft);
+}
+
+.settings-storage-modal__progressbar-fill {
+    width: 100%;
+}
+
+.settings-storage-modal__progress p {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+}
+
+.settings-storage-modal__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+}
+
+.settings-storage-modal__actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* SMTP test email modal */
+.settings-smtp-modal .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.settings-smtp-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: linear-gradient(180deg, var(--color-surface-alt) 0%, var(--color-card) 100%);
+}
+
+.settings-smtp-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.settings-smtp-modal__title h5 {
+    margin-bottom: 0;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+}
+
+.settings-smtp-modal__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: var(--radius-lg);
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+}
+
+.settings-smtp-modal__eyebrow {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.settings-smtp-modal__body {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+}
+
+.settings-smtp-modal__intro {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+.settings-smtp-modal__intro strong {
+    color: var(--color-text);
+}
+
+.settings-smtp-modal__facts {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-alt);
+}
+
+.settings-smtp-modal__facts span {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    font-size: var(--font-xs);
+}
+
+.settings-smtp-modal__facts i {
+    flex: 0 0 1rem;
+    color: var(--color-primary);
+    text-align: center;
+}
+
+.settings-smtp-modal__facts strong {
+    flex: 0 0 3.2rem;
+    color: var(--color-text-muted);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+}
+
+.settings-smtp-modal__facts code {
+    overflow-wrap: anywhere;
+    color: var(--color-text);
+}
+
+.settings-smtp-modal__result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+}
+
+.settings-smtp-modal__result strong {
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.settings-smtp-modal__result p {
+    margin-bottom: 0;
+}
+
+.settings-smtp-modal__result code {
+    display: block;
+    margin-top: 0.4rem;
+    overflow-wrap: anywhere;
+    font-size: var(--font-xs);
+}
+
+.settings-smtp-modal__result-icon {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+}
+
+.settings-smtp-modal__result--success {
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+}
+
+.settings-smtp-modal__result--danger {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.settings-smtp-modal__footer {
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.settings-smtp-modal__footer .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* =====================================================================
+ * Confirming a switch that can lock you out
+ *
+ * Built for Maintenance Mode and now shared with Force HTTPS and
+ * Development Mode. The recovery block and the acknowledgement are shown
+ * per switch, so the shell has to read correctly with either missing.
+ * ===================================================================== */
+
+.settings-maintenance-modal .modal-dialog {
+    max-width: 45rem;
+}
+
+.settings-maintenance-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-lg);
+}
+
+.settings-maintenance-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.05rem 1.2rem;
+    border-bottom: 1px solid rgba(var(--color-warning-rgb), 0.2);
+    background:
+        linear-gradient(135deg, rgba(var(--color-warning-rgb), 0.14), rgba(var(--color-primary-rgb), 0.05)),
+        var(--color-card);
+}
+
+.settings-maintenance-modal__title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.settings-maintenance-modal__icon,
+.settings-maintenance-modal__impact-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: var(--radius-lg);
+}
+
+.settings-maintenance-modal__icon {
+    width: 2.55rem;
+    height: 2.55rem;
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.settings-maintenance-modal__eyebrow {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.settings-maintenance-modal__title h5 {
+    margin-bottom: 0;
+    color: var(--color-text);
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+}
+
+.settings-maintenance-modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    background: var(--color-card);
+    line-height: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.settings-maintenance-modal__close:hover {
+    color: var(--color-danger-deep);
+    border-color: var(--color-danger-soft);
+    background: var(--color-danger-soft);
+}
+
+.settings-maintenance-modal__close:focus-visible,
+.settings-maintenance-modal__copy:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem var(--color-primary-soft);
+}
+
+.settings-maintenance-modal__body {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.2rem;
+    background: var(--color-surface-alt);
+}
+
+.settings-maintenance-modal__impact {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(var(--color-warning-rgb), 0.2);
+    border-radius: var(--radius-lg);
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.settings-maintenance-modal__impact-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--color-warning-deep);
+    background: var(--color-card);
+}
+
+.settings-maintenance-modal__impact strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--color-warning-deep);
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+}
+
+.settings-maintenance-modal__impact p {
+    margin-bottom: 0;
+    color: var(--color-warning-deep);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+.settings-maintenance-modal__recovery {
+    padding: 0.9rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-maintenance-modal__section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.settings-maintenance-modal__required,
+.settings-maintenance-modal__private {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: var(--font-semibold);
+}
+
+.settings-maintenance-modal__required {
+    margin-bottom: 0.35rem;
+    color: var(--color-primary);
+    font-size: var(--font-xs);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.settings-maintenance-modal__section-heading h6 {
+    margin-bottom: 0;
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-bold);
+}
+
+.settings-maintenance-modal__private {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--radius-xl);
+    color: var(--color-success-strong);
+    background: var(--color-success-soft);
+    font-size: var(--font-xs);
+}
+
+.settings-maintenance-modal__section-copy {
+    margin: 0.45rem 0 0.75rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+}
+
+.settings-maintenance-modal__url-card {
+    padding: 0.8rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.18);
+    border-radius: var(--radius-lg);
+    background: var(--color-primary-soft);
+}
+
+.settings-maintenance-modal__url-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+}
+
+.settings-maintenance-modal__url-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.55rem;
+}
+
+.settings-maintenance-modal__url-row code {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.7rem;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    background: var(--color-card);
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    line-height: 1.35;
+}
+
+.settings-maintenance-modal__url-row code strong {
+    color: var(--color-primary-deep);
+    font-weight: var(--font-bold);
+}
+
+.settings-maintenance-modal__copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    color: var(--color-white);
+    background: var(--color-primary);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-maintenance-modal__copy:hover {
+    border-color: var(--color-primary-deep);
+    color: var(--color-white);
+    background: var(--color-primary-deep);
+}
+
+.settings-maintenance-modal__example {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin: 0.55rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+}
+
+.settings-maintenance-modal__example i {
+    margin-top: 0.1rem;
+    color: var(--color-warning-deep);
+}
+
+.settings-maintenance-modal__steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+}
+
+.settings-maintenance-modal__step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-alt);
+}
+
+.settings-maintenance-modal__step > span {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 50%;
+    color: var(--color-primary-deep);
+    background: var(--color-primary-soft);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.settings-maintenance-modal__step p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.4;
+}
+
+.settings-maintenance-modal__step strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+}
+
+.settings-maintenance-modal__footer {
+    gap: 0.65rem;
+    padding: 0.9rem 1.2rem 1rem;
+    border-top: 1px solid var(--color-border-soft);
+    background: var(--color-card);
+}
+
+.settings-maintenance-modal__footer .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+@media (max-width: 575.98px) {
+    .settings-maintenance-modal .modal-dialog {
+        margin: 0.75rem;
+    }
+
+    .settings-maintenance-modal__section-heading,
+    .settings-maintenance-modal__url-row,
+    .settings-maintenance-modal__footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .settings-maintenance-modal__private {
+        align-self: flex-start;
+    }
+
+    .settings-maintenance-modal__steps {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-maintenance-modal__copy,
+    .settings-maintenance-modal__footer .btn {
+        width: 100%;
+    }
+
+}
+
+/* ── The two parts the confirmation grew ────────────────────────────────── */
+
+/*
+ * Which installation this is about. An operator with a staging tab and a
+ * production tab open has exactly one question at this point, and the dialog
+ * should not make them go and look.
+ */
+.settings-maintenance-modal__environment {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 9px 12px;
+	border-radius: 10px;
+	color: var(--color-text-subtle);
+	background: var(--color-surface-alt);
+	font-size: var(--font-xs);
+	font-weight: var(--font-medium);
+}
+
+.settings-maintenance-modal__environment i {
+	color: var(--color-text-faint);
+}
+
+/*
+ * The acknowledgement. It gates the confirm button rather than merely sitting
+ * beside it: the three switches that reach this dialog are each a single
+ * click away from an outage, and a dialog whose default action is the
+ * dangerous one is a dialog people dismiss by reflex.
+ */
+.settings-maintenance-modal__ack {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 0;
+	padding: 12px 14px;
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	color: var(--color-text);
+	background: var(--color-card);
+	font-size: var(--font-sm);
+	line-height: 1.5;
+	cursor: pointer;
+}
+
+.settings-maintenance-modal__ack[hidden] {
+	display: none;
+}
+
+.settings-maintenance-modal__ack input {
+	flex: 0 0 auto;
+	inline-size: 16px;
+	block-size: 16px;
+	margin-block-start: 2px;
+	accent-color: var(--color-primary);
+	cursor: pointer;
+}
+
+.settings-maintenance-modal__recovery[hidden] {
+	display: none;
+}
+
+.settings-maintenance-modal__footer .btn-primary:disabled {
+	border-color: var(--color-border);
+	color: var(--color-text-faint);
+	background: var(--color-surface-alt);
+	cursor: not-allowed;
+}
+
+/* ── Shared dialogue shell ──────────────────────────────────────────────── */
+
+.settings-maintenance-modal .modal-content,
+.settings-storage-modal .modal-content,
+.settings-smtp-modal .modal-content {
+	border: 0;
+	border-radius: 18px;
+	box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.06), 0 24px 64px -24px rgba(var(--color-text-rgb), 0.4);
+	overflow: hidden;
+	animation: ss-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.settings-maintenance-modal .modal-content,
+	.settings-storage-modal .modal-content,
+	.settings-smtp-modal .modal-content {
+		animation: none;
+	}
+
+}
+
+/*
+ * Below 1400px the header cannot hold all four controls beside a 320px
+ * identity, and the row wraps — measured at 1280: identity at y=121, actions
+ * at y=210, two bands where the design asks for one.
+ *
+ * All three values go together, rather than the longest one first. Shedding
+ * only the mail host left a chip reading "Mail" with nothing after it, beside
+ * two that still carried a value, which looks unfinished rather than compact.
+ * The icon keeps the tone, so the status survives, and the value moves into
+ * the chip's title.
+ */
+@media (max-width: 1399.98px) {
+	.ss-health__value {
+		display: none;
+	}
+
+}
+
+/*
+ * An open navigation rail costs the content 192px, so the same squeeze arrives
+ * that much earlier. Measured with the rail open at a 1280 viewport: 944px of
+ * content, where the values in wraps the header and the values out does not.
+ * If the shell ever renames that class this simply stops firing, and the worst
+ * case is the header the page had before.
+ */
+@media (max-width: 1591.98px) {
+	body:has(.dk-side:not(.is-collapsed)) .ss-health__value {
+		display: none;
+	}
+
+}
+
+/*
+ * The section head docks once it is holding the top of the scroll area.
+ *
+ * At rest it is a card: rounded, floating clear of the group below it. The
+ * moment it starts holding, three things are wrong with keeping it that way.
+ *
+ * A rounded rectangle paints nothing in the four corners of its own box, so
+ * a card sliding underneath shows through those 16px notches — the head and
+ * the groups are exactly the same width, so what appears in the notch is a
+ * card's straight edge cutting across a curve.
+ *
+ * It floats 4px and 8px clear of the column's edges, which reads as a card
+ * at rest and as a bar that failed to reach the sides once it is pinned.
+ *
+ * And a row emerging from under it looked like part of it — the 1px ring is
+ * 5% black, too faint to separate a moving surface from a fixed one.
+ *
+ * Docking answers all three: it spans the scrollport, squares its corners so
+ * there are no notches left to see through, and takes a short shadow to sit
+ * above what passes beneath. `.is-stuck` is set by settings-site.js, because
+ * CSS has no selector for it.
+ */
+.ss-section-head.is-stuck {
+	box-shadow: var(--ss-ring), 0 6px 14px -8px rgba(var(--color-text-rgb), 0.2);
+}
+
+/*
+ * The plate behind the head while it holds.
+ *
+ * A rounded rectangle paints nothing in the four corners of its own box, so
+ * a card sliding underneath showed through those 16px notches — and the head
+ * and the groups are exactly the same width, so what appeared there was a
+ * straight edge cutting across a curve.
+ *
+ * Squaring the head off answered that and cost more than it fixed: a rounded
+ * card that turns into a rectangle the moment you touch the wheel is a worse
+ * thing to watch than the notch was. This hides what passes behind instead,
+ * in the page's own colour and out to the column's edges, so the notches
+ * show exactly what they show at rest — the page. The head stays a card.
+ *
+ * It sits inside the head's own stacking context, so `z-index: -1` puts it
+ * under the head and still over everything scrolling past.
+ */
+.ss-section-head.is-stuck::before {
+	position: absolute;
+	z-index: -1;
+	inset-block: 0;
+	/* The negatives are the body's own inline padding. */
+	inset-inline: -4px -8px;
+	background: var(--color-bg);
+	content: "";
+}
+
+[data-coreui-theme="dark"] .ss-section-head.is-stuck {
+	box-shadow: var(--ss-ring), 0 6px 14px -8px rgba(var(--color-black-rgb), 0.4);
+}
+
+/*
+ * Once it is holding the top, the head lifts its content to the line the
+ * rail's search box sits on.
+ *
+ * At rest the tile starts 14px down, inside the head's padding, so the two
+ * columns begin at the same y while the things inside them do not line up.
+ * Dropping that padding while docked puts the tile's top at the head's top,
+ * level with the search box beside it. Nothing is hidden or shrunk to get
+ * there: the description and the jump row stay exactly as they are.
+ *
+ * It is a separate class from `is-stuck` because it starts later. The head
+ * gives up 14px of height when it applies, the browser's scroll anchoring
+ * moves the position by the same amount to hold the content still, and
+ * thresholds closer together than that send the two states chasing each
+ * other. The shape does not change, only the padding.
+ */
+.ss-section-head.is-raised {
+	padding-block-start: 0;
+}
+
+/* =====================================================================
+ * Upload Limits
+ *
+ * The one dialogue on this page that never got the treatment the others
+ * have: a bare title, a Bootstrap alert and a four-row table. It answers a
+ * real question — what can somebody actually upload, and who decided that —
+ * so it reads as a verdict followed by the four numbers behind it.
+ * ===================================================================== */
+
+.settings-media-modal .modal-dialog {
+	max-width: 32rem;
+}
+
+.settings-media-modal__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1.1rem 1.25rem;
+	border-block-end: 1px solid var(--color-border-soft);
+}
+
+.settings-media-modal__title {
+	display: flex;
+	align-items: center;
+	gap: 0.7rem;
+	min-inline-size: 0;
+}
+
+.settings-media-modal__icon {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 2.5rem;
+	block-size: 2.5rem;
+	border-radius: 11px;
+	color: var(--color-teal);
+	background: rgba(var(--color-rgb-15-118-110), 0.1);
+}
+
+.settings-media-modal__eyebrow {
+	display: block;
+	color: var(--color-text-faint);
+	font-size: var(--font-2xs);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.settings-media-modal__title .modal-title {
+	margin: 0;
+	color: var(--color-text);
+	font-size: var(--font-lg);
+	font-weight: var(--font-semibold) !important;
+	line-height: 1.25;
+}
+
+.settings-media-modal__body {
+	display: grid;
+	gap: 1rem;
+	padding: 1.25rem;
+}
+
+/* ── The verdict ────────────────────────────────────────────────────────── */
+
+.settings-media-modal__verdict {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	padding: 0.85rem 1rem;
+	border-radius: 12px;
+}
+
+.settings-media-modal__verdict strong {
+	display: block;
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	line-height: 1.35;
+}
+
+.settings-media-modal__verdict p {
+	margin: 0.2rem 0 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-xs);
+	line-height: 1.55;
+}
+
+.settings-media-modal__verdict-icon {
+	display: inline-grid;
+	place-items: center;
+	flex: 0 0 auto;
+	inline-size: 2rem;
+	block-size: 2rem;
+	border-radius: 9px;
+	background: var(--color-card);
+}
+
+.settings-media-modal__verdict--success {
+	color: var(--color-success-strong);
+	background: rgba(var(--color-success-rgb), 0.1);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-success-rgb), 0.22);
+}
+
+.settings-media-modal__verdict--success .settings-media-modal__verdict-icon {
+	color: var(--color-success-strong);
+}
+
+.settings-media-modal__verdict--warning {
+	color: var(--color-warning-strong);
+	background: rgba(var(--color-warning-rgb), 0.1);
+	box-shadow: inset 0 0 0 1px rgba(var(--color-warning-rgb), 0.28);
+}
+
+.settings-media-modal__verdict--warning .settings-media-modal__verdict-icon {
+	color: var(--color-warning-strong);
+}
+
+/* ── The four numbers behind it ─────────────────────────────────────────── */
+
+.settings-media-modal__facts {
+	margin: 0;
+	padding: 0;
+	border-radius: 12px;
+	background: var(--color-card);
+	box-shadow: var(--ss-ring, 0 0 0 1px rgba(var(--color-text-rgb), 0.05));
+	list-style: none;
+	overflow: hidden;
+}
+
+.settings-media-modal__fact {
+	display: grid;
+	grid-template-columns: 2rem minmax(0, 1fr) auto;
+	gap: 0.75rem;
+	align-items: center;
+	padding: 0.7rem 0.9rem;
+	border-block-end: 1px solid var(--color-border-soft);
+}
+
+.settings-media-modal__fact:last-child {
+	border-block-end: 0;
+}
+
+.settings-media-modal__fact-icon {
+	display: inline-grid;
+	place-items: center;
+	inline-size: 2rem;
+	block-size: 2rem;
+	border-radius: 8px;
+	color: var(--color-text-muted);
+	background: var(--color-surface-alt);
+}
+
+.settings-media-modal__fact-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-inline-size: 0;
+}
+
+.settings-media-modal__fact-copy strong {
+	color: var(--color-text);
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+}
+
+.settings-media-modal__fact-copy code {
+	padding: 0;
+	color: inherit;
+	background: none;
+	font-family: var(--font-mono);
+	font-size: var(--font-xs);
+}
+
+.settings-media-modal__fact-copy small {
+	color: var(--color-text-faint);
+	font-size: var(--font-xs);
+	line-height: 1.4;
+}
+
+.settings-media-modal__fact-value {
+	color: var(--color-text);
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.settings-media-modal__fact-value--raw {
+	color: var(--color-text-muted);
+	font-family: var(--font-mono);
+	font-weight: var(--font-medium);
+}
+
+/* The row the warning is about, so the eye lands on it rather than hunting. */
+.settings-media-modal__fact--capped .settings-media-modal__fact-icon {
+	color: var(--color-warning-strong);
+	background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+.settings-media-modal__fact--capped .settings-media-modal__fact-value {
+	color: var(--color-warning-strong);
+}
+
+.settings-media-modal__note {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	margin: 0;
+	color: var(--color-text-faint);
+	font-size: var(--font-xs);
+	line-height: 1.5;
+}
+
+.settings-media-modal__note svg {
+	flex: 0 0 auto;
+	margin-block-start: 2px;
+}
+
+.settings-media-modal__footer {
+	gap: 0.5rem;
+	padding: 0.9rem 1.25rem;
+	border-block-start: 1px solid var(--color-border-soft);
+	background: var(--color-surface-alt);
+}
+
+.settings-media-modal__footer .btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	min-block-size: 2.375rem;
+	border-radius: 10px;
+	font-size: var(--font-sm);
+	font-weight: var(--font-semibold);
+}
+
+@media (max-width: 575.98px) {
+	.settings-media-modal__fact {
+		grid-template-columns: 2rem minmax(0, 1fr);
+		grid-template-areas:
+			"icon copy"
+			".    value";
+		row-gap: 0.35rem;
+	}
+
+	.settings-media-modal__fact-icon  { grid-area: icon; }
+
+	.settings-media-modal__fact-copy  { grid-area: copy; }
+
+	.settings-media-modal__fact-value { grid-area: value; justify-self: start; }
+
+	.settings-media-modal__footer .btn {
+		flex: 1 1 100%;
+		justify-content: center;
+	}
+
+}

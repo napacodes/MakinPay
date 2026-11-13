@@ -1,0 +1,3262 @@
+:root {
+    --admin-table-text: var(--color-text);
+    --admin-table-text-soft: var(--color-text-soft);
+    --admin-table-muted: var(--color-text-muted);
+    --admin-table-faint: var(--color-text-faint);
+    --admin-table-card: var(--color-card);
+    --admin-table-surface: var(--color-surface-alt);
+    --admin-table-surface-soft: var(--color-surface-soft);
+    --admin-table-border: var(--color-border-soft);
+    --admin-table-border-strong: var(--color-border-strong);
+    --admin-table-primary: var(--color-primary);
+    --admin-table-primary-soft: var(--color-primary-soft);
+    --admin-table-shadow-soft: 0 1px 2px rgba(var(--color-text-rgb), 0.035);
+    --admin-table-shadow-lift: 0 6px 16px -14px rgba(var(--color-text-rgb), 0.18);
+}
+
+.card > .card-body > .d-flex.justify-content-end.mb-3,
+.admin-table-filterbar {
+    justify-content: flex-start !important;
+    margin: -0.45rem -0.45rem 0.6rem !important;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--admin-table-border);
+    border-radius: 0.5rem;
+    background: var(--admin-table-surface);
+}
+
+.card > .card-body > .d-flex.justify-content-end.mb-3 > form,
+.admin-table-filterbar > form,
+.admin-table-filters {
+    width: 100%;
+    align-items: end;
+}
+
+.card > .card-body > .d-flex.justify-content-end.mb-3 .form-control,
+.card > .card-body > .d-flex.justify-content-end.mb-3 .form-select,
+.admin-table-filterbar .form-control,
+.admin-table-filterbar .form-select {
+    min-height: 2.18rem;
+    border-color: var(--admin-table-border-strong);
+    border-radius: 0.5rem;
+    background-color: var(--admin-table-card);
+    color: var(--admin-table-text);
+    font-size: var(--font-sm);
+}
+
+.card > .card-body > .d-flex.justify-content-end.mb-3 .form-control:focus,
+.card > .card-body > .d-flex.justify-content-end.mb-3 .form-select:focus,
+.admin-table-filterbar .form-control:focus,
+.admin-table-filterbar .form-select:focus {
+    border-color: rgba(var(--color-primary-rgb), 0.42);
+    box-shadow: 0 0 0 0.16rem var(--admin-table-primary-soft);
+}
+
+.card > .card-body > .d-flex.justify-content-end.mb-3 .input-group .btn,
+.admin-table-filterbar .input-group .btn {
+    min-width: 2.18rem;
+    border-radius: 0.5rem;
+}
+
+.card > .card-body > .table-responsive {
+    border: 1px solid var(--admin-table-border);
+    border-radius: 0.5rem;
+    background: var(--admin-table-card);
+    box-shadow: var(--admin-table-shadow-soft);
+}
+
+.card > .card-body > .table-responsive > table.table {
+    min-width: 100%;
+    margin-bottom: 0 !important;
+    border: 0 !important;
+}
+
+.card > .card-body > .table-responsive > table.table > :not(caption) > * > * {
+    border-color: var(--admin-table-border);
+}
+
+.card > .card-body > .table-responsive > table.table thead th {
+    padding: 0.48rem 0.75rem;
+    border-bottom: 1px solid var(--admin-table-border);
+    background: var(--admin-table-card) !important;
+    color: var(--admin-table-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.card > .card-body > .table-responsive > table.table tbody td {
+    padding: 0.52rem 0.78rem;
+    border-bottom: 1px solid var(--admin-table-border);
+    color: var(--admin-table-text);
+    font-size: var(--font-sm);
+    line-height: 1.35;
+    vertical-align: middle;
+}
+
+.card > .card-body > .table-responsive > table.table tbody td strong,
+.card > .card-body > .table-responsive > table.table tbody td .fw-bold,
+.card > .card-body > .table-responsive > table.table tbody td a:not(.btn) {
+    font-weight: var(--font-semibold) !important;
+}
+
+.card > .card-body > .table-responsive > table.table tbody td .small,
+.card > .card-body > .table-responsive > table.table tbody td small,
+.card > .card-body > .table-responsive > table.table tbody td .text-muted,
+.card > .card-body > .table-responsive > table.table tbody td .text-body-secondary {
+    color: var(--admin-table-muted) !important;
+    font-weight: var(--font-medium);
+}
+
+.card > .card-body > .table-responsive > table.table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.card > .card-body > .table-responsive > table.table tbody tr {
+    transition: background-color 0.18s ease;
+}
+
+.card > .card-body > .table-responsive > table.table tbody tr:hover > * {
+    background: rgba(var(--color-primary-rgb), 0.035);
+}
+
+.card > .card-body > .table-responsive > table.table .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    min-height: 2.08rem;
+    padding-inline: 0.78rem;
+    border-radius: 0.5rem;
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(var(--color-primary-rgb), 0.08);
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.card > .card-body > .table-responsive > table.table .btn:hover,
+.card > .card-body > .table-responsive > table.table .btn:focus {
+    box-shadow: 0 6px 14px -12px rgba(var(--color-primary-rgb), 0.46);
+    transform: translateY(-1px);
+}
+
+/*
+ * Canonical admin table actions
+ * Reference implementation: resources/views/backend/gift-cards/index.blade.php.
+ * main.js applies these classes to legacy and dynamically inserted Action
+ * columns; new Blade tables should use the classes explicitly.
+ */
+body.backend-admin-layout .admin-table-actions-heading,
+body.backend-admin-layout .admin-table-actions-cell {
+    white-space: nowrap;
+}
+
+/*
+ * Action columns keep their own controls on one line, but modals and dropdown
+ * menus are frequently authored inside the action cell. Without this reset the
+ * cell's nowrap inherits into their body copy and pushes the panel wider than
+ * the viewport on small screens.
+ */
+body.backend-admin-layout .admin-table-actions-cell .modal,
+body.backend-admin-layout .admin-table-actions-cell .dropdown-menu,
+body.backend-admin-layout table tbody tr > td:last-child .modal,
+body.backend-admin-layout table tbody tr > td:last-child .dropdown-menu {
+    white-space: normal;
+}
+
+body.backend-admin-layout .admin-table-actions,
+body.backend-admin-layout table tbody tr > td:last-child > .btn-group,
+body.backend-admin-layout table tbody tr > td:last-child > [class*="action-group"],
+body.backend-admin-layout table tbody tr > td:last-child > [class*="actions"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap;
+}
+
+body.backend-admin-layout .admin-table-actions__form,
+body.backend-admin-layout table tbody tr > td:last-child > form {
+    display: inline-flex !important;
+    margin: 0 !important;
+}
+
+body.backend-admin-layout .admin-table-actions-cell > .admin-table-action,
+body.backend-admin-layout .admin-table-actions-cell > .admin-table-actions__form,
+body.backend-admin-layout .admin-table-actions-cell > .admin-table-actions,
+body.backend-admin-layout table tbody tr > td:last-child > :where(a, button):not(.dropdown-item):not(.btn-close),
+body.backend-admin-layout table tbody tr > td:last-child > .btn-group,
+body.backend-admin-layout table tbody tr > td:last-child > [class*="action-group"],
+body.backend-admin-layout table tbody tr > td:last-child > [class*="actions"] {
+    margin-block: 0.12rem;
+}
+
+body.backend-admin-layout .admin-table-action,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *)) {
+    --admin-table-action-color: var(--color-primary);
+    --admin-table-action-rgb: var(--color-primary-rgb);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.32rem !important;
+    min-width: 0 !important;
+    min-height: 2rem !important;
+    padding: 0.36rem 0.68rem !important;
+    border: 1px solid rgba(var(--admin-table-action-rgb), 0.24) !important;
+    border-radius: 0.5rem !important;
+    background: var(--color-card) !important;
+    color: var(--admin-table-action-color) !important;
+    font-size: var(--font-xs) !important;
+    font-weight: var(--font-bold) !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(var(--admin-table-action-rgb), 0.08) !important;
+    transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+}
+
+body.backend-admin-layout .admin-table-action svg,
+body.backend-admin-layout .admin-table-action i,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *) svg),
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *) i) {
+    width: 0.88rem;
+    height: 0.88rem;
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+}
+
+body.backend-admin-layout .admin-table-action:hover,
+body.backend-admin-layout .admin-table-action:focus,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *):hover),
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *):focus) {
+    border-color: var(--admin-table-action-color) !important;
+    background: var(--admin-table-action-color) !important;
+    color: var(--color-text-inverse) !important;
+    box-shadow: 0 0.28rem 0.68rem rgba(var(--admin-table-action-rgb), 0.2) !important;
+    transform: translateY(-1px);
+}
+
+body.backend-admin-layout .admin-table-action:focus-visible,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *):focus-visible) {
+    outline: 2px solid rgba(var(--admin-table-action-rgb), 0.52);
+    outline-offset: 2px;
+}
+
+body.backend-admin-layout .admin-table-action--success,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(.btn-success, .btn-outline-success, [class*="success"]):not(.dropdown-item):not(.modal *):not(.dropdown-menu *)) {
+    --admin-table-action-color: var(--color-success-deep);
+    --admin-table-action-rgb: var(--color-success-rgb);
+    border-color: rgba(var(--color-success-rgb), 0.26) !important;
+    color: var(--color-success-deep) !important;
+}
+
+body.backend-admin-layout .admin-table-action--warning,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(.btn-warning, .btn-outline-warning, [class*="warning"]):not(.dropdown-item):not(.modal *):not(.dropdown-menu *)) {
+    --admin-table-action-color: var(--color-warning-deep);
+    --admin-table-action-rgb: var(--color-warning-rgb);
+    border-color: rgba(var(--color-warning-rgb), 0.3) !important;
+    color: var(--color-warning-deep) !important;
+}
+
+body.backend-admin-layout .admin-table-action--danger,
+body.backend-admin-layout :where(table tbody tr > td:last-child :where(.btn-danger, .btn-outline-danger, .delete, [class*="danger"]):not(.dropdown-item):not(.modal *):not(.dropdown-menu *)) {
+    --admin-table-action-color: var(--color-danger-deep);
+    --admin-table-action-rgb: var(--color-danger-rgb);
+    border-color: rgba(var(--color-danger-rgb), 0.28) !important;
+    color: var(--color-danger-deep) !important;
+}
+
+body.backend-admin-layout .admin-table-action--secondary,
+body.backend-admin-layout .admin-table-action:disabled,
+body.backend-admin-layout .admin-table-action.disabled {
+    --admin-table-action-color: var(--color-text-muted);
+    --admin-table-action-rgb: var(--color-text-rgb);
+    border-color: var(--color-border-strong) !important;
+    color: var(--color-text-muted) !important;
+}
+
+body.backend-admin-layout .admin-table-action:disabled,
+body.backend-admin-layout .admin-table-action.disabled {
+    opacity: 0.58;
+    pointer-events: none;
+}
+
+@media (max-width: 575.98px) {
+    body.backend-admin-layout .admin-table-actions,
+    body.backend-admin-layout table tbody tr > td:last-child > .btn-group,
+    body.backend-admin-layout table tbody tr > td:last-child > [class*="action-group"],
+    body.backend-admin-layout table tbody tr > td:last-child > [class*="actions"] {
+        gap: 0.38rem !important;
+    }
+
+    body.backend-admin-layout .admin-table-action,
+    body.backend-admin-layout :where(table tbody tr > td:last-child :where(a, button):not(.dropdown-item):not(.btn-close):not(.modal *):not(.dropdown-menu *)) {
+        min-height: 1.9rem !important;
+        padding-inline: 0.58rem !important;
+    }
+}
+
+.card > .card-body > .table-responsive > table.table .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.18rem;
+    padding: 0.14rem 0.44rem;
+    border-radius: 999px;
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.03em;
+}
+
+.card > .card-body > .table-responsive > table.table img.rounded-circle,
+.card > .card-body > .table-responsive > table.table .avatar,
+.card > .card-body > .table-responsive > table.table .avatar-img {
+    box-shadow: 0 0 0 1px var(--admin-table-border), 0 4px 12px -10px rgba(var(--color-text-rgb), 0.26);
+}
+
+.card > .card-body > .table-responsive + .d-flex.justify-content-end.mt-3 {
+    margin-top: 0.58rem !important;
+}
+
+/*
+ * The token set and the page layout are two different things, and only one of
+ * them belongs to the page.
+ *
+ * `.admin-users-name`, `.admin-users-meta`, `.admin-users-pill` and
+ * `.admin-users-row` all resolve `--aul-*`, so a transaction table rendered
+ * anywhere but inside `.admin-users-page` used to come out with transparent
+ * pills and colourless text. The dashboard needs the same table, so the tokens
+ * travel with the table instead of with the screen it happens to be on.
+ */
+.admin-users-page,
+.admin-trx-list {
+    --aul-text: var(--admin-table-text);
+    --aul-text-soft: var(--admin-table-text-soft);
+    --aul-muted: var(--admin-table-muted);
+    --aul-faint: var(--admin-table-faint);
+    --aul-card: var(--admin-table-card);
+    --aul-surface: var(--admin-table-surface);
+    --aul-surface-soft: var(--admin-table-surface-soft);
+    --aul-border: var(--admin-table-border);
+    --aul-border-strong: var(--admin-table-border-strong);
+    --aul-primary: var(--admin-table-primary);
+    --aul-primary-soft: var(--admin-table-primary-soft);
+    --aul-success-soft: var(--color-success-soft);
+    --aul-warning-soft: var(--color-warning-soft);
+    --aul-danger-soft: var(--color-danger-soft);
+    --aul-info: var(--color-info);
+}
+
+/* The grid is the page's, not the table's. */
+.admin-users-page {
+    display: grid;
+    gap: 0.65rem;
+}
+
+/*
+ * The tables inside this shell scroll; the page does not.
+ *
+ * .admin-users-table-wrap is the scroll container and .admin-users-table
+ * carries a min-width of 58-76rem, which is the whole design: the table
+ * scrolls inside the card on a phone. It was not scrolling. A grid item's
+ * automatic minimum size is its min-content width, and min-content is
+ * measured straight through descendants whatever their overflow - the
+ * "overflow other than visible means a minimum of zero" escape is about the
+ * grid item itself, not about a scroll container three levels inside it. So
+ * the table's 76rem climbed back out through the wrap and the panel to the
+ * .card-body that is the grid item here, and the item refused to be narrower
+ * than that: 1250px measured on a 375px viewport, taking the filter bar and
+ * the whole document sideways with it.
+ *
+ * Stating the floor lets the item be as narrow as its track and hands the
+ * overflow back to the wrap built to take it. Nowhere near only a phone
+ * problem, as it turned out: at 1440 the card was still being held to 1250px
+ * inside a 1098px container and the document measured 1550. Above roughly
+ * 1620, where the card is wide enough for the table on its own, the floor
+ * never applied and this changes nothing.
+ */
+.admin-users-page > * {
+    min-width: 0;
+}
+
+.admin-users-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--aul-border);
+    border-radius: 0.5rem;
+    background:
+        linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08), transparent 44%),
+        linear-gradient(180deg, var(--aul-card), var(--aul-surface));
+    box-shadow: var(--admin-table-shadow-soft), var(--admin-table-shadow-lift);
+}
+
+.admin-users-hero__copy {
+    min-width: 0;
+}
+
+.admin-users-stat__label {
+    display: block;
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.admin-users-hero__title {
+    margin: 0;
+    color: var(--aul-text);
+    font-size: var(--font-xl);
+    font-weight: var(--font-extrabold);
+    line-height: 1.15;
+}
+
+.admin-users-hero__action,
+.admin-users-contact__line,
+.admin-users-date {
+    display: inline-flex;
+    align-items: center;
+}
+
+.admin-users-hero__action {
+    flex: 0 0 auto;
+    gap: 0.38rem;
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.35);
+    border-radius: 0.5rem;
+    background: var(--aul-primary);
+    color: var(--color-text-inverse);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    text-decoration: none;
+    box-shadow: 0 5px 14px -12px rgba(var(--color-primary-rgb), 0.34);
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.admin-users-hero__action:hover,
+.admin-users-hero__action:focus {
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary-hover);
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+}
+
+/* ============================================================
+ * KPI stats strip
+ * Used on every admin index page (Users, KYC, Templates,
+ * Pending Requests, Plans, etc.).
+ *
+ * Premium fintech-dashboard treatment: borderless flat cards
+ * sharing one soft surface, a tonal gradient icon tile with a
+ * focus ring, prominent figures, micro-caps eyebrow labels, and
+ * a whisper-quiet hover. No side rails, no heavy strokes — the
+ * hierarchy carries the polish.
+ * ============================================================ */
+.admin-users-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+    gap: 0.75rem;
+}
+
+.admin-users-stat {
+    --aus-accent: var(--aul-primary);
+    --aus-accent-rgb: var(--color-primary-rgb);
+    --aus-accent-soft: var(--aul-primary-soft);
+    --aus-accent-deep: var(--color-primary-hover, var(--aul-primary));
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+    padding: 0.95rem 1.05rem;
+    border: 1px solid rgba(var(--color-text-rgb), 0.07);
+    border-radius: 0.85rem;
+    background:
+        radial-gradient(120% 120% at 100% 0%, rgba(var(--aus-accent-rgb), 0.05), transparent 60%),
+        var(--aul-card);
+    overflow: hidden;
+}
+
+.admin-users-stat__icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: 0.75rem;
+    color: #fff;
+    background: linear-gradient(150deg,
+        var(--aus-accent) 0%,
+        var(--aus-accent-deep) 100%);
+    font-size: 1.02rem;
+}
+
+.admin-users-stat__icon--success {
+    --aus-accent: var(--color-success);
+    --aus-accent-rgb: var(--color-success-rgb);
+    --aus-accent-soft: var(--aul-success-soft);
+    --aus-accent-deep: var(--color-success-deep);
+}
+
+.admin-users-stat__icon--info {
+    --aus-accent: var(--aul-info, var(--color-info));
+    --aus-accent-rgb: var(--color-info-rgb);
+    --aus-accent-soft: var(--color-info-soft);
+    --aus-accent-deep: var(--color-info-deep, var(--color-info));
+}
+
+.admin-users-stat__icon--warning {
+    --aus-accent: var(--color-warning);
+    --aus-accent-rgb: var(--color-warning-rgb);
+    --aus-accent-soft: var(--aul-warning-soft);
+    --aus-accent-deep: var(--color-warning-deep);
+}
+
+.admin-users-stat__icon--danger {
+    --aus-accent: var(--color-danger);
+    --aus-accent-rgb: var(--color-danger-rgb);
+    --aus-accent-soft: var(--aul-danger-soft);
+    --aus-accent-deep: var(--color-danger-deep);
+}
+
+/* Re-propagate the icon modifier accent up to the stat card so the
+   wash + hover glow match the metric's tone. */
+.admin-users-stat:has(.admin-users-stat__icon--success) {
+    --aus-accent: var(--color-success);
+    --aus-accent-rgb: var(--color-success-rgb);
+    --aus-accent-soft: var(--aul-success-soft);
+    --aus-accent-deep: var(--color-success-deep);
+}
+
+.admin-users-stat:has(.admin-users-stat__icon--info) {
+    --aus-accent: var(--aul-info, var(--color-info));
+    --aus-accent-rgb: var(--color-info-rgb);
+    --aus-accent-soft: var(--color-info-soft);
+    --aus-accent-deep: var(--color-info-deep, var(--color-info));
+}
+
+.admin-users-stat:has(.admin-users-stat__icon--warning) {
+    --aus-accent: var(--color-warning);
+    --aus-accent-rgb: var(--color-warning-rgb);
+    --aus-accent-soft: var(--aul-warning-soft);
+    --aus-accent-deep: var(--color-warning-deep);
+}
+
+.admin-users-stat:has(.admin-users-stat__icon--danger) {
+    --aus-accent: var(--color-danger);
+    --aus-accent-rgb: var(--color-danger-rgb);
+    --aus-accent-soft: var(--aul-danger-soft);
+    --aus-accent-deep: var(--color-danger-deep);
+}
+
+.admin-users-stat > div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+}
+
+.admin-users-stat__label {
+    display: block;
+    margin: 0;
+    order: -1;
+    color: var(--aul-muted);
+    font-size: 0.64rem;
+    font-weight: var(--font-bold);
+    line-height: 1.1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-users-stat__value {
+    display: block;
+    color: var(--aul-text);
+    font-size: 1.5rem;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 575.98px) {
+    .admin-users-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.55rem;
+    }
+
+    .admin-users-stat {
+        padding: 0.8rem 0.85rem;
+        gap: 0.65rem;
+    }
+
+    .admin-users-stat__icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 0.92rem;
+    }
+
+    .admin-users-stat__value {
+        font-size: 1.3rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-users-stat {
+        transition: none;
+    }
+}
+
+.admin-users-panel {
+    border: 1px solid var(--aul-border);
+    border-radius: 0.5rem;
+    background: var(--aul-card);
+    box-shadow: var(--admin-table-shadow-soft), var(--admin-table-shadow-lift);
+    overflow: hidden;
+}
+
+.admin-users-filterbar {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--aul-border);
+    background: var(--aul-surface);
+}
+
+.admin-users-filter .form-label {
+    margin-bottom: 0.2rem;
+}
+
+.admin-users-filter .form-select,
+.admin-users-search__input {
+    min-height: 2.2rem;
+    border-color: var(--aul-border-strong);
+    border-radius: 0.5rem;
+    background-color: var(--aul-card);
+    color: var(--aul-text);
+    font-size: var(--font-sm);
+}
+
+.admin-users-filter .form-select:focus,
+.admin-users-search__input:focus {
+    border-color: rgba(var(--color-primary-rgb), 0.42);
+    box-shadow: 0 0 0 0.16rem var(--aul-primary-soft);
+}
+
+.admin-users-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.admin-users-search__icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--aul-faint);
+    pointer-events: none;
+}
+
+.admin-users-search__input {
+    min-width: 14rem;
+    padding-left: 2.15rem;
+}
+
+.admin-users-search__submit,
+.admin-users-search__reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    text-decoration: none;
+}
+
+.admin-users-search__submit {
+    flex: 0 0 auto;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--aul-primary);
+    background: var(--aul-primary);
+    color: var(--color-text-inverse);
+}
+
+.admin-users-search__reset {
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    min-height: 2.2rem;
+    padding: 0 0.65rem;
+    border: 1px solid var(--aul-border-strong);
+    background: var(--aul-card);
+    color: var(--aul-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.admin-users-search__reset:hover,
+.admin-users-search__reset:focus {
+    color: var(--aul-text);
+    border-color: rgba(var(--color-primary-rgb), 0.32);
+}
+
+.admin-users-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-users-table {
+    min-width: 58rem;
+}
+
+.admin-users-table--plans {
+    min-width: 64rem;
+}
+
+.admin-users-table--plans thead th {
+    padding-top: 0.42rem;
+    padding-bottom: 0.42rem;
+}
+
+.admin-users-table--plans tbody td {
+    padding-top: 0.46rem;
+    padding-bottom: 0.46rem;
+}
+
+.admin-users-table--plans .admin-users-doc {
+    min-width: 10rem;
+}
+
+.admin-users-table--plans .admin-users-doc__badges {
+    gap: 0.22rem;
+}
+
+.admin-users-table--plans .admin-users-pill {
+    min-height: 1.06rem;
+    padding: 0.08rem 0.36rem;
+    font-size: calc(var(--font-2xs) - 0.02rem);
+}
+
+.admin-plan-doc {
+    gap: 0.2rem;
+}
+
+.admin-plan-name {
+    max-width: 11.5rem;
+}
+
+.admin-plan-prices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem;
+    max-width: 21rem;
+}
+
+.admin-plan-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34rem;
+    min-height: 1.58rem;
+    padding: 0.16rem 0.48rem;
+    border: 1px solid var(--aul-border);
+    border-radius: 999px;
+    background: var(--aul-surface-soft);
+    line-height: 1;
+}
+
+.admin-plan-price__cycle {
+    color: var(--aul-text-soft);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.admin-plan-price__amount {
+    color: var(--aul-text);
+    font-size: var(--font-xs);
+    font-weight: var(--font-extrabold);
+    white-space: nowrap;
+}
+
+.admin-plan-price__amount--free {
+    color: var(--color-success-deep);
+}
+
+.admin-plan-trial-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+    width: max-content;
+    min-height: 1.15rem;
+    padding: 0.08rem 0.38rem;
+    border: 1px solid rgba(var(--color-info-rgb), 0.24);
+    border-radius: 999px;
+    background: var(--color-info-soft);
+    color: var(--color-info);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.admin-plan-trial-pill i {
+    font-size: 0.62rem;
+}
+
+.admin-plan-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    min-height: 1.35rem;
+    margin-right: 0.28rem;
+    border-radius: 999px;
+    background: var(--aul-primary-soft);
+    color: var(--aul-primary);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-extrabold);
+}
+
+.admin-plan-subscribers {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.admin-plan-subscribers strong {
+    color: var(--aul-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-extrabold);
+}
+
+.admin-plan-subscribers span {
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+}
+
+.admin-users-table--plans .admin-table-actions {
+    gap: 0.32rem;
+    flex-wrap: nowrap;
+}
+
+.admin-users-table--plans .admin-table-action {
+    min-height: 1.9rem;
+    padding-inline: 0.62rem;
+    font-size: var(--font-2xs);
+}
+
+.admin-users-table--wide {
+    min-width: 76rem;
+}
+
+.admin-users-drag-col {
+    width: 2.5rem;
+}
+
+.admin-users-table thead th {
+    padding: 0.48rem 0.75rem;
+    border-bottom: 1px solid var(--aul-border);
+    background: var(--aul-card) !important;
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    /* `app.css` flattens `.table thead th` to `font-weight: 400 !important`,
+       so this shell's header row rendered at body weight on every list that
+       uses it — the column labels read as a caption rather than a header. */
+    font-weight: var(--font-bold) !important;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-users-table tbody td {
+    padding: 0.52rem 0.78rem;
+    border-bottom: 1px solid var(--aul-border);
+    color: var(--aul-text);
+    vertical-align: middle;
+}
+
+.admin-users-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-users-row {
+    transition: background-color 0.18s ease;
+}
+
+.admin-users-row:hover td {
+    background: rgba(var(--color-primary-rgb), 0.035);
+}
+
+.admin-users-person {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 14rem;
+}
+
+.admin-users-avatar-wrap {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.admin-users-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(var(--color-white-rgb), 0.8);
+    box-shadow: 0 0 0 1px var(--aul-border), 0 4px 12px -10px rgba(var(--color-text-rgb), 0.26);
+    object-fit: cover;
+    font-size: var(--font-xs);
+    font-weight: var(--font-extrabold);
+}
+
+.admin-users-status-dot {
+    position: absolute;
+    right: -0.1rem;
+    bottom: -0.1rem;
+    width: 0.62rem;
+    height: 0.62rem;
+    border: 2px solid var(--aul-card);
+    border-radius: 50%;
+}
+
+.admin-users-person__copy {
+    min-width: 0;
+}
+
+/* Flex item holding the type label over the id/description line. Below roughly
+   460px the description's own max-width no longer saves it, so without this the
+   cell pushes past the column edge instead of ellipsising. */
+.admin-trx-type__copy {
+    min-width: 0;
+}
+
+.admin-users-name {
+    display: block;
+    max-width: 13rem;
+    overflow: hidden;
+    color: var(--aul-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+    line-height: 1.25;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-users-name:hover,
+.admin-users-name:focus {
+    color: var(--aul-primary);
+}
+
+.admin-users-username {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    margin-top: 0.12rem;
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-medium);
+}
+
+.admin-users-username > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-users-contact,
+.admin-users-doc {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 11rem;
+}
+
+.admin-users-contact__line {
+    gap: 0.35rem;
+    color: var(--aul-text-soft);
+    font-size: var(--font-sm);
+    font-weight: var(--font-medium);
+}
+
+.admin-users-contact__line i {
+    color: var(--aul-faint);
+}
+
+.admin-users-doc__label {
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.admin-users-doc__hint {
+    display: block;
+    margin-top: 0.18rem;
+    color: var(--aul-text-soft);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-medium);
+    line-height: 1.35;
+    max-width: 28rem;
+}
+
+.admin-users-doc__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem;
+    align-items: center;
+    max-width: 15rem;
+}
+
+.admin-users-stack {
+    display: grid;
+    gap: 0.25rem;
+    justify-items: start;
+}
+
+.admin-users-line {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    min-width: 0;
+}
+
+.admin-users-meta {
+    display: block;
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-medium);
+}
+
+.admin-users-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.24rem;
+    width: max-content;
+    min-height: 1.18rem;
+    padding: 0.12rem 0.42rem;
+    border: 1px solid var(--aul-border);
+    border-radius: 999px;
+    background: var(--aul-surface-soft);
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.admin-users-pill--success {
+    border-color: rgba(var(--color-success-rgb), 0.25);
+    background: var(--aul-success-soft);
+    color: var(--color-success-deep);
+}
+
+.admin-users-pill--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.24);
+    background: var(--aul-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.admin-users-pill--primary {
+    border-color: rgba(var(--color-primary-rgb), 0.24);
+    background: var(--aul-primary-soft);
+    color: var(--aul-primary);
+}
+
+.admin-users-pill--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.28);
+    background: var(--aul-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.admin-users-pill--document {
+    max-width: 9.5rem;
+    overflow: hidden;
+    border-color: var(--aul-border);
+    background: var(--aul-surface-soft);
+    color: var(--aul-text-soft);
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.admin-users-date {
+    gap: 0.38rem;
+    min-width: 9.5rem;
+    color: var(--aul-text-soft);
+}
+
+.admin-users-date i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 0.5rem;
+    background: var(--aul-surface-soft);
+    color: var(--aul-primary);
+}
+
+.admin-users-date span,
+.admin-users-date small {
+    display: block;
+}
+
+.admin-users-date span {
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.admin-users-date small {
+    margin-top: 0.06rem;
+    color: var(--aul-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-medium);
+}
+
+.admin-users-date.is-empty {
+    color: var(--aul-muted);
+}
+
+.admin-users-date.is-empty i {
+    color: var(--aul-faint);
+}
+
+.admin-users-drag-handle {
+    color: var(--aul-faint);
+    cursor: grab;
+}
+
+.admin-users-drag-handle:active {
+    cursor: grabbing;
+}
+
+.admin-users-pagination {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.55rem 0.75rem;
+    border-top: 1px solid var(--aul-border);
+    background: var(--aul-surface);
+}
+
+.admin-users-empty {
+    padding: 1rem;
+}
+
+[data-coreui-theme="dark"] .card > .card-body > .table-responsive,
+[data-coreui-theme="dark"] .admin-users-hero,
+[data-coreui-theme="dark"] .admin-users-panel,
+[data-coreui-theme="dark"] .admin-users-stat {
+    box-shadow: none;
+}
+
+[data-coreui-theme="dark"] .admin-users-avatar {
+    border-color: rgba(var(--color-white-rgb), 0.12);
+}
+
+@media (max-width: 767.98px) {
+    /*
+     * Admin tables scroll horizontally on phones, which pushes the action
+     * column off-screen and makes it look like the row has no controls. Pin the
+     * column main.js has already identified so it stays reachable.
+     */
+    body.backend-admin-layout .table-responsive > table.table > thead > tr > th.admin-table-actions-heading,
+    body.backend-admin-layout .table-responsive > table.table > tbody > tr > td.admin-table-actions-cell {
+        position: sticky;
+        right: 0;
+        z-index: 1;
+        background: var(--admin-table-card);
+        box-shadow: -0.5rem 0 0.55rem -0.5rem rgba(var(--color-text-rgb), 0.32);
+    }
+
+    .card > .card-body > .d-flex.justify-content-end.mb-3,
+    .admin-table-filterbar {
+        margin-right: -0.25rem !important;
+        margin-left: -0.25rem !important;
+    }
+
+    .admin-users-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-users-hero__action {
+        width: 100%;
+    }
+
+    .admin-users-search {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .admin-users-search__input {
+        min-width: 100%;
+    }
+
+    .admin-users-search__submit {
+        flex: 1 1 auto;
+    }
+
+    .admin-users-search__reset {
+        flex: 1 1 auto;
+    }
+}
+
+/* ==========================================================================
+   Transactions ledger — appended for the design handoff.
+   New `.admin-trx-*` prefix only; the `.admin-users-*` rules above are shared
+   with every other admin list and are left exactly as they were.
+   ========================================================================== */
+
+.admin-users-page .admin-trx-filterbar { margin-bottom: 12px; }
+
+.admin-users-page .admin-trx-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-users-page .admin-trx-control {
+    height: 38px;
+    padding-block: 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 9px;
+    background: var(--color-card);
+    font-size: var(--font-sm);
+    color: var(--color-text);
+}
+
+.admin-users-page .admin-trx-daterange { flex: 0 0 auto; }
+.admin-users-page .admin-trx-daterange .admin-trx-control { min-width: 220px; padding-inline: 12px; cursor: pointer; }
+
+.admin-users-page .admin-trx-search {
+    position: relative;
+    flex: 0 1 300px;
+    min-width: 200px;
+    margin-bottom: 0;
+}
+
+.admin-users-page .admin-trx-search__icon {
+    position: absolute;
+    inset-inline-start: 12px;
+    top: 50%;
+    translate: 0 -50%;
+    color: var(--color-text-faint);
+    pointer-events: none;
+}
+
+.admin-users-page .admin-trx-search .admin-trx-control {
+    width: 100%;
+    padding-inline: 36px 12px;
+}
+
+.admin-users-page .admin-trx-type { flex: 0 0 auto; }
+
+.admin-users-page .admin-trx-type .form-label { display: none; }
+
+.admin-users-page .admin-trx-type .form-select {
+    height: 38px;
+    padding-block: 0;
+    border-radius: 9px;
+    border-color: var(--color-border-strong);
+    font-size: var(--font-sm);
+    width: auto;
+}
+
+.admin-users-page .admin-trx-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    padding-inline: 10px;
+    border: 0;
+    background: none;
+    color: var(--color-primary);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+.admin-users-page .admin-trx-filterbar__meta {
+    margin-inline-start: auto;
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Bulk selection readout ─────────────────────────────────────────────── */
+.admin-users-page .admin-trx-bulkbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding-inline: 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background: var(--color-text);
+    color: #fff;
+    font-size: var(--font-sm);
+}
+
+.admin-users-page .admin-trx-bulkbar[hidden] { display: none; }
+
+.admin-users-page .admin-trx-bulkbar__clear {
+    margin-inline-start: auto;
+    height: 30px;
+    padding-inline: 10px;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.admin-users-page .admin-trx-bulkbar__clear:hover { color: #fff; }
+
+/* ── Table extras ───────────────────────────────────────────────────────── */
+.admin-trx-list .admin-trx-row { cursor: pointer; }
+
+.admin-trx-list .admin-trx-check { width: 44px; }
+
+/* The checkbox itself is the panel's one checkbox, declared in custom.css
+   between the `checkbox-canon` markers. This column only reserves its room. */
+
+.admin-trx-tile {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/* The base rule above is scoped under `.admin-users-page`, so a single-class
+   modifier loses to it on weight and every tile rendered neutral grey at 34px
+   — the whole type colour-coding was dead. Doubling the class matches that
+   weight, and still applies in the drawer, which renders outside the page. */
+.admin-trx-tile.admin-trx-tile--lg { width: 44px; height: 44px; border-radius: 50%; }
+.admin-trx-tile.admin-trx-tile--xl { width: 48px; height: 48px; border-radius: 14px; }
+
+.admin-trx-tile.admin-trx-tile--success { background: var(--color-success-soft); color: var(--color-success-deep); }
+.admin-trx-tile.admin-trx-tile--danger  { background: var(--color-danger-soft);  color: var(--color-danger-deep); }
+.admin-trx-tile.admin-trx-tile--primary { background: var(--color-primary-soft); color: var(--color-primary-deep); }
+.admin-trx-tile.admin-trx-tile--warning { background: var(--color-warning-soft); color: var(--color-warning-deep); }
+.admin-trx-tile.admin-trx-tile--info    { background: var(--color-info-soft);    color: var(--color-info-deep); }
+.admin-trx-tile.admin-trx-tile--violet  { background: #f3e8ff; color: #7e22ce; }
+.admin-trx-tile.admin-trx-tile--neutral { background: var(--color-surface-soft); color: var(--color-text-subtle); }
+
+.admin-trx-list .admin-trx-id {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-115);
+}
+
+.admin-trx-list .admin-trx-desc {
+    min-width: 0;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-trx-list .admin-trx-amount { font-variant-numeric: tabular-nums; }
+
+.admin-trx-list .admin-trx-chevron {
+    flex-shrink: 0;
+    color: var(--color-text-faint);
+}
+
+/* The chevron carries the row's keyboard affordance, so it is a real button
+   that has to look like the glyph it wraps and nothing else. */
+.admin-trx-list .admin-trx-open {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.admin-trx-list .admin-trx-open:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ── Mobile app-style list ──────────────────────────────────────────────── */
+.admin-trx-list .admin-trx-mobile { display: none; }
+
+.admin-trx-list .admin-trx-group__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 4px 4px 8px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-list .admin-trx-group {
+    background: var(--color-card);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.admin-trx-list .admin-trx-mrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 68px;
+    padding: 12px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: var(--color-card);
+    text-align: start;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.admin-trx-list .admin-trx-group .admin-trx-mrow:last-child { border-bottom: 0; }
+
+.admin-trx-list .admin-trx-mrow__body { flex: 1; min-width: 0; line-height: 1.3; }
+
+.admin-trx-list .admin-trx-mrow__title {
+    display: block;
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-semibold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-trx-list .admin-trx-mrow__meta {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-trx-list .admin-trx-mrow__side { flex-shrink: 0; text-align: end; line-height: 1.3; }
+
+.admin-trx-list .admin-trx-mrow__amount {
+    display: block;
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-trx-list .admin-trx-mrow__status {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    color: var(--color-text-muted);
+}
+
+.admin-trx-list .admin-trx-mrow__status--success { color: var(--color-success-deep); }
+.admin-trx-list .admin-trx-mrow__status--warning { color: var(--color-warning-deep); }
+.admin-trx-list .admin-trx-mrow__status--danger  { color: var(--color-danger-deep); }
+
+/* ── Detail drawer (rendered at page level, outside .admin-users-page) ───── */
+body.admin-trx-drawer-open { overflow: hidden; }
+
+.admin-trx-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.admin-trx-drawer[hidden] { display: none; }
+
+.admin-trx-drawer__scrim { position: absolute; inset: 0; }
+
+.admin-trx-drawer__panel {
+    position: relative;
+    width: 440px;
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-card);
+    /* `box-shadow` has no logical form, and the panel sits on the left in
+       RTL, so a direction-neutral spread is the only version that casts the
+       right way in both. */
+    box-shadow: 0 0 60px rgba(15, 23, 42, 0.25);
+    animation: adminTrxSlide 0.22s ease;
+}
+
+@keyframes adminTrxSlide {
+    from { opacity: 0; translate: 40px 0; }
+    to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes adminTrxUp {
+    from { opacity: 0; translate: 0 40px; }
+    to   { opacity: 1; translate: 0 0; }
+}
+
+.admin-trx-drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-drawer__head code {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-125);
+    color: var(--color-text);
+}
+
+.admin-trx-iconbtn {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.admin-trx-iconbtn:hover { border-color: var(--color-primary-tint); color: var(--color-primary); }
+
+.admin-trx-iconbtn--plain { width: 32px; height: 32px; border: 0; border-radius: 8px; }
+
+.admin-trx-drawer__body { flex: 1; overflow: auto; padding: 20px; }
+
+/* Sits between the tile and the status pill. Below roughly 380px the long
+   amount stops the row shrinking, pushing the pill outside the panel. */
+.admin-trx-drawer__headline {
+    min-width: 0;
+}
+
+.admin-trx-drawer__eyebrow {
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+}
+
+.admin-trx-drawer__amount {
+    font-size: var(--font-size-px-26);
+    font-weight: var(--font-extrabold);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-trx-breakdown {
+    margin-top: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-trx-breakdown > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+    font-size: var(--font-sm);
+}
+
+.admin-trx-breakdown > div:last-child { border-bottom: 0; }
+.admin-trx-breakdown span { color: var(--color-text-muted); }
+.admin-trx-breakdown strong { font-variant-numeric: tabular-nums; }
+
+.admin-trx-dl {
+    margin: 20px 0 0;
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px 14px;
+    font-size: var(--font-sm);
+}
+
+.admin-trx-dl dt { color: var(--color-text-muted); font-weight: var(--font-normal); }
+
+.admin-trx-dl dd {
+    margin: 0;
+    font-weight: var(--font-medium);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.admin-trx-initials {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-primary-soft);
+    color: var(--color-primary-deep);
+    font-size: var(--font-size-px-9);
+    font-weight: var(--font-bold);
+}
+
+.admin-trx-timeline {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-trx-timeline li {
+    display: flex;
+    gap: 12px;
+    font-size: var(--font-sm);
+    padding-bottom: 14px;
+}
+
+.admin-trx-timeline li:last-child { padding-bottom: 0; }
+
+.admin-trx-timeline__dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: var(--color-text-faint);
+}
+
+.admin-trx-timeline__dot--start   { background: var(--color-primary); }
+.admin-trx-timeline__dot--success { background: var(--color-success-strong); }
+.admin-trx-timeline__dot--warning { background: var(--color-warning); }
+.admin-trx-timeline__dot--danger  { background: var(--color-danger); }
+
+.admin-trx-drawer__foot {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .admin-trx-list .admin-trx-table,
+
+    .admin-users-page .admin-trx-bulkbar,
+    .admin-users-page .admin-trx-filterbar__meta { display: none; }
+
+    .admin-trx-list .admin-trx-mobile { display: block; }
+
+    .admin-users-page .admin-trx-search { flex: 1 1 100%; }
+
+    .admin-users-page .admin-trx-control,
+    .admin-users-page .admin-trx-type .form-select { height: 44px; width: 100%; }
+
+    .admin-users-page .admin-trx-daterange { flex: 1 1 100%; }
+    .admin-users-page .admin-trx-clear { height: 44px; }
+
+    .admin-trx-drawer { align-items: flex-end; }
+
+    .admin-trx-drawer__panel {
+        width: 100%;
+        height: auto;
+        max-height: 92%;
+        border-radius: 24px 24px 0 0;
+        animation: adminTrxUp 0.24s ease;
+    }
+
+    .admin-trx-drawer__foot .btn { min-height: 50px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-drawer__panel { animation: none; }
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────── */
+[data-coreui-theme="dark"] .admin-users-page .admin-trx-control,
+[data-coreui-theme="dark"] .admin-trx-list .admin-trx-group,
+[data-coreui-theme="dark"] .admin-trx-list .admin-trx-mrow,
+[data-coreui-theme="dark"] .admin-trx-drawer__panel,
+[data-coreui-theme="dark"] .admin-trx-iconbtn {
+    background: var(--color-palette-1c2230);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .admin-trx-list .admin-trx-mrow__meta,
+[data-coreui-theme="dark"] .admin-trx-list .admin-trx-group__head,
+[data-coreui-theme="dark"] .admin-users-page .admin-trx-filterbar__meta,
+[data-coreui-theme="dark"] .admin-trx-drawer__eyebrow,
+[data-coreui-theme="dark"] .admin-trx-breakdown span,
+[data-coreui-theme="dark"] .admin-trx-dl dt { color: #9aa4b8; }
+
+/* Only the untyped tile goes grey on a dark ground; blanketing every tile here
+   would undo the colour-coding a second time. The soft tones are rgba, so they
+   ride through — only the two solid fills and the deep text colours need
+   restating for contrast. */
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--neutral {
+    background: rgba(255, 255, 255, 0.08);
+    color: #9aa4b8;
+}
+
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--primary { background: rgba(var(--color-primary-rgb), 0.22); color: #c7d2fe; }
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--violet  { background: rgba(126, 34, 206, 0.22); color: #d8b4fe; }
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--success { color: #6ee7b7; }
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--danger  { color: #fca5a5; }
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--warning { color: #fcd34d; }
+[data-coreui-theme="dark"] .admin-trx-tile.admin-trx-tile--info    { color: #7dd3fc; }
+
+[data-coreui-theme="dark"] .admin-trx-breakdown,
+[data-coreui-theme="dark"] .admin-trx-breakdown > div,
+[data-coreui-theme="dark"] .admin-trx-drawer__head,
+[data-coreui-theme="dark"] .admin-trx-drawer__foot,
+[data-coreui-theme="dark"] .admin-trx-list .admin-trx-mrow { border-color: rgba(255, 255, 255, 0.09); }
+
+[data-coreui-theme="dark"] .admin-trx-drawer__foot { background: var(--color-palette-202634); }
+
+[data-coreui-theme="dark"] .admin-users-page .admin-trx-bulkbar { background: var(--color-palette-202634); }
+
+/* ── Ledger topbar: date range + export, and the summary cards ──────────── */
+
+/* The topbar renders inside the page header, which is outside
+   `.admin-users-page`, so the control needs an unscoped definition too. The
+   scoped copy above still wins for the filter bar — same declarations. */
+.admin-trx-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding-inline: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-card);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.admin-trx-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-trx-daterange__control {
+    justify-content: space-between;
+    min-width: 220px;
+    cursor: pointer;
+    font-weight: var(--font-medium);
+}
+
+/* The label groups the icon with the range text so the control's own
+   `space-between` pushes the chevron to the far end. */
+.admin-trx-daterange__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-trx-export:hover,
+.admin-trx-daterange__control:hover {
+    border-color: var(--color-primary-tint);
+    color: var(--color-primary);
+}
+
+.admin-trx-statcards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+/* Compact by design: four of these sit above the filter bar, and every row of
+   padding they keep is a row of the ledger pushed below the fold. */
+.admin-trx-statcard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    padding: 11px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-card);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-trx-statcard:hover {
+    border-color: var(--color-primary-tint);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.07);
+}
+
+/* Selected reads better as a filled state than as a ring — a ring beside three
+   plain cards looks like a stray focus artifact. The real focus ring is below,
+   and it was missing entirely: these are links. */
+.admin-trx-statcard.is-active {
+    border-color: var(--color-primary);
+    /* `--color-primary-subtle` is a runtime mid-tone (#a09bf1), not a pale
+       fill — as a background it would put dark text on saturated periwinkle.
+       `--color-primary-soft` is the 10% wash this wants. */
+    background: var(--color-primary-soft);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.admin-trx-statcard:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.admin-trx-statcard.is-active .admin-trx-statcard__head,
+.admin-trx-statcard.is-active .admin-trx-statcard__sub {
+    color: var(--color-text-subtle);
+}
+
+/* On the selected card the tint already carries the state, so the value drops
+   back to ink: the warning tone measured 4.15:1 on that ground, which only
+   passes as large text and stops passing at the 18px mobile size. */
+.admin-trx-statcard.is-active .admin-trx-statcard__value { color: var(--color-text); }
+
+.admin-trx-statcard.is-active .admin-trx-statcard__value.is-zero { color: var(--color-text-muted); }
+
+.admin-trx-statcard__body { min-width: 0; }
+
+.admin-trx-statcard__head {
+    display: block;
+    line-height: 1.2;
+    font-size: var(--shell-font-micro);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-statcard__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    align-self: center;
+}
+
+.admin-trx-statcard__value {
+    display: block;
+    margin-top: 5px;
+    font-size: var(--font-2xl);
+    font-weight: var(--font-extrabold);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+}
+
+.admin-trx-statcard__sub {
+    display: block;
+    margin-top: 2px;
+    line-height: 1.3;
+    font-size: var(--font-size-px-115);
+    color: var(--color-text-muted);
+}
+
+/* Total and Completed are the baseline and stay in ink; colour is spent only
+   where it buys attention. */
+.admin-trx-statcard__value--warning { color: var(--color-warning-deep); }
+.admin-trx-statcard__value--danger  { color: var(--color-danger-deep); }
+
+/* Beats the tone rules above on weight, so nothing shouts a zero. */
+.admin-trx-statcard__value.is-zero { color: var(--color-text-muted); }
+
+.admin-trx-statcard__meter {
+    display: block;
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    height: 3px;
+    border-radius: 999px;
+    /* Translucent so the track survives the tinted active card too. */
+    background: rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+
+.admin-trx-statcard__meter-fill {
+    display: block;
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: var(--color-text-faint);
+    transition: width 0.35s ease;
+}
+
+.admin-trx-statcard__meter-fill--primary { background: rgba(var(--color-primary-rgb), 0.4); }
+.admin-trx-statcard__meter-fill--success { background: rgba(var(--color-success-rgb), 0.45); }
+.admin-trx-statcard__meter-fill--warning { background: rgba(var(--color-warning-rgb), 0.45); }
+.admin-trx-statcard__meter-fill--danger  { background: rgba(var(--color-danger-rgb), 0.45); }
+
+/* The native caret is suppressed so the control can carry the same chevron as
+   the date-range button beside it; without one the select read as a plain text
+   box. Positioned logically, so RTL needs no counterpart. */
+.admin-users-page .admin-trx-type { position: relative; }
+
+.admin-users-page .admin-trx-type .form-select {
+    appearance: none;
+    background-image: none;
+}
+
+.admin-trx-type__caret {
+    position: absolute;
+    inset-inline-end: 12px;
+    top: 50%;
+    translate: 0 -50%;
+    pointer-events: none;
+    color: var(--color-text-muted);
+}
+
+@media (max-width: 991.98px) {
+    .admin-trx-statcards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 575.98px) {
+    .admin-trx-topbar { width: 100%; }
+
+    .admin-trx-topbar > * {
+        flex: 1 1 auto;
+        height: 44px;
+        justify-content: center;
+    }
+
+    .admin-trx-daterange__control { min-width: 0; }
+    .admin-trx-statcards { gap: 8px; }
+    .admin-trx-statcard { padding: 10px 12px; column-gap: 8px; }
+    .admin-trx-statcard__value { font-size: var(--font-xl); }
+
+    .admin-trx-statcard__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+    }
+
+    .admin-trx-statcard__icon svg {
+        width: 17px;
+        height: 17px;
+    }
+}
+
+[data-coreui-theme="dark"] .admin-trx-control,
+[data-coreui-theme="dark"] .admin-trx-statcard {
+    background: var(--color-palette-1c2230);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .admin-trx-statcard__value { color: var(--color-white); }
+
+[data-coreui-theme="dark"] .admin-trx-statcard__head,
+[data-coreui-theme="dark"] .admin-trx-statcard__sub { color: #9aa4b8; }
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-statcard,
+    .admin-trx-statcard__meter-fill { transition: none; }
+}
+
+[data-coreui-theme="dark"] .admin-trx-statcard.is-active {
+    background: rgba(var(--color-primary-rgb), 0.18);
+    border-color: var(--color-primary);
+}
+
+[data-coreui-theme="dark"] .admin-trx-statcard__meter { background: rgba(255, 255, 255, 0.1); }
+
+[data-coreui-theme="dark"] .admin-trx-statcard__value.is-zero { color: #6b7688; }
+
+[data-coreui-theme="dark"] .admin-trx-statcard__value--warning { color: #fcd34d; }
+[data-coreui-theme="dark"] .admin-trx-statcard__value--danger  { color: #fca5a5; }
+
+[data-coreui-theme="dark"] .admin-trx-type__caret { color: #9aa4b8; }
+
+/* The active-card rules above are three classes deep, so they outrank the
+   single-class dark overrides and painted dark ink on a dark card — the
+   selected value measured 1.26:1. Restate them at matching weight.
+   `#6b7688` was also too dark for the zero on this ground (3.46:1). */
+[data-coreui-theme="dark"] .admin-trx-statcard.is-active .admin-trx-statcard__value { color: var(--color-white); }
+
+[data-coreui-theme="dark"] .admin-trx-statcard.is-active .admin-trx-statcard__head,
+[data-coreui-theme="dark"] .admin-trx-statcard.is-active .admin-trx-statcard__sub { color: #c3cad8; }
+
+[data-coreui-theme="dark"] .admin-trx-statcard__value.is-zero,
+[data-coreui-theme="dark"] .admin-trx-statcard.is-active .admin-trx-statcard__value.is-zero { color: #98a2b3; }
+
+/* `--color-primary-deep` is ink meant for a light wash; on a dark ground the
+   same pairing measured 1.61:1 on the selected segment. Everything tinted with
+   the brand needs the light end of the ramp in dark instead. */
+[data-coreui-theme="dark"] .admin-trx-initials {
+
+    background: rgba(var(--color-primary-rgb), 0.22);
+    color: #c7d2fe;
+}
+
+/* ── Filter apply action ────────────────────────────────────────────────── */
+.admin-users-page .admin-trx-apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding-inline: 16px;
+    border: 1px solid var(--color-primary);
+    border-radius: 9px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.admin-users-page .admin-trx-apply:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.admin-users-page .admin-trx-apply:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+    .admin-users-page .admin-trx-apply {
+        height: 44px;
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+/* ── Transaction detail modal ─────────────────────────────────────────────
+   Rendered at page level, outside `.admin-users-page`, because it is opened
+   from the list and from its own deep-link page and must look identical in
+   both. Every inset is logical: this panel is read right-to-left in Arabic,
+   and a `left` here puts the close button on the wrong corner. */
+body.admin-trx-detail-open { overflow: hidden; }
+
+.admin-trx-detail {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.35);
+
+    /* Opening. The panel used to arrive on `hidden` alone — sampled at opacity
+       1 on the first frame, no transform, no animation — so it replaced the
+       page between two frames. Now the scrim fades and the dialog rises into
+       it.
+
+       Transitions rather than a keyframe animation, because closing has to run
+       the same motion backwards: `transaction-detail.js` drops `.is-open` and
+       waits for the dialog's transition before setting `hidden`. An animation
+       would have to be redeclared in reverse and restarted by hand. */
+    opacity: 0;
+    transition: opacity 0.2s var(--shell-ease);
+}
+
+.admin-trx-detail.is-open { opacity: 1; }
+
+.admin-trx-detail[hidden] { display: none; }
+
+.admin-trx-detail__scrim { position: absolute; inset: 0; }
+
+.admin-trx-detail__dialog {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(960px, 100%);
+    max-height: 100%;
+    overflow: hidden;
+    background: var(--color-card);
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+
+    /* `translate` and `scale` longhands, as the drawer keyframes above use:
+       they compose with anything that writes `transform` rather than
+       overwriting it mid-flight. */
+    translate: 0 14px;
+    scale: 0.985;
+    transition:
+        translate 0.24s var(--shell-ease),
+        scale 0.24s var(--shell-ease);
+}
+
+.admin-trx-detail.is-open .admin-trx-detail__dialog {
+    translate: 0 0;
+    scale: 1;
+}
+
+/* Someone who asked for less motion still needs the panel to open and — more
+   to the point — to close. The script checks the same query and stops waiting
+   for a transition that will never fire. */
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-detail,
+    .admin-trx-detail__dialog {
+        transition: none;
+    }
+}
+
+/* ── while the transaction is being fetched ───────────────────────────────
+   `open()` reveals the panel and *then* fetches, and nothing cleared the last
+   transaction on the way in. Opening a second row therefore showed the first
+   row's amount, status and id until the response landed — a stale figure on a
+   financial screen, not merely an unpolished one.
+
+   The values are covered rather than blanked: `paint()` owns every `[data-d]`
+   slot, and a second writer clearing them is how the two end up disagreeing. */
+.admin-trx-detail__loading {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    overflow: hidden;
+    background: var(--color-card);
+}
+
+.admin-trx-detail.is-loading .admin-trx-detail__loading { display: flex; }
+
+/* The skeleton covers the body, never the header: Close has to stay reachable
+   while the request is in flight, and covering it would trap a keyboard in a
+   dialog it cannot leave. The header's own stale values are dealt with just
+   below. */
+.admin-trx-detail__body { position: relative; }
+
+/* Title, id, timestamps and the type tile all still read from the last
+   transaction until `paint()` runs, so they are covered too — the text is made
+   transparent and the element wears the same skeleton fill, which keeps the
+   header's height stable instead of collapsing it as the panel opens. */
+.admin-trx-detail.is-loading .admin-trx-detail__title,
+.admin-trx-detail.is-loading .admin-trx-detail__sub > code,
+.admin-trx-detail.is-loading .admin-trx-detail__sub > span,
+.admin-trx-detail.is-loading [data-d="tile"] {
+    color: transparent;
+    background: var(--color-surface-soft);
+    border-radius: 7px;
+}
+
+.admin-trx-detail.is-loading .admin-trx-detail__title { min-width: 9rem; }
+
+/* A status pill carries its meaning in its colour, so transparent text is not
+   enough — the previous transaction's green would still be showing. */
+.admin-trx-detail.is-loading [data-d="status"],
+.admin-trx-detail.is-loading [data-d="refund_pill"],
+.admin-trx-detail.is-loading .admin-trx-detail__receipt,
+.admin-trx-detail.is-loading [data-trx-copy] {
+    visibility: hidden;
+}
+
+.admin-trx-detail__loading-bar {
+    height: 14px;
+    border-radius: 7px;
+    background: var(--color-surface-soft);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-trx-detail__loading-bar--title { height: 22px; width: 40%; }
+.admin-trx-detail__loading-bar--sub { width: 62%; }
+.admin-trx-detail__loading-bar--amount { height: 34px; width: 30%; margin-block-start: 6px; }
+
+.admin-trx-detail__loading-cards {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin-block-start: 6px;
+}
+
+.admin-trx-detail__loading-card {
+    height: 150px;
+    border-radius: 12px;
+    background: var(--color-surface-soft);
+    position: relative;
+    overflow: hidden;
+}
+
+/* One sweep travels across every bar at once, so the panel reads as a single
+   surface loading rather than a dozen independent spinners. `inset-inline` so
+   the sweep runs with the text in Arabic, not against it. */
+.admin-trx-detail__loading-bar::after,
+.admin-trx-detail__loading-card::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: -150%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(var(--color-white-rgb), 0.55),
+        transparent
+    );
+    animation: adminTrxShimmer 1.4s linear infinite;
+}
+
+@keyframes adminTrxShimmer {
+    from { translate: -60% 0; }
+    to   { translate: 60% 0; }
+}
+
+[data-coreui-theme="dark"] .admin-trx-detail__loading-bar::after,
+[data-coreui-theme="dark"] .admin-trx-detail__loading-card::after {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(var(--color-white-rgb), 0.08),
+        transparent
+    );
+}
+
+/* A shimmer is decoration; a still skeleton still says "not ready yet". */
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-detail__loading-bar::after,
+    .admin-trx-detail__loading-card::after {
+        animation: none;
+    }
+}
+
+.admin-trx-detail__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 16px 20px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-detail__headline { min-width: 0; flex: 1 1 auto; }
+
+.admin-trx-detail__titles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-trx-detail__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+}
+
+.admin-trx-detail__sub {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-block-start: 3px;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+}
+
+/* The relative stamp is the one piece of this line that is actually
+   translated — "2 hours ago" becomes "منذ ساعتين" — so it takes direction
+   from its own first strong character rather than being forced either way,
+   while the timestamp beside it is pinned LTR. */
+.admin-trx-detail__rel {
+    color: var(--color-text-faint);
+    unicode-bidi: plaintext;
+}
+
+.admin-trx-detail__receipt {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    flex-shrink: 0;
+}
+
+/* The three-way switch only exists where the two columns cannot both fit. */
+.admin-trx-detail__seg { display: none; }
+
+.admin-trx-detail__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    min-height: 0;
+    overflow: auto;
+}
+
+.admin-trx-detail__main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding: 20px 22px 24px;
+    border-inline-end: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-detail__hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-trx-detail__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__amount {
+    margin-block-start: 4px;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-trx-detail__desc {
+    margin-block-start: 6px;
+    font-size: 13px;
+    color: var(--color-text-soft);
+}
+
+.admin-trx-detail__fx {
+    flex: 0 1 auto;
+    display: grid;
+    gap: 4px;
+    padding: 10px 14px;
+    font-size: 12px;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 10px;
+}
+
+.admin-trx-detail__fx > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-trx-detail__fx span { color: var(--color-text-muted); }
+
+.admin-trx-detail__fx-rate {
+    padding-block-start: 4px;
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-detail__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.admin-trx-detail__card {
+    padding: 14px 16px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 12px;
+}
+
+.admin-trx-detail__card-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__card-meta {
+    font-size: 11.5px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.admin-trx-detail__line {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 7px;
+    font-size: 13px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-detail__line:last-child { border-block-end: 0; }
+
+.admin-trx-detail__line > span { color: var(--color-text-muted); }
+.admin-trx-detail__line strong { font-variant-numeric: tabular-nums; }
+
+.admin-trx-detail__line.is-strong {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    background: var(--color-surface-alt);
+}
+
+.admin-trx-detail__line.is-strong > span { color: var(--color-text); font-weight: 600; }
+
+.admin-trx-detail__line-note {
+    display: block;
+    margin-block-start: 1px;
+    font-size: 11.5px;
+    color: var(--color-text-faint);
+}
+
+.admin-trx-detail__note {
+    margin: 8px 0 0;
+    font-size: 11.5px;
+    color: var(--color-text-faint);
+}
+
+.admin-trx-detail__timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-trx-detail__timeline-item {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    padding-block-end: 14px;
+}
+
+.admin-trx-detail__timeline-item:last-child { padding-block-end: 0; }
+
+.admin-trx-detail__timeline-dot {
+    position: relative;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    margin-block-start: 4px;
+    border-radius: 50%;
+    background: var(--color-success-strong);
+}
+
+.admin-trx-detail__timeline-dot.is-first   { background: var(--color-primary); }
+.admin-trx-detail__timeline-dot.is-current { background: var(--color-warning); }
+
+.admin-trx-detail__timeline-dot.is-pending {
+    background: var(--color-card);
+    box-shadow: inset 0 0 0 2px var(--color-border-strong);
+}
+
+/* The connector runs from each dot to the next, so the last one has none. */
+.admin-trx-detail__timeline-item:not(:last-child) .admin-trx-detail__timeline-dot::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 4px;
+    inset-block-start: 14px;
+    width: 2px;
+    height: calc(100% + 12px);
+    background: var(--color-border);
+}
+
+.admin-trx-detail__timeline-body { min-width: 0; flex: 1 1 auto; }
+
+.admin-trx-detail__timeline-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.admin-trx-detail__timeline-title { font-size: 13px; font-weight: 600; }
+
+.admin-trx-detail__timeline-at {
+    flex-shrink: 0;
+    font-size: 11.5px;
+    color: var(--color-text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-trx-detail__timeline-sub {
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__progress {
+    height: 6px;
+    margin-block-end: 10px;
+    overflow: hidden;
+    background: var(--color-surface-alt);
+    border-radius: 999px;
+}
+
+.admin-trx-detail__progress > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--color-warning);
+}
+
+.admin-trx-detail__refund {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 8px;
+    font-size: 13px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.admin-trx-detail__refund:last-child { border-block-end: 0; }
+.admin-trx-detail__refund-body { display: grid; min-width: 0; }
+
+.admin-trx-detail__refund-meta {
+    font-size: 11.5px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 7px 16px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.admin-trx-detail__dl dt { color: var(--color-text-muted); font-weight: 400; }
+.admin-trx-detail__dl dd { margin: 0; overflow-wrap: anywhere; }
+
+.admin-trx-detail__mono {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 12px;
+}
+
+.admin-trx-detail__payload-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-block-start: 12px;
+    padding: 7px 11px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: var(--color-surface-veil);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.admin-trx-detail__payload-toggle svg { transition: transform 0.15s ease; }
+.admin-trx-detail__payload-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+
+/* The disclosure chevron points along the text, so it mirrors; the rotation
+   then has to compose with the mirror rather than replace it. */
+[dir="rtl"] .admin-trx-detail__payload-toggle svg { transform: scaleX(-1); }
+[dir="rtl"] .admin-trx-detail__payload-toggle[aria-expanded="true"] svg { transform: scaleX(-1) rotate(-90deg); }
+
+/*
+ * The panel earns its place: it is the only view of the stored record, and
+ * when a provider disputes a charge it is what gets pasted into the ticket.
+ * Which is the whole reason for the button — selecting JSON by hand inside a
+ * box that scrolls is the part nobody manages on the first try.
+ */
+.admin-trx-detail__payload-wrap {
+    position: relative;
+    margin-block-start: 10px;
+}
+
+.admin-trx-detail__payload {
+    max-height: 260px;
+    padding: 12px 14px;
+    overflow: auto;
+    font-size: 11.5px;
+    color: #e2e8f0;
+    background: #0f172a;
+    border-radius: 10px;
+}
+
+/*
+ * Over the panel rather than beside it, so the JSON keeps the full width. It
+ * sits on the scroll container, not inside it, or it would scroll away from
+ * the first line the moment the payload is long enough to need it.
+ */
+/*
+ * Two classes, because `[data-flash]` sets `position: relative` and sits later
+ * in this sheet at the same weight as a single class. While the confirmation
+ * showed, the button lost its corner and dropped into the flow — measured at
+ * 533px to the left, which is the "broken while copying" this was reported as.
+ */
+.admin-trx-detail__payload-wrap .admin-trx-detail__payload-copy {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    z-index: 1;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #cbd5e1;
+    background: rgba(226, 232, 240, 0.12);
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-trx-detail__payload-wrap .admin-trx-detail__payload-copy:hover {
+    color: #f8fafc;
+    background: rgba(226, 232, 240, 0.22);
+}
+
+.admin-trx-detail__payload-wrap .admin-trx-detail__payload-copy:focus-visible {
+    outline: 2px solid #94a3b8;
+    outline-offset: 2px;
+}
+
+/*
+ * No pill on this one. It sits in the panel's top corner, with the disclosure
+ * row above and the JSON's first line below, so a pill covers one or the
+ * other whichever way it points. The button says "Copied" in its own words
+ * instead — `[data-flash-label]` in the markup, handled by `flash()`.
+ */
+.admin-trx-detail__payload-wrap .admin-trx-detail__payload-copy[data-flash]::after {
+    content: none;
+}
+
+/* It holds its width while the word changes, so the corner does not twitch. */
+.admin-trx-detail__payload-wrap .admin-trx-detail__payload-copy {
+    min-inline-size: 62px;
+    text-align: center;
+}
+
+/*
+ * What stands in for the payload when there is none: a sentence, at the size
+ * and weight of the other "nothing here" lines in this dialogue. Not the dark
+ * panel — an empty code block reads as a fault rather than as an absence.
+ */
+.admin-trx-detail__payload-empty {
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__rail {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    background: var(--color-surface-veil);
+}
+
+.admin-trx-detail__customer { display: flex; gap: 10px; }
+
+.admin-trx-detail__customer-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.admin-trx-detail__kyc { display: inline-flex; color: var(--color-primary); }
+
+.admin-trx-detail__customer-sub {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+}
+
+.admin-trx-detail__action {
+    padding: 12px 14px;
+    background: var(--color-card);
+    border: 1px solid var(--color-warning);
+    border-radius: 12px;
+}
+
+.admin-trx-detail__action-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--color-warning-deep);
+}
+
+.admin-trx-detail__action-note {
+    margin: 7px 0 10px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__label {
+    display: block;
+    margin-block-end: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-trx-detail__hint {
+    margin-block-start: 4px;
+    font-size: 11px;
+    color: var(--color-text-faint);
+}
+
+.admin-trx-detail__action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-block-start: 10px;
+}
+
+.admin-trx-detail__approve,
+.admin-trx-detail__reject {
+    flex: 1 1 0;
+    height: 36px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.admin-trx-detail__approve {
+    color: var(--color-white);
+    background: #059669;
+    border: 0;
+}
+
+.admin-trx-detail__approve:hover { background: #047857; }
+
+.admin-trx-detail__reject {
+    color: var(--color-danger);
+    background: transparent;
+    border: 1px solid var(--color-danger);
+}
+
+.admin-trx-detail__reject:hover { background: var(--color-danger-soft); }
+
+.admin-trx-detail__approve[disabled],
+.admin-trx-detail__reject[disabled] { opacity: 0.6; cursor: progress; }
+
+.admin-trx-detail__refund-open {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: start;
+    background: var(--color-card);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.admin-trx-detail__refund-open:hover { border-color: var(--color-warning); }
+.admin-trx-detail__refund-copy { display: grid; min-width: 0; font-size: 12.5px; }
+.admin-trx-detail__refund-copy span { color: var(--color-text-muted); }
+
+.admin-trx-detail__remarks p {
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-detail__rail-foot {
+    display: grid;
+    gap: 8px;
+    margin-block-start: auto;
+}
+
+.admin-trx-detail__rail-foot .btn { height: 38px; }
+
+.admin-trx-detail__error {
+    margin: 0;
+    padding: 10px 20px;
+    font-size: 12.5px;
+    color: var(--color-danger);
+    background: var(--color-danger-soft);
+}
+
+/* The copy buttons answer in place rather than through a floating toast, so
+   the confirmation cannot be lost behind the dialog that triggered it. */
+[data-flash] { position: relative; }
+
+[data-flash]::after {
+    content: attr(data-flash);
+    position: absolute;
+    inset-block-end: calc(100% + 6px);
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    padding: 3px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--color-white);
+    background: var(--color-text);
+    border-radius: 6px;
+}
+
+/* ── Refund confirmation ──────────────────────────────────────────────── */
+.admin-trx-refund {
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+
+    /* The confirm step opens over a panel that now arrives with motion of its
+       own; left snapping, it would read as a different piece of software.
+       Shorter than the detail panel's, because this one answers a click that
+       has already happened rather than introducing a screen. */
+    opacity: 0;
+    transition: opacity 0.16s var(--shell-ease);
+}
+
+.admin-trx-refund.is-open { opacity: 1; }
+
+.admin-trx-refund[hidden] { display: none; }
+.admin-trx-refund__scrim { position: absolute; inset: 0; }
+
+.admin-trx-refund__panel {
+    position: relative;
+    width: min(420px, 100%);
+    padding: 20px;
+    background: var(--color-card);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+    translate: 0 10px;
+    scale: 0.985;
+    transition:
+        translate 0.18s var(--shell-ease),
+        scale 0.18s var(--shell-ease);
+}
+
+.admin-trx-refund.is-open .admin-trx-refund__panel {
+    translate: 0 0;
+    scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-refund,
+    .admin-trx-refund__panel {
+        transition: none;
+    }
+}
+
+.admin-trx-refund__title { margin: 0; font-size: 16px; font-weight: 700 !important; }
+
+.admin-trx-refund__sub {
+    margin: 4px 0 14px;
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+}
+
+.admin-trx-refund__panel .form-control { margin-block-end: 12px; }
+
+.admin-trx-refund__error {
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    color: var(--color-danger);
+}
+
+.admin-trx-refund__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.admin-trx-show__fallback {
+    padding: 20px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border-soft);
+    border-radius: 12px;
+}
+
+/* The dialog on this page is the page, so it does not float over anything. */
+.admin-trx-detail--standalone { position: static; padding: 0; background: none; }
+.admin-trx-detail--standalone .admin-trx-detail__scrim { display: none; }
+
+.admin-trx-detail--standalone .admin-trx-detail__dialog {
+    width: 100%;
+    max-height: none;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-soft);
+}
+
+/* ── Mobile sheet ─────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .admin-trx-detail {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .admin-trx-detail__dialog {
+        width: 100%;
+        height: calc(100% - 52px);
+        max-height: none;
+        border-start-start-radius: 24px;
+        border-start-end-radius: 24px;
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    /* The grab handle is decoration; the close button is the real control. */
+    .admin-trx-detail__dialog::before {
+        content: "";
+        display: block;
+        width: 38px;
+        height: 4px;
+        margin: 8px auto 0;
+        background: var(--color-border-strong);
+        border-radius: 999px;
+    }
+
+    .admin-trx-detail__head { padding: 12px 16px; }
+    .admin-trx-detail__receipt { display: none; }
+
+    .admin-trx-detail__seg {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+        margin: 0 16px 4px;
+        padding: 3px;
+        background: var(--color-surface-alt);
+        border-radius: 10px;
+    }
+
+    .admin-trx-detail__seg-btn {
+        flex: 1 1 0;
+        height: 36px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        background: transparent;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .admin-trx-detail__seg-btn.is-active {
+        color: var(--color-text);
+        background: var(--color-card);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .admin-trx-detail__body { grid-template-columns: minmax(0, 1fr); }
+
+    .admin-trx-detail__main {
+        padding: 16px;
+        border-inline-end: 0;
+    }
+
+    .admin-trx-detail__rail { padding: 0 16px 24px; background: none; }
+    .admin-trx-detail__grid { grid-template-columns: minmax(0, 1fr); }
+
+    /* One pane at a time. A section with no `data-pane` — the action card and
+       the receipt buttons — stays on screen whichever tab is showing, because
+       an operator must never have to hunt for Approve. */
+    .admin-trx-detail[data-active-pane="details"] [data-pane]:not([data-pane="details"]),
+    .admin-trx-detail[data-active-pane="timeline"] [data-pane]:not([data-pane="timeline"]),
+    .admin-trx-detail[data-active-pane="data"] [data-pane]:not([data-pane="data"]) {
+        display: none;
+    }
+
+    .admin-trx-detail__approve,
+    .admin-trx-detail__reject,
+    .admin-trx-detail__rail-foot .btn { height: 50px; }
+
+    .admin-trx-detail__refund-open { min-height: 56px; }
+    .admin-trx-detail__amount { font-size: 30px; }
+}
+
+/* ── Dark theme ───────────────────────────────────────────────────────── */
+/* The skeleton joins the dialog here rather than resolving `--color-card`,
+   because that token does not flip with the theme — it is `#ffffff` in dark
+   too, and this whole block exists to paint over it. A skeleton that stood on
+   the token would have covered a dark panel with a white sheet. */
+[data-coreui-theme="dark"] .admin-trx-detail__dialog,
+[data-coreui-theme="dark"] .admin-trx-detail__loading,
+[data-coreui-theme="dark"] .admin-trx-detail__card,
+[data-coreui-theme="dark"] .admin-trx-detail__action,
+[data-coreui-theme="dark"] .admin-trx-detail__refund-open,
+[data-coreui-theme="dark"] .admin-trx-refund__panel,
+[data-coreui-theme="dark"] .admin-trx-show__fallback {
+    background: var(--color-palette-202634);
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* The bars and cards sit on that surface, so they lift off it rather than
+   using the light-theme fill, which would read as white blocks. */
+[data-coreui-theme="dark"] .admin-trx-detail__loading-bar,
+[data-coreui-theme="dark"] .admin-trx-detail__loading-card,
+[data-coreui-theme="dark"] .admin-trx-detail.is-loading .admin-trx-detail__title,
+[data-coreui-theme="dark"] .admin-trx-detail.is-loading .admin-trx-detail__sub > code,
+[data-coreui-theme="dark"] .admin-trx-detail.is-loading .admin-trx-detail__sub > span,
+[data-coreui-theme="dark"] .admin-trx-detail.is-loading [data-d="tile"] {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+[data-coreui-theme="dark"] .admin-trx-detail__rail { background: var(--color-palette-1c2230); }
+
+[data-coreui-theme="dark"] .admin-trx-detail__head,
+[data-coreui-theme="dark"] .admin-trx-detail__main,
+[data-coreui-theme="dark"] .admin-trx-detail__line,
+[data-coreui-theme="dark"] .admin-trx-detail__refund,
+[data-coreui-theme="dark"] .admin-trx-detail__fx { border-color: rgba(255, 255, 255, 0.09); }
+
+[data-coreui-theme="dark"] .admin-trx-detail__eyebrow,
+[data-coreui-theme="dark"] .admin-trx-detail__sub,
+[data-coreui-theme="dark"] .admin-trx-detail__line > span,
+[data-coreui-theme="dark"] .admin-trx-detail__dl dt,
+[data-coreui-theme="dark"] .admin-trx-detail__timeline-sub,
+[data-coreui-theme="dark"] .admin-trx-detail__customer-sub { color: #9aa4b8; }
+
+[data-coreui-theme="dark"] .admin-trx-detail__fx,
+[data-coreui-theme="dark"] .admin-trx-detail__line.is-strong,
+[data-coreui-theme="dark"] .admin-trx-detail__progress,
+[data-coreui-theme="dark"] .admin-trx-detail__seg { background: rgba(255, 255, 255, 0.05); }
+
+[data-coreui-theme="dark"] .admin-trx-detail__payload-toggle { background: rgba(255, 255, 255, 0.06); }
+
+[data-coreui-theme="dark"] .admin-trx-detail__timeline-dot.is-pending {
+    background: var(--color-palette-202634);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
+[data-coreui-theme="dark"] .admin-trx-detail__timeline-item:not(:last-child) .admin-trx-detail__timeline-dot::after {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-trx-detail__payload-toggle svg { transition: none; }
+}
+
+/* A money figure is not a sentence and must never be reordered.
+   In Arabic the hero rendered `+$120.00 USD` as `USD 120.00+` — bidi moved the
+   sign and the code to the other end of the run. Pinning direction on the
+   numeric elements fixes it for both the slots Blade renders and the rows
+   `transaction-detail.js` builds, which an attribute on the markup alone would
+   not: a future branch in the script would simply forget it.
+   `text-align` stays logical, so the column still hugs the reading edge. */
+.admin-trx-detail__amount,
+.admin-trx-detail__line strong,
+.admin-trx-detail__fx strong,
+.admin-trx-detail__fx code,
+.admin-trx-detail__refund strong,
+.admin-trx-detail__timeline-at,
+.admin-trx-detail__mono,
+.admin-trx-detail__sub code,
+.admin-trx-detail__sub [data-d="created_human"],
+.admin-trx-detail__customer-sub,
+.admin-trx-detail__card-meta {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.admin-trx-detail__line strong,
+.admin-trx-detail__refund strong { text-align: end; }
+
+/* `--color-text` has no dark definition — the palette is light-only, and the
+   panels that work in dark mode each name their own text colour (see
+   background-tasks.css `--bt-text: #e8eaf0`). Without this the modal's title,
+   its amount and the net-total row all painted #111827 on a #202634 card:
+   present in the DOM, unreadable on screen. Measured, not assumed. */
+[data-coreui-theme="dark"] .admin-trx-detail__title,
+[data-coreui-theme="dark"] .admin-trx-detail__amount,
+[data-coreui-theme="dark"] .admin-trx-detail__timeline-title,
+[data-coreui-theme="dark"] .admin-trx-detail__customer-name,
+[data-coreui-theme="dark"] .admin-trx-detail__customer-name a,
+[data-coreui-theme="dark"] .admin-trx-detail__label,
+[data-coreui-theme="dark"] .admin-trx-detail__dl dd,
+[data-coreui-theme="dark"] .admin-trx-detail__line strong,
+[data-coreui-theme="dark"] .admin-trx-detail__line.is-strong > span,
+[data-coreui-theme="dark"] .admin-trx-detail__refund code,
+[data-coreui-theme="dark"] .admin-trx-detail__seg-btn.is-active,
+[data-coreui-theme="dark"] .admin-trx-refund__title {
+    color: #e8eaf0;
+}
+
+[data-coreui-theme="dark"] .admin-trx-detail__desc,
+[data-coreui-theme="dark"] .admin-trx-detail__note,
+[data-coreui-theme="dark"] .admin-trx-detail__hint,
+[data-coreui-theme="dark"] .admin-trx-detail__action-note,
+[data-coreui-theme="dark"] .admin-trx-detail__refund-meta,
+[data-coreui-theme="dark"] .admin-trx-detail__remarks p,
+[data-coreui-theme="dark"] .admin-trx-refund__sub {
+    color: #9aa4b8;
+}
+
+/* The copy confirmation is a dark pill on a light page; on a dark one it has
+   to invert or it is a black bubble on a black panel. */
+[data-coreui-theme="dark"] [data-flash]::after {
+    color: #111827;
+    background: #e8eaf0;
+}
+
+/* The primary action gets its glyph on the same baseline as its label; a
+   `w-100` button centres a bare text node, and an icon dropped beside it
+   without this sits a pixel low and reads as an afterthought. */
+.admin-trx-detail__download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Touch targets in the modal header.
+   Measured at 375px: copy was 26x26 and close 32x32, both under the 44px
+   minimum — fine with a mouse, a coin-toss with a thumb. Scoped to the modal
+   so the shared `.admin-trx-iconbtn` keeps its size everywhere else. */
+@media (max-width: 575.98px) {
+    .admin-trx-detail__head .admin-trx-iconbtn--plain {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Copy sits inline with 12.5px text, so a 44px box would shove the line
+       apart. It keeps its drawn size and grows only the area that responds.
+       `::before`, because `::after` is already the copy confirmation. */
+    .admin-trx-detail__sub .admin-trx-iconbtn {
+        position: relative;
+    }
+
+    /* A symmetric outset rather than a centred box: 26 + 9 + 9 = 44 on both
+       axes, with no physical side to get the wrong way round in Arabic. */
+    .admin-trx-detail__sub .admin-trx-iconbtn::before {
+        content: "";
+        position: absolute;
+        inset: -9px;
+    }
+}
+
+/* The dashboard's status switch filters by setting `hidden` on a row.
+   `.admin-trx-mrow` is `display: flex`, and an author declaration outranks the
+   user-agent `[hidden] { display: none }` — so the attribute went on and the
+   row stayed on screen. Same guard the bulk bar and the dialogs already carry. */
+.admin-trx-list .admin-trx-mrow[hidden],
+.admin-trx-list tbody tr[hidden] { display: none; }
+
+/* The compact table, for a panel rather than a page.
+   `--wide` floors the ledger at 76rem so seven columns keep their designed
+   widths and scroll inside the card. A dashboard column is narrower than that,
+   so the compact variant takes a floor that fits the space it is given —
+   otherwise it scrolls sideways no matter how much is stripped from a row. */
+.admin-trx-list .admin-trx-table--compact { min-width: 34rem; }
+
+/* With the chevron gone the row itself is the focus target, so it has to show
+   where the keyboard is. `outline-offset` is negative because an outline drawn
+   outside a table row is clipped by the scroll container. */
+.admin-trx-list .admin-trx-row[tabindex]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+/* The rail's customer block is a flex child holding a name, a badge and an
+   email. A flex item will not shrink below its content unless told to, so a
+   long address pushed the KYC badge out of the rail. The markup carried
+   `min-w-0`, which this panel defines nowhere — it read as correct and did
+   nothing. `MinWidthZeroUtilityTest` guards this pair. */
+.admin-trx-detail__customer-copy {
+    min-width: 0;
+}
+
+/*
+ * Under 360px the amount stops sharing a line with the name.
+ *
+ * The row is icon | name+type | amount+status, and the amount column refuses
+ * to shrink — correctly, because a ledger that prints "1,250,0…" is worse than
+ * one that prints a short name. But the two are then competing for one line,
+ * and on a 320px screen a seven-figure amount left the name 69px: enough for
+ * "Maxim…" and nothing else. That is not an exotic case — in IDR, VND or NGN
+ * an everyday transfer is seven or eight digits.
+ *
+ * So below the 360px baseline the amount takes a line of its own, where
+ * nothing competes with it, and the status pairs with the type — which was
+ * already free to ellipsise and is the one thing here that can afford to.
+ * Money never shrinks, never wraps and never truncates.
+ *
+ * Measured at 320px: the name goes from 69px to 170px, and a 15-character
+ * IDR amount that used to break across two lines now sits whole on one.
+ * 360px and up keep the two-line row unchanged — the worst case there is
+ * 115px, which still names the account.
+ *
+ * `display: contents` on the two wrappers is what lets one grid place all four
+ * leaves; they carry no box of their own, only grouping. The `[hidden]` guard
+ * further up outranks this by a class, so filtered rows still disappear.
+ */
+@media (max-width: 359.98px) {
+    .admin-trx-list .admin-trx-mrow {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "tile title  title"
+            "tile meta   status"
+            "tile amount amount";
+        align-items: center;
+        column-gap: 12px;
+        row-gap: 2px;
+    }
+
+    .admin-trx-list .admin-trx-mrow__body,
+    .admin-trx-list .admin-trx-mrow__side {
+        display: contents;
+    }
+
+    .admin-trx-list .admin-trx-mrow .admin-trx-tile { grid-area: tile; }
+    .admin-trx-list .admin-trx-mrow__title { grid-area: title; }
+
+    .admin-trx-list .admin-trx-mrow__meta {
+        grid-area: meta;
+        margin-top: 0;
+    }
+
+    .admin-trx-list .admin-trx-mrow__amount {
+        grid-area: amount;
+        text-align: start;
+        white-space: nowrap;
+    }
+
+    .admin-trx-list .admin-trx-mrow__status {
+        grid-area: status;
+        margin-top: 0;
+        text-align: end;
+    }
+}

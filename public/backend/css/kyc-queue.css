@@ -1,0 +1,815 @@
+/*
+ * KYC pending queue — admin panel
+ *
+ * A review queue is a triage surface, not a list: the reader is deciding
+ * which of ten identical-looking rows to open first. Everything here exists
+ * to answer that — the chip counts, the SLA bar, the provider verdict and
+ * the duplicate-document strip.
+ *
+ * Declares no scrollbar and no checkbox rules: both are canon, declared once
+ * in custom.css. Row selection opts into the canon with `.admin-check`.
+ * Logical properties throughout, so the queue mirrors in dir=rtl.
+ */
+
+/* ── Triage bar ─────────────────────────────────────────────────────────── */
+
+/*
+ * One row at any width: chips, search, date. The chips keep their natural
+ * size and scroll sideways when the viewport cannot hold them; the search
+ * takes whatever is left and drops to its own line before anything is
+ * squeezed to unreadable.
+ */
+.kq-triage {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-block-end: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.kq-chips {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    max-inline-size: 100%;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--color-surface-soft);
+    overflow-x: auto;
+}
+
+.kq-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding-inline: 11px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-subtle);
+    font-family: inherit;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.kq-chip:hover {
+    background: rgba(var(--color-white-rgb), 0.7);
+    color: var(--color-text);
+}
+
+.kq-chip.is-active {
+    background: var(--color-card);
+    color: var(--color-text);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.kq-chip__dot {
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.kq-chip__count {
+    color: var(--color-text-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.kq-chip.is-active .kq-chip__count {
+    color: inherit;
+}
+
+.kq-chip--danger.is-active {
+    color: var(--color-danger-deep);
+}
+
+.kq-chip--warning.is-active {
+    color: var(--color-warning-deep);
+}
+
+.kq-chip--success.is-active {
+    color: var(--color-success-deep);
+}
+
+/* ── Search, date and reset ─────────────────────────────────────────────── */
+
+.kq-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1 1 260px;
+    min-inline-size: 0;
+    margin-block-end: 0;
+}
+
+.kq-search {
+    position: relative;
+    display: block;
+    flex: 1 1 220px;
+    min-inline-size: 0;
+    margin-block-end: 0;
+}
+
+.kq-search__icon {
+    position: absolute;
+    inset-inline-start: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-faint);
+    pointer-events: none;
+}
+
+.kq-search__input {
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: 36px;
+    padding-inline: 33px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text);
+    font-size: var(--font-base);
+}
+
+.kq-search__input:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -1px;
+}
+
+/*
+ * The date control. Its rules used to live in kyc-review-modal.css, which the
+ * queue stopped loading when the review modal was replaced by its own page —
+ * so this sat unstyled on the one screen that uses it most.
+ */
+.kq-daterange {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    block-size: 36px;
+    padding-inline: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.kq-daterange > i {
+    color: var(--color-text-faint);
+}
+
+.kq-daterange__caret {
+    margin-inline-start: 2px;
+}
+
+.kq-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    block-size: 36px;
+    padding-inline: 10px;
+    border-radius: var(--radius-lg);
+    color: var(--color-text-subtle);
+    font-size: var(--font-sm);
+    text-decoration: none;
+}
+
+.kq-reset:hover {
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+}
+
+/* ── Provider signal ────────────────────────────────────────────────────── */
+
+.kq-signal__head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.kq-signal__engine {
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--color-text-soft);
+}
+
+.kq-signal__detail {
+    display: block;
+    margin-block-start: 6px;
+    font-size: var(--font-xs);
+    line-height: 1.45;
+    color: var(--color-text-subtle);
+}
+
+.kq-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding-inline: 8px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-2xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.kq-pill--success {
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+}
+
+.kq-pill--warning {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.kq-pill--danger {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.kq-pill--info {
+    background: var(--color-info-soft);
+    color: var(--color-info-deep);
+}
+
+.kq-pill--neutral {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/* ── Waiting / SLA ──────────────────────────────────────────────────────── */
+
+.kq-wait__value {
+    display: block;
+    font-size: var(--font-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.kq-wait__value.is-warning {
+    color: var(--color-warning-deep);
+}
+
+.kq-wait__value.is-danger {
+    color: var(--color-danger-deep);
+}
+
+.kq-wait__at {
+    display: block;
+    margin-block-start: 1px;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+/*
+ * The bar fills its column instead of naming a width.
+ *
+ * 118px was measured against a wider Waiting track. Once the column budget
+ * was respent to make room for the row menu, that track came down to ~144px
+ * — 116px inside its padding — so a fixed 118px bar overflowed the cell by
+ * two pixels and the panel clipped it. A percentage cannot go stale the
+ * next time the budget moves.
+ */
+.kq-wait__bar {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 118px;
+    block-size: 4px;
+    margin-block-start: 7px;
+    border-radius: 2px;
+    background: var(--color-surface-soft);
+    overflow: hidden;
+}
+
+.kq-wait__fill {
+    display: block;
+    block-size: 100%;
+    border-radius: 2px;
+    background: var(--color-success-strong);
+}
+
+.kq-wait__fill.is-warning {
+    background: var(--color-warning-strong);
+}
+
+.kq-wait__fill.is-danger {
+    background: var(--color-danger-strong);
+}
+
+/* ── Duplicate document ─────────────────────────────────────────────────── */
+
+/*
+ * The row keeps its tint and the finding sits directly beneath it, because
+ * the two belong to one another: a reviewer who reads the strip without
+ * seeing whose row it is has learned nothing actionable.
+ */
+.kq-row.is-flagged > td {
+    background: var(--color-danger-soft);
+}
+
+.kq-flag-row > td {
+    padding-block: 0 12px;
+    background: var(--color-danger-soft);
+}
+
+/*
+ * A tinted panel with a soft hairline, not a white card ringed in full-
+ * strength red. The strip sits inside a row that is already washed with
+ * --color-danger-soft; a white card on that wash reads as a second, louder
+ * object, and the saturated border was the loudest line on the page.
+ */
+.kq-flag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.35);
+    border-radius: var(--radius-lg);
+    background: var(--color-danger-soft);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+    color: var(--color-danger-deep);
+}
+
+.kq-flag__copy {
+    min-inline-size: 0;
+}
+
+.kq-flag i {
+    flex-shrink: 0;
+}
+
+.kq-flag a {
+    font-weight: 600;
+    color: var(--color-danger-deep);
+}
+
+
+/* ── Submission cell ────────────────────────────────────────────────────── */
+
+/*
+ * The template name reads as a name, not as a label. The shared
+ * .admin-users-doc__label uppercases at 10px, which is right for the column
+ * captions it was written for and wrong for a sentence like
+ * "Individual — passport"; that class is used by other screens, so this is a
+ * queue-local one rather than a change to it.
+ */
+.kq-template {
+    display: block;
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.kq-chipset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-block-start: 5px;
+}
+
+.kq-docchip {
+    display: inline-flex;
+    align-items: center;
+    height: 19px;
+    padding-inline: 7px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-2xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.kq-docchip--ok {
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+    font-weight: 600;
+}
+
+.kq-docchip--bad {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+    font-weight: 600;
+}
+
+/*
+ * A flagged row's action is filled rather than outlined. Every other row can
+ * wait; this one has a document that already belongs to somebody else, and
+ * the eye should land on it before it lands on the ones above.
+ */
+/*
+ * admin-table.css declares the base action's border, background and colour
+ * with `!important` under `body.backend-admin-layout`, so the plain class
+ * pair below never painted and every row's button looked identical. Matching
+ * that origin and weight is what makes the filled variant real.
+ */
+body.backend-admin-layout .admin-table-action.kq-review--urgent {
+    border-color: var(--color-primary) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-text-inverse) !important;
+}
+
+body.backend-admin-layout .admin-table-action.kq-review--urgent:hover,
+body.backend-admin-layout .admin-table-action.kq-review--urgent:focus-visible {
+    border-color: var(--color-primary-hover) !important;
+    background: var(--color-primary-hover) !important;
+    color: var(--color-text-inverse) !important;
+}
+
+/* The label leads and the chevron follows it, so it has to turn in Arabic. */
+[dir="rtl"] .kq-review__caret {
+    transform: scaleX(-1);
+}
+
+/*
+ * The control states what it filters. Hiding the label and repeating it
+ * inside every option ("Decided by anyone", "Decided by a provider") made
+ * the longest strings in the toolbar out of a word the reader only needs
+ * once.
+ */
+.kq-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    margin-block-end: 0;
+    color: var(--color-text-subtle);
+    font-size: var(--font-xs);
+    white-space: nowrap;
+}
+
+.kq-select__input {
+    box-sizing: border-box;
+    block-size: 36px;
+    padding-inline: 12px 30px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 500;
+}
+
+/*
+ * The chip row is dragged, not scrolled: a bar under five chips is more
+ * clutter than the strip it serves, and the reader can already see there is
+ * more by the chip cut off at the edge.
+ *
+ * Hiding a scrollbar is a decision, so it is written down — .kq-chips is
+ * registered in scrollbarHidesAllowedIn() in
+ * tests/Feature/AdminScrollbarConsistencyTest.php. That registration is what
+ * lets this sheet name ::-webkit-scrollbar at all, and the suite fails if the
+ * rule is deleted and the entry left behind.
+ */
+.kq-chips {
+    scrollbar-width: none;
+}
+
+.kq-chips::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── Table shell ────────────────────────────────────────────────────────── */
+
+/*
+ * Fixed columns, at the proportions the design measured on its 1128px row.
+ * Without this the five columns re-measure from their content on every page,
+ * so the Waiting figure lands in a different place each time the reader pages
+ * through the queue — which is the one column they are scanning down.
+ *
+ * Scoped to the KYC pages: `.admin-users-table` is shared with the member,
+ * plan and merchant lists, none of which want a fixed layout.
+ */
+.admin-kyc-page .admin-users-table {
+    table-layout: fixed;
+}
+
+/*
+ * The five tracks, and why the last one is this wide.
+ *
+ * Decision was 11.3% — 127px on the 1128px table — which fitted the Review
+ * button alone with 4px to spare. Adding the ⋯ beside it put ~125px of
+ * content plus the cell's own padding into that track, so the pair
+ * overflowed the cell and the panel's `overflow: hidden` cut it: on a
+ * 1440px board the column lost its header, its buttons, and pushed the open
+ * menu outside the card. A fixed layout does not grow a track to fit, so
+ * the budget has to be spent deliberately. These five add to 100.
+ */
+.admin-kyc-page .kq-table--queue thead th:nth-child(1) { inline-size: 26.2%; }
+.admin-kyc-page .kq-table--queue thead th:nth-child(2) { inline-size: 22.7%; }
+.admin-kyc-page .kq-table--queue thead th:nth-child(3) { inline-size: 22.7%; }
+.admin-kyc-page .kq-table--queue thead th:nth-child(4) { inline-size: 12.8%; }
+.admin-kyc-page .kq-table--queue thead th:nth-child(5) { inline-size: 15.6%; }
+
+/*
+ * Four columns, and they carry the whole width between them. There was a
+ * fifth behind `@can('kyc-action')` holding a "View" button on every row;
+ * it went when the ledger adopted the rule the admin's other ledgers
+ * already follow — one destination per row means the row is the link.
+ *
+ * The width it freed went to Outcome above all, which had to fit a pill and
+ * a rejection reason underneath it in 16.8%.
+ */
+.admin-kyc-page .kq-table--records thead th:nth-child(1) { inline-size: 30.142%; }
+.admin-kyc-page .kq-table--records thead th:nth-child(2) { inline-size: 22.163%; }
+.admin-kyc-page .kq-table--records thead th:nth-child(3) { inline-size: 23.759%; }
+.admin-kyc-page .kq-table--records thead th:nth-child(4) { inline-size: 23.936%; }
+
+/*
+ * The handle is the ledger's way to the person now that the action column
+ * offering it is gone. It sits inside the muted second line and only
+ * declares itself a link when pointed at, so the cell still reads as one
+ * name over one caption rather than two competing links.
+ */
+.kq-handle {
+    color: inherit;
+    text-decoration: none;
+}
+
+.kq-handle:hover,
+.kq-handle:focus-visible {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/*
+ * The header band sits on the same tone as the pagination footer, so the
+ * table reads as one panel between two bands. admin-table.css sets the band
+ * to the card colour with `!important`, hence the matching weight.
+ */
+.admin-kyc-page .admin-users-table thead th {
+    background: var(--aul-surface) !important;
+}
+
+/*
+ * Queue cells hang from the top. Three of the five carry two or three lines
+ * of their own, and centring them puts the applicant's name, the template
+ * name and the waiting figure on three different baselines.
+ */
+.kq-table--queue .kq-row > td {
+    vertical-align: top;
+}
+
+/*
+ * A flagged row gives up its bottom padding to the strip directly beneath
+ * it: the two are one finding, and a full gap between them reads as two.
+ */
+.kq-table--queue .kq-row.is-flagged > td {
+    padding-block: 12px 6px;
+}
+
+/* The applicant's handle, in the face the rest of the admin gives ids. */
+.admin-kyc-page .admin-users-username > span:first-child {
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+/* ── Provider tile and verdict figures ──────────────────────────────────── */
+
+/*
+ * A letter tile, so the engine is recognised before its name is read. The
+ * hue is the accent the provider gallery already gives that engine, out of
+ * config('kyc.catalog'), rather than a colour invented per screen.
+ */
+.kq-signal__tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 18px;
+    block-size: 18px;
+    border-radius: var(--radius-sm);
+    background: var(--color-text-soft);
+    color: var(--color-text-inverse);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.kq-signal__tile--emerald { background: var(--color-success-deep); }
+.kq-signal__tile--azure   { background: var(--color-info-deep); }
+.kq-signal__tile--violet  { background: var(--color-violet); }
+
+.kq-signal__tile--slate {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/* "Approve 0.94" — the verdict and how sure of it, in one pill. */
+.kq-pill__score {
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+
+/*
+ * The figure inside the detail sentence. KycQueueRow::detailHtml() wraps it
+ * and escapes everything around it, so the number is the only markup in a
+ * translated string.
+ */
+.kq-score {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--color-text-soft);
+}
+
+.kq-score.is-success { color: var(--color-success-deep); }
+.kq-score.is-warning { color: var(--color-warning-deep); }
+.kq-score.is-danger  { color: var(--color-danger-deep); }
+.kq-score.is-neutral { color: var(--color-text-subtle); }
+
+/* A rejection's stored reason is amber, the decision's timestamp stays grey. */
+.kq-signal__detail--reason {
+    color: var(--color-warning-deep);
+}
+
+
+/*
+ * A row nothing has decided yet says so in the muted voice. Used by the
+ * records ledger, whose Decided-by cell has a row with no decider; the
+ * queue dropped it when the em-dash tile and the Manual only pill made a
+ * third label redundant.
+ */
+.kq-signal__engine--muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+}
+
+/* ── Pagination footer ──────────────────────────────────────────────────── */
+
+/*
+ * The count leads and the page links follow. admin-table.css pushes
+ * `.admin-users-pagination` to the end of the row for every other list, so
+ * this is a KYC-page modifier rather than a change to the shared rule.
+ */
+.kq-pagination {
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.kq-pagination__summary {
+    font-size: var(--font-sm);
+    color: var(--color-text-subtle);
+}
+
+.kq-pagination__summary strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+/* A duplicate finding on a settled row, beneath the outcome pill. */
+.kq-signal__detail--flag {
+    color: var(--color-danger-deep);
+}
+
+/* ── Row action cluster ─────────────────────────────────────────────────── */
+
+/*
+ * Review, then the overflow. The pair is laid out at the row's inline end
+ * and never wraps: a Review button that drops under its own ⋯ reads as two
+ * unrelated controls.
+ */
+.kq-decide {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/*
+ * Sized to the Review button beside it rather than to the icon inside it,
+ * so the two sit on one baseline whichever of them is taller.
+ */
+.kq-rowmenu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 32px;
+    block-size: 32px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text-subtle);
+    font-size: var(--font-sm);
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.kq-rowmenu:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-deep);
+}
+
+/*
+ * Filled while its menu is open, not merely tinted.
+ *
+ * A floating panel with no visible owner is the complaint this answers: at
+ * a glance the menu read as a card belonging to whichever row it happened
+ * to cover. The one control on screen that is solid indigo is the one the
+ * panel came out of.
+ */
+.kq-rowmenu[aria-expanded="true"] {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.kq-rowmenu:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+/*
+ * The row menu is the header's ⋯ menu, on a row.
+ *
+ * It shipped on stock .dropdown-menu and read as a different object from
+ * every other menu in the panel — tighter rows, smaller type, a hard border
+ * instead of the ring. These are .ph-menu's measurements (page-header.css:806):
+ * 232px wide, 6px of padding, a 14px radius, 38px rows at 13px. They are
+ * restated rather than shared because the canon forbids a page sheet from
+ * restyling .ph-*, and a table row has no business borrowing the header
+ * component's class.
+ *
+ * No caption, which is the one deliberate difference: the header carries one
+ * ⋯ per page and can afford to name it, while this one repeats on every row
+ * and the trigger's own aria-label already says what it is.
+ *
+ * z-index only orders it above the rows. Staying inside the scrolling table
+ * wrapper is Popper's job — it treats that wrapper as a clipping parent and
+ * flips the menu upward on the last rows.
+ */
+.kq-menu {
+    z-index: 1060;
+    inline-size: 232px;
+    min-inline-size: 232px;
+    padding: 6px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--color-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 6px 16px -8px rgba(15, 23, 42, 0.28);
+}
+
+.kq-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    inline-size: 100%;
+    block-size: 38px;
+    padding-block: 0;
+    padding-inline: 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: 500;
+    line-height: 1;
+    text-align: start;
+}
+
+/* Sized, not floated: a 16px box keeps every label on one start edge. */
+.kq-menu .dropdown-item > i {
+    flex: 0 0 16px;
+    margin-inline-end: 0;
+    color: var(--color-text-faint);
+    font-size: var(--font-sm);
+    text-align: center;
+}
+
+.kq-menu .dropdown-item:hover,
+.kq-menu .dropdown-item:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.kq-menu .dropdown-item:hover > i,
+.kq-menu .dropdown-item:focus-visible > i {
+    color: var(--color-text-soft);
+}

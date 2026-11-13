@@ -1,0 +1,1065 @@
+/* ==========================================================================
+   Bill payments admin
+   The payment queue, history and detail, and the billers, categories and
+   providers behind them. Every selector is prefixed bpa- and
+   scoped to .bpa-admin, so nothing leaks into the rest of the panel.
+
+   This sheet draws no page header (page-header.css owns it), no scrollbar
+   (custom.css owns it) and no checkbox (the checkbox canon owns it). The
+   switches are feature-management.css's; this sheet only supplies the one
+   token that sheet reads for the "on" colour outside its own page.
+   ========================================================================== */
+
+.bpa-admin {
+    --fm-primary: var(--color-primary);
+    --bpa-radius: 14px;
+    --bpa-border: var(--color-border-soft);
+    --bpa-surface: var(--color-card);
+    --bpa-surface-alt: var(--color-surface-alt);
+    --bpa-text: var(--color-text);
+    --bpa-muted: var(--color-text-muted);
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* A section shown or hidden by the amount-type switch must really go. */
+.bpa-admin [hidden] {
+    display: none !important;
+}
+
+/* ==================== Module-off notice ==================== */
+
+.bpa-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(var(--color-warning-rgb), 0.35);
+    border-radius: var(--bpa-radius);
+    background: var(--color-warning-soft);
+    color: var(--bpa-text);
+}
+
+.bpa-notice__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--color-warning-deep);
+}
+
+.bpa-notice__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    font-size: var(--font-sm, 0.875rem);
+}
+
+.bpa-notice__link {
+    margin-inline-start: auto;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ==================== Shared bits ==================== */
+
+.bpa-card {
+    border-radius: var(--bpa-radius);
+}
+
+.bpa-muted {
+    color: var(--bpa-muted);
+    font-size: 0.8125rem;
+}
+
+.bpa-mono {
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+/* A field shown but fixed (a provider's code, a system category's code). */
+.bpa-admin .form-control[readonly] {
+    background-color: var(--bpa-surface-alt);
+    color: var(--bpa-muted);
+}
+
+.bpa-code {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--bpa-surface-alt);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bpa-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.bpa-pill--success {
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+}
+
+.bpa-pill--secondary {
+    background: var(--bpa-surface-alt);
+    color: var(--bpa-muted);
+}
+
+.bpa-pill--info {
+    background: var(--color-info-soft);
+    color: var(--color-info-deep);
+}
+
+.bpa-pill--warning {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.bpa-pill--danger {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.bpa-hint {
+    display: block;
+    margin-block-start: 4px;
+    color: var(--color-warning-deep);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.bpa-toggle-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+/* ==================== Biller cell ==================== */
+
+.bpa-biller {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.bpa-biller__logo {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 10px;
+    background: var(--bpa-surface);
+    object-fit: contain;
+}
+
+.bpa-biller__logo--icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.bpa-biller__copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.bpa-biller__name {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    color: var(--bpa-text);
+    font-weight: 600;
+}
+
+/* ==================== Editor ==================== */
+
+.bpa-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.bpa-form-section__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-block-end: 16px;
+}
+
+.bpa-form-section__step {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.bpa-form-section__title {
+    margin: 0;
+    color: var(--bpa-text);
+    font-size: 1rem;
+    font-weight: 600 !important;
+}
+
+.bpa-form-section__hint {
+    margin: 2px 0 0;
+    color: var(--bpa-muted);
+    font-size: 0.8125rem;
+}
+
+.bpa-identity {
+    display: grid;
+    grid-template-columns: minmax(0, 140px) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.bpa-identity__logo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bpa-segment {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bpa-tester {
+    padding: 12px 14px;
+    border: 1px dashed var(--color-border-strong);
+    border-radius: 12px;
+    background: var(--bpa-surface-alt);
+}
+
+.bpa-tester__result {
+    margin: 8px 0 0;
+    color: var(--bpa-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.bpa-tester__result.is-match {
+    color: var(--color-success-deep);
+}
+
+.bpa-tester__result.is-miss {
+    color: var(--color-danger-deep);
+}
+
+.bpa-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bpa-items__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bpa-item {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: end;
+    padding: 12px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 12px;
+    background: var(--bpa-surface-alt);
+}
+
+.bpa-item__field .form-label {
+    margin-block-end: 4px;
+    font-size: 0.75rem;
+}
+
+.bpa-item__field--switch {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-block-end: 8px;
+}
+
+.bpa-item__field--remove {
+    padding-block-end: 2px;
+}
+
+.bpa-item__field--remove .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.bpa-items > .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+}
+
+.bpa-fee {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 12px;
+}
+
+.bpa-fee__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.bpa-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 12px;
+}
+
+.bpa-editor__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-block-end: 8px;
+}
+
+/* ==================== Category dialog ==================== */
+
+.bpa-modal__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 600 !important;
+}
+
+.bpa-icon-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bpa-icon-picker__preview {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+/* ==================== Provider cards ==================== */
+
+.bpa-provider-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+}
+
+.bpa-provider {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid var(--bpa-border);
+    border-radius: var(--bpa-radius);
+    background: var(--bpa-surface);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.04);
+}
+
+.bpa-provider.is-disabled {
+    background: var(--bpa-surface-alt);
+}
+
+.bpa-provider__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bpa-provider__logo {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border: 1px solid var(--bpa-border);
+    border-radius: 12px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.bpa-provider__logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--bpa-surface);
+}
+
+.bpa-provider__identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+    margin-inline-end: auto;
+}
+
+.bpa-provider__name {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--bpa-text);
+    font-size: 1rem;
+    font-weight: 600 !important;
+}
+
+.bpa-provider__badge {
+    align-self: flex-start;
+}
+
+.bpa-provider__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.bpa-provider__facts dt {
+    color: var(--bpa-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.bpa-provider__facts dd {
+    margin: 2px 0 0;
+    overflow-wrap: anywhere;
+    color: var(--bpa-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.bpa-provider__note {
+    margin: 0;
+    font-size: 0.8125rem;
+}
+
+.bpa-provider__actions {
+    margin-block-start: auto;
+    justify-content: flex-start;
+}
+
+/* ==================== Payments: queue, history, detail ==================== */
+
+.bpa-notice--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    background: var(--color-danger-soft);
+}
+
+.bpa-notice--danger .bpa-notice__icon {
+    color: var(--color-danger-deep);
+}
+
+.bpa-notice__list {
+    margin: 4px 0 0;
+    padding-inline-start: 18px;
+}
+
+.bpa-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.bpa-person {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.bpa-person__name {
+    color: var(--bpa-text);
+    font-weight: 600;
+}
+
+.bpa-status {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+/* How long a payment has waited, against the bill payment SLA target. */
+.bpa-age {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bpa-surface-alt);
+    color: var(--bpa-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.bpa-age--near {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.bpa-age--over {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.bpa-ref {
+    color: var(--color-primary);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.bpa-ref:hover,
+.bpa-ref:focus-visible {
+    text-decoration: underline;
+}
+
+.bpa-claim-line {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-block-start: 4px;
+    color: var(--bpa-muted);
+    font-size: 0.75rem;
+}
+
+.bpa-claim {
+    color: var(--bpa-text);
+    font-weight: 600;
+}
+
+.bpa-claim--mine {
+    color: var(--color-primary);
+}
+
+/* A value with a copy button beside it: customer number, amount, token. */
+.bpa-copyable {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.bpa-copy {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--bpa-border);
+    border-radius: 8px;
+    background: var(--bpa-surface);
+    color: var(--bpa-muted);
+    cursor: pointer;
+}
+
+.bpa-copy:hover,
+.bpa-copy:focus-visible {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.bpa-copy:focus-visible {
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.35);
+    outline-offset: 1px;
+}
+
+.bpa-copy.is-copied {
+    border-color: var(--color-success);
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+}
+
+.bpa-break {
+    overflow-wrap: anywhere;
+}
+
+.bpa-prewrap {
+    white-space: pre-line;
+}
+
+.bpa-menu-form {
+    margin: 0;
+}
+
+.bpa-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-block-end: 14px;
+}
+
+.bpa-section-head__title {
+    margin: 0;
+    color: var(--bpa-text);
+    font-size: 1rem;
+    font-weight: 600 !important;
+}
+
+.bpa-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 20px;
+    margin: 0;
+}
+
+.bpa-facts--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.bpa-facts__item--wide {
+    grid-column: 1 / -1;
+}
+
+.bpa-facts dt {
+    margin-block-end: 2px;
+    color: var(--bpa-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.bpa-facts dd {
+    margin: 0;
+    color: var(--bpa-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* The token the customer paid for, large enough to read back over a phone. */
+.bpa-token {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-block-start: 18px;
+    padding: 14px 16px;
+    border: 1px dashed rgba(var(--color-primary-rgb), 0.35);
+    border-radius: 12px;
+    background: var(--color-primary-soft);
+}
+
+.bpa-token__label {
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.bpa-token__value {
+    color: var(--bpa-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
+}
+
+.bpa-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bpa-timeline__item {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding-block-end: 16px;
+}
+
+.bpa-timeline__item:last-child {
+    padding-block-end: 0;
+}
+
+/* The rail between two dots. */
+.bpa-timeline__item:not(:last-child)::before {
+    position: absolute;
+    inset-block: 14px 0;
+    inset-inline-start: 5px;
+    width: 2px;
+    background: var(--bpa-border);
+    content: "";
+}
+
+.bpa-timeline__dot {
+    position: relative;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    margin-block-start: 4px;
+    border: 2px solid var(--bpa-surface);
+    border-radius: 999px;
+    background: var(--bpa-muted);
+    box-shadow: 0 0 0 1px var(--bpa-border);
+}
+
+.bpa-timeline__item--admin .bpa-timeline__dot {
+    background: var(--color-primary);
+}
+
+.bpa-timeline__item--user .bpa-timeline__dot {
+    background: var(--color-success);
+}
+
+.bpa-timeline__item--provider .bpa-timeline__dot {
+    background: var(--color-warning);
+}
+
+.bpa-timeline__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bpa-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    color: var(--bpa-text);
+    font-size: 0.875rem;
+}
+
+.bpa-timeline__move {
+    color: var(--bpa-muted);
+    font-size: 0.8125rem;
+}
+
+.bpa-timeline__note {
+    margin: 2px 0 0;
+    color: var(--bpa-text);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Mark paid / mark failed dialogs ---------- */
+
+.bpa-action-modal .manual-request-review-modal__icon.bpa-action-modal__icon--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger);
+}
+
+.bpa-action-modal .bpa-action-modal__callout--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.24);
+    background: rgba(var(--color-danger-rgb), 0.06);
+}
+
+.bpa-action-modal .manual-request-review-modal__summary-item strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* The shared sheet styles every span in a summary item as its label; a value
+   wrapped in a span (to sit beside its copy button) is a value, not a label. */
+.bpa-action-modal .manual-request-review-modal__summary-item strong span {
+    display: inline;
+    margin: 0;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.bpa-reasons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-block-end: 12px;
+}
+
+.bpa-reason {
+    padding: 4px 11px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 999px;
+    background: var(--bpa-surface);
+    color: var(--bpa-text);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.bpa-reason:hover,
+.bpa-reason:focus-visible,
+.bpa-reason.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.bpa-reason:focus-visible {
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.35);
+    outline-offset: 1px;
+}
+
+/* ==================== Provider setup panels ==================== */
+
+.bpa-setup {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 14px;
+}
+
+.bpa-setup__panel--wide {
+    grid-column: 1 / -1;
+}
+
+.bpa-setup__panel .bpa-form-section__hint {
+    margin-block-end: 14px;
+}
+
+.bpa-setup__facts {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+
+.bpa-setup__facts > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+}
+
+.bpa-setup__facts dt {
+    min-inline-size: 96px;
+    color: var(--bpa-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.bpa-setup__facts dd {
+    margin: 0;
+    color: var(--bpa-text);
+    font-size: 0.875rem;
+}
+
+.bpa-setup__url {
+    padding: 8px 10px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 10px;
+    background: var(--bpa-surface-alt);
+}
+
+.bpa-setup__url .bpa-mono {
+    overflow-wrap: anywhere;
+}
+
+.bpa-setup__steps,
+.bpa-setup__checks {
+    margin: 14px 0 0;
+    padding-inline-start: 20px;
+    color: var(--bpa-text);
+    font-size: 0.875rem;
+}
+
+.bpa-setup__steps li + li,
+.bpa-setup__checks li + li {
+    margin-block-start: 6px;
+}
+
+.bpa-setup__checks {
+    margin-block-start: 0;
+    columns: 2 360px;
+    column-gap: 32px;
+}
+
+.bpa-setup__checks li {
+    break-inside: avoid;
+}
+
+.bpa-sync__options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-block-start: 14px;
+}
+
+.bpa-sync__results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: 12px;
+    margin-block-start: 18px;
+}
+
+.bpa-sync__run {
+    padding: 12px 14px;
+    border: 1px solid var(--bpa-border);
+    border-radius: 12px;
+    background: var(--bpa-surface-alt);
+}
+
+.bpa-sync__run-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-block-end: 10px;
+    color: var(--bpa-text);
+    font-size: 0.9375rem;
+}
+
+.bpa-sync__run .bpa-setup__facts {
+    margin-block-end: 8px;
+}
+
+.bpa-sync__skips {
+    margin: 0;
+    padding-inline-start: 18px;
+    color: var(--bpa-text);
+    font-size: 0.8125rem;
+}
+
+.bpa-sync__footer {
+    margin-block-start: 14px;
+    font-size: 0.875rem;
+}
+
+/* ==================== Narrow screens ==================== */
+
+@media (max-width: 767.98px) {
+    .bpa-notice {
+        flex-wrap: wrap;
+    }
+
+    .bpa-notice__link {
+        margin-inline-start: 30px;
+    }
+
+    .bpa-identity {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .bpa-item {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .bpa-item__field--name {
+        grid-column: 1 / -1;
+    }
+
+    .bpa-provider__facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bpa-facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ==================== Dark ==================== */
+
+[data-coreui-theme="dark"] .bpa-notice {
+    border-color: rgba(var(--color-warning-rgb), 0.4);
+    background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .bpa-notice__icon,
+[data-coreui-theme="dark"] .bpa-hint,
+[data-coreui-theme="dark"] .bpa-pill--warning,
+[data-coreui-theme="dark"] .bpa-age--near {
+    color: var(--color-warning);
+}
+
+[data-coreui-theme="dark"] .bpa-notice--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.4);
+    background: rgba(var(--color-danger-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .bpa-notice--danger .bpa-notice__icon,
+[data-coreui-theme="dark"] .bpa-age--over {
+    color: var(--color-danger);
+}
+
+[data-coreui-theme="dark"] .bpa-token {
+    background: rgba(var(--color-primary-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .bpa-token__label,
+[data-coreui-theme="dark"] .bpa-claim--mine {
+    color: var(--color-primary-light);
+}
+
+[data-coreui-theme="dark"] .bpa-pill--success,
+[data-coreui-theme="dark"] .bpa-tester__result.is-match {
+    color: var(--color-success-mint, var(--color-success));
+}
+
+[data-coreui-theme="dark"] .bpa-pill--info {
+    color: var(--color-info);
+}
+
+[data-coreui-theme="dark"] .bpa-pill--danger,
+[data-coreui-theme="dark"] .bpa-tester__result.is-miss {
+    color: var(--color-danger);
+}
+
+[data-coreui-theme="dark"] .bpa-biller__logo--icon,
+[data-coreui-theme="dark"] .bpa-form-section__step,
+[data-coreui-theme="dark"] .bpa-icon-picker__preview,
+[data-coreui-theme="dark"] .bpa-provider__logo {
+    background: rgba(var(--color-primary-rgb), 0.16);
+    color: var(--color-primary-light);
+}

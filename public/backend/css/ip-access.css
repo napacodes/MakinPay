@@ -1,0 +1,1213 @@
+/*
+ * Admin → Security → IP deny list.
+ *
+ * One page, one prefix: everything below hangs off `.ipa-page`, and the
+ * header is <x-page-header>, styled only by page-header.css. Logical
+ * properties throughout — the panel ships in Arabic — and every colour is a
+ * token from _variables.css so the dark theme falls out of the same rules.
+ *
+ * Nothing here declares a scrollbar, a checkbox, or any rule belonging to
+ * the shared header. All three are canons owned elsewhere (custom.css and
+ * page-header.css); a page sheet that restates one is a fork, and
+ * AdminUnifiedPageHeaderTest greps this file for the header's prefix — so
+ * even naming it in a comment trips the guard, which is the intent.
+ */
+
+/*
+ * The tokens are declared on the drawer as well as the page. The drawer is
+ * `position: fixed` and therefore rendered outside `.ipa-page`, so a token
+ * block on the page alone leaves every shared class inside the panel — the
+ * chips, the meter — resolving to nothing and painting transparent. The
+ * same trap activity-history.css documents.
+ */
+.ipa-page,
+.ipa-drawer {
+    --ipa-text: var(--color-text);
+    --ipa-strong: var(--color-text-soft);
+    --ipa-subtle: var(--color-text-subtle);
+    --ipa-muted: var(--color-text-muted);
+    --ipa-faint: var(--color-text-faint);
+    --ipa-card: var(--color-card);
+    --ipa-surface: var(--color-surface-alt);
+    --ipa-soft: var(--color-surface-soft);
+    --ipa-veil: var(--color-surface-veil, #fcfcfd);
+    --ipa-border: var(--color-border);
+    --ipa-line: var(--color-border-soft);
+    --ipa-primary: var(--color-primary);
+    --ipa-primary-deep: var(--color-primary-hover);
+    --ipa-primary-soft: rgba(var(--color-primary-rgb), 0.08);
+    --ipa-primary-ring: rgba(var(--color-primary-rgb), 0.2);
+    --ipa-success: var(--color-success-strong);
+    --ipa-success-deep: var(--color-success-deep);
+    --ipa-success-soft: rgba(var(--color-success-rgb), 0.1);
+    --ipa-success-ring: rgba(22, 163, 74, 0.18);
+    --ipa-warning: var(--color-warning);
+    --ipa-warning-deep: var(--color-warning-deep);
+    --ipa-warning-soft: rgba(var(--color-warning-rgb), 0.12);
+    --ipa-warning-ring: rgba(var(--color-warning-rgb), 0.22);
+    --ipa-danger: var(--color-danger-strong);
+    --ipa-danger-deep: var(--color-danger-deep);
+    --ipa-danger-soft: rgba(var(--color-danger-rgb), 0.1);
+    --ipa-danger-ring: rgba(220, 38, 38, 0.2);
+    --ipa-ring: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --ipa-mono: var(--font-mono);
+
+    /*
+     * The table's own minimum width. Six columns of real content do not fold
+     * into a phone, so the card scrolls horizontally rather than ellipsising
+     * every cell into uselessness — and the tracks live here so the head row
+     * and the body rows can never disagree about them.
+     */
+    --ipa-row-min: 940px;
+    --ipa-cols: 268px minmax(0, 1fr) 116px 132px 186px 44px;
+
+    color: var(--ipa-text);
+}
+
+.ipa-page {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── The list card ──────────────────────────────────────────────────────── */
+
+.ipa-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    background: var(--ipa-card);
+    /*
+     * A third layer, far down and wide. The header card keeps the flat ring
+     * the component gives it, so the two no longer read alike: the header is
+     * the ground and the list floats above it. That difference is the depth.
+     */
+    box-shadow: var(--ipa-ring), 0 16px 32px -24px rgba(15, 23, 42, 0.14);
+    /*
+     * `clip`, not `hidden`. Both keep the rows inside the rounded corners,
+     * but `hidden` makes this card a scroll container — and a sticky child
+     * then sticks to the card, which never scrolls, instead of to the page.
+     * That is what would silently kill the sticky column head below.
+     */
+    overflow: clip;
+}
+
+.ipa-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 18px;
+    border-block-end: 1px solid var(--ipa-line);
+}
+
+.ipa-seg {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--ipa-soft);
+}
+
+.ipa-seg__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding-inline: 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ipa-subtle);
+    font-size: 12.5px;
+    font-weight: var(--font-medium);
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ipa-seg__btn:hover,
+.ipa-seg__btn:focus-visible {
+    color: var(--ipa-text);
+}
+
+.ipa-seg__btn.is-active {
+    border-color: var(--ipa-border);
+    background: var(--ipa-card);
+    color: var(--ipa-text);
+    font-weight: var(--font-semibold);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.ipa-seg__count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+}
+
+.ipa-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ipa-find {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    inline-size: 250px;
+    max-inline-size: 100%;
+    padding-inline: 11px;
+    border: 1px solid var(--ipa-border);
+    border-radius: 9px;
+    background: var(--ipa-card);
+}
+
+.ipa-find > svg {
+    flex: 0 0 14px;
+    inline-size: 14px;
+    block-size: 14px;
+    color: var(--ipa-faint);
+}
+
+.ipa-find input {
+    inline-size: 100%;
+    min-inline-size: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ipa-text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.ipa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding-inline: 12px;
+    border: 1px solid var(--ipa-border);
+    border-radius: 9px;
+    background: var(--ipa-card);
+    color: var(--ipa-subtle);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ipa-btn:hover,
+.ipa-btn:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--ipa-surface);
+    color: var(--ipa-text);
+}
+
+/* ── Rows ───────────────────────────────────────────────────────────────── */
+
+/*
+ * The horizontal scroller is switched ON only at the widths that need it.
+ *
+ * A scroll container anywhere between the column head and the page stops
+ * the head sticking to the viewport, so it stays out of the way while the
+ * card is wide enough to hold a row, and comes back when it is not.
+ */
+.ipa-scroll {
+    overflow-x: visible;
+}
+
+/*
+ * The column head follows the list down.
+ *
+ * Offset by the admin's own sticky bar, and one z-index it cannot win: at 3
+ * it slides under .dk-top's 1020 rather than over it.
+ */
+.ipa-head {
+    position: sticky;
+    inset-block-start: calc(var(--top-height, 64px) + var(--demo-banner-total, 0px));
+    z-index: 3;
+}
+
+@media (max-width: 1279.98px) {
+    .ipa-scroll {
+        overflow-x: auto;
+        scrollbar-gutter: stable;
+    }
+
+    /*
+     * Pinned inside a sideways scroller, the head would fight the drag: the
+     * reader pulls the row across and the labels stay put over the wrong
+     * columns. Better it scrolls away with them.
+     */
+    .ipa-head {
+        position: static;
+    }
+}
+
+.ipa-head,
+.ipa-row {
+    display: grid;
+    grid-template-columns: var(--ipa-cols);
+    gap: 18px;
+    min-inline-size: var(--ipa-row-min);
+    padding: 11px 18px;
+}
+
+.ipa-head {
+    padding-block: 8px;
+    background: var(--ipa-surface);
+    border-block-end: 1px solid var(--ipa-line);
+    color: var(--ipa-faint);
+    font-size: 10.5px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.ipa-row {
+    align-items: center;
+    border-block-end: 1px solid var(--ipa-soft);
+}
+
+.ipa-row:last-of-type {
+    border-block-end: 0;
+}
+
+/*
+ * The one row that asks for a decision: past the threshold, deliberately
+ * not blocked. The rail is the whole point — without it the safeguard is
+ * invisible, and an operator never learns the guard held its hand.
+ */
+.ipa-row--held {
+    background: var(--ipa-veil);
+    border-inline-start: 3px solid var(--ipa-warning);
+}
+
+.ipa-row--lapsed .ipa-ip__addr,
+.ipa-row--lapsed .ipa-why__title {
+    color: var(--ipa-subtle);
+}
+
+.ipa-ip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+}
+
+.ipa-ip__addr {
+    color: var(--ipa-text);
+    font-family: var(--ipa-mono);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+}
+
+.ipa-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-block: 2px;
+    padding-inline: 6px 8px;
+    border-radius: 999px;
+    background: var(--ipa-soft);
+    color: var(--ipa-subtle);
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+    font-size: 10.5px;
+    font-weight: var(--font-semibold);
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.ipa-chip > svg {
+    flex: 0 0 10px;
+    inline-size: 10px;
+    block-size: 10px;
+}
+
+.ipa-chip--auto {
+    background: var(--ipa-warning-soft);
+    color: var(--ipa-warning-deep);
+    box-shadow: inset 0 0 0 1px var(--ipa-warning-ring);
+}
+
+.ipa-chip--manual {
+    background: var(--ipa-primary-soft);
+    color: var(--ipa-primary-deep);
+    box-shadow: inset 0 0 0 1px var(--ipa-primary-ring);
+}
+
+.ipa-chip--plain {
+    padding-inline: 7px;
+    box-shadow: none;
+}
+
+.ipa-why {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+}
+
+.ipa-why__title {
+    color: var(--ipa-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+a.ipa-why__title:hover,
+a.ipa-why__title:focus-visible {
+    color: var(--ipa-primary);
+}
+
+.ipa-why__detail {
+    color: var(--ipa-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* The strike meter: bars and the ratio on one line, not stacked. */
+.ipa-meter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ipa-meter__bars {
+    display: flex;
+    gap: 2px;
+}
+
+.ipa-meter__seg {
+    inline-size: 5px;
+    block-size: 13px;
+    border-radius: 1.5px;
+    background: var(--ipa-soft);
+}
+
+.ipa-meter--over .ipa-meter__seg.is-on {
+    background: var(--ipa-danger);
+}
+
+.ipa-meter--held .ipa-meter__seg.is-on {
+    background: var(--ipa-warning);
+}
+
+.ipa-meter--past .ipa-meter__seg.is-on {
+    background: var(--color-palette-cbd5e1);
+}
+
+.ipa-meter__count {
+    font-family: var(--ipa-mono);
+    font-size: 11.5px;
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ipa-meter--over .ipa-meter__count {
+    color: var(--ipa-danger-deep);
+}
+
+.ipa-meter--held .ipa-meter__count {
+    color: var(--ipa-warning-deep);
+}
+
+.ipa-meter--past .ipa-meter__count {
+    color: var(--ipa-muted);
+}
+
+.ipa-none {
+    color: var(--ipa-faint);
+    font-size: 12.5px;
+}
+
+.ipa-when {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ipa-when__at {
+    color: var(--ipa-strong);
+    font-size: 12.5px;
+    font-weight: var(--font-medium);
+}
+
+.ipa-when__rel {
+    color: var(--ipa-faint);
+    font-size: 11.5px;
+}
+
+.ipa-expiry {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ipa-expiry__line {
+    color: var(--ipa-muted);
+    font-size: 12.5px;
+}
+
+.ipa-expiry__left {
+    color: var(--ipa-text);
+    font-family: var(--ipa-mono);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.ipa-track {
+    inline-size: 150px;
+    max-inline-size: 100%;
+    block-size: 3px;
+    border-radius: 999px;
+    background: var(--ipa-soft);
+    overflow: hidden;
+}
+
+.ipa-track__fill {
+    display: block;
+    block-size: 3px;
+    border-radius: 999px;
+    background: var(--ipa-danger);
+}
+
+.ipa-pill {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 7px;
+    padding-block: 4px;
+    padding-inline: 9px 11px;
+    border-radius: 999px;
+    background: var(--ipa-soft);
+    color: var(--ipa-subtle);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.ipa-pill > svg {
+    flex: 0 0 12px;
+    inline-size: 12px;
+    block-size: 12px;
+}
+
+.ipa-pill--lapsed {
+    background: var(--ipa-success-soft);
+    color: var(--ipa-success-deep);
+    box-shadow: inset 0 0 0 1px var(--ipa-success-ring);
+}
+
+.ipa-act {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 30px;
+    block-size: 30px;
+    margin-inline-start: auto;
+    border: 1px solid var(--ipa-border);
+    border-radius: 8px;
+    background: var(--ipa-card);
+    color: var(--ipa-subtle);
+    cursor: pointer;
+}
+
+.ipa-act:hover,
+.ipa-act:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--ipa-surface);
+    color: var(--ipa-text);
+}
+
+.ipa-act > svg {
+    inline-size: 15px;
+    block-size: 15px;
+    fill: currentColor;
+}
+
+.ipa-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-block-start: auto;
+    padding: 10px 18px;
+    border-block-start: 1px solid var(--ipa-line);
+    background: var(--ipa-surface);
+    color: var(--ipa-muted);
+    font-size: 12px;
+}
+
+.ipa-foot .pagination {
+    margin: 0;
+}
+
+/*
+ * The rule, stated once and quietly. It replaced a four-card "how it works"
+ * block: a product says its rule once; four tiles read like onboarding.
+ */
+.ipa-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 14px 6px 0;
+    color: var(--ipa-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.ipa-note > svg {
+    flex: 0 0 14px;
+    inline-size: 14px;
+    block-size: 14px;
+    margin-block-start: 2px;
+    color: var(--ipa-faint);
+}
+
+.ipa-note a {
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/*
+ * The empty state brings its own 46px of vertical padding, so the wrapper
+ * adds none: the two together read as a hole in the card rather than a
+ * message in it.
+ */
+.ipa-empty {
+    padding-inline: 18px;
+}
+
+/* ── The side panel ─────────────────────────────────────────────────────── */
+
+.ipa-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1045;
+    background: rgba(15, 23, 42, 0.32);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.ipa-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ipa-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 1046;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(520px, 100%);
+    background: var(--ipa-card);
+    box-shadow: -24px 0 48px -32px rgba(15, 23, 42, 0.35);
+    transform: translateX(100%);
+    /*
+     * `visibility`, not just the transform. A panel pushed off-screen by a
+     * transform is still in the tab order: every button inside it stays
+     * focusable, so tabbing through the closed page walks into an invisible
+     * dialog. The delay lets the slide finish before it is hidden.
+     */
+    visibility: hidden;
+    transition: transform 0.22s ease, visibility 0s linear 0.22s;
+}
+
+[dir='rtl'] .ipa-drawer {
+    transform: translateX(-100%);
+    box-shadow: 24px 0 48px -32px rgba(15, 23, 42, 0.35);
+}
+
+.ipa-drawer.is-open,
+[dir='rtl'] .ipa-drawer.is-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.22s ease, visibility 0s;
+}
+
+.ipa-drawer__body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.ipa-drawer__loading {
+    padding: 28px 20px;
+    color: var(--ipa-muted);
+    font-size: 13px;
+}
+
+.ipa-panel {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100%;
+}
+
+.ipa-panel__head {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding: 16px 20px 13px;
+    border-block-end: 1px solid var(--ipa-line);
+}
+
+.ipa-panel__ident {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.ipa-panel__eyebrow {
+    color: var(--ipa-faint);
+    font-size: 10.5px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.ipa-panel__addr {
+    display: block;
+    margin-block-start: 4px;
+    color: var(--ipa-text);
+    font-family: var(--ipa-mono);
+    font-size: 22px;
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.ipa-panel__close {
+    display: inline-flex;
+    flex: 0 0 30px;
+    align-items: center;
+    justify-content: center;
+    inline-size: 30px;
+    block-size: 30px;
+    border: 1px solid var(--ipa-border);
+    border-radius: 8px;
+    background: var(--ipa-card);
+    color: var(--ipa-subtle);
+    cursor: pointer;
+}
+
+.ipa-panel__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.ipa-panel__main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 20px;
+}
+
+/* The verdict and why it was reached are one card, not two sections. */
+.ipa-verdict {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 13px 15px;
+    border: 1px solid var(--ipa-danger-ring);
+    border-radius: 14px;
+    background: rgba(var(--color-danger-rgb), 0.06);
+}
+
+.ipa-verdict--calm {
+    border-color: var(--ipa-warning-ring);
+    background: rgba(var(--color-warning-rgb), 0.07);
+}
+
+.ipa-verdict--done {
+    border-color: var(--ipa-success-ring);
+    background: var(--ipa-success-soft);
+}
+
+.ipa-verdict__line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ipa-verdict__state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ipa-danger-deep);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+}
+
+.ipa-verdict--calm .ipa-verdict__state {
+    color: var(--ipa-warning-deep);
+}
+
+.ipa-verdict--done .ipa-verdict__state {
+    color: var(--ipa-success-deep);
+}
+
+.ipa-verdict__dot {
+    flex: 0 0 7px;
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: var(--ipa-danger);
+    box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb), 0.16);
+}
+
+.ipa-verdict--calm .ipa-verdict__dot {
+    background: var(--ipa-warning);
+    box-shadow: 0 0 0 3px rgba(var(--color-warning-rgb), 0.18);
+}
+
+.ipa-verdict--done .ipa-verdict__dot {
+    background: var(--ipa-success);
+    box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.16);
+}
+
+.ipa-verdict__left {
+    color: var(--ipa-danger-deep);
+    font-family: var(--ipa-mono);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+}
+
+.ipa-verdict--calm .ipa-verdict__left {
+    color: var(--ipa-warning-deep);
+}
+
+.ipa-verdict__track {
+    inline-size: 100%;
+    block-size: 4px;
+    border-radius: 999px;
+    background: rgba(var(--color-danger-rgb), 0.16);
+    overflow: hidden;
+}
+
+.ipa-verdict__fill {
+    display: block;
+    block-size: 4px;
+    border-radius: 999px;
+    background: var(--ipa-danger);
+}
+
+.ipa-verdict p {
+    margin: 0;
+    color: var(--ipa-subtle);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.ipa-section {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.ipa-section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ipa-label {
+    color: var(--ipa-faint);
+    font-size: 10.5px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.ipa-section__aside {
+    color: var(--ipa-faint);
+    font-size: 11.5px;
+}
+
+.ipa-tl {
+    display: flex;
+    flex-direction: column;
+}
+
+.ipa-tl__item {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) 50px;
+    gap: 10px;
+    align-items: flex-start;
+    padding-block-end: 10px;
+}
+
+.ipa-tl__item:last-child {
+    padding-block-end: 0;
+}
+
+.ipa-tl__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding-block-start: 3px;
+}
+
+.ipa-tl__dot {
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 999px;
+    background: var(--color-palette-cbd5e1);
+}
+
+.ipa-tl__dot--heavy {
+    background: var(--ipa-danger);
+}
+
+.ipa-tl__dot--mid {
+    background: var(--ipa-warning);
+}
+
+.ipa-tl__line {
+    inline-size: 2px;
+    block-size: 22px;
+    background: var(--ipa-line);
+}
+
+.ipa-tl__item:last-child .ipa-tl__line {
+    display: none;
+}
+
+.ipa-tl__what {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-inline-size: 0;
+}
+
+.ipa-tl__name {
+    color: var(--ipa-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+}
+
+.ipa-tl__meta {
+    color: var(--ipa-muted);
+    font-size: 11.5px;
+}
+
+.ipa-tl__score {
+    color: var(--ipa-subtle);
+    font-family: var(--ipa-mono);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.ipa-fact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 1px solid var(--ipa-line);
+    border-radius: 12px;
+}
+
+.ipa-fact__tile {
+    display: inline-flex;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: 8px;
+    background: var(--ipa-success-soft);
+    color: var(--ipa-success-deep);
+}
+
+.ipa-fact--warn .ipa-fact__tile {
+    background: var(--ipa-warning-soft);
+    color: var(--ipa-warning-deep);
+}
+
+.ipa-fact__tile > svg {
+    inline-size: 15px;
+    block-size: 15px;
+}
+
+.ipa-fact__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-inline-size: 0;
+}
+
+.ipa-fact__title {
+    color: var(--ipa-text);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+}
+
+.ipa-fact__detail {
+    color: var(--ipa-muted);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+.ipa-acct {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--ipa-line);
+    border-radius: 10px;
+}
+
+.ipa-acct__name {
+    color: var(--ipa-strong);
+    font-size: 12px;
+    font-weight: var(--font-medium);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ipa-acct__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ipa-success-deep);
+    font-size: 11px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ipa-acct__state > svg {
+    flex: 0 0 11px;
+    inline-size: 11px;
+    block-size: 11px;
+}
+
+.ipa-hint {
+    margin: 0;
+    color: var(--ipa-muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+}
+
+.ipa-panel__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 13px 20px 16px;
+    border-block-start: 1px solid var(--ipa-line);
+    background: var(--ipa-surface);
+}
+
+.ipa-panel__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ipa-panel__actions > form,
+.ipa-panel__actions > .ipa-pbtn {
+    flex: 1 1 0;
+    min-inline-size: 0;
+}
+
+.ipa-pbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 38px;
+    padding-inline: 12px;
+    border: 1px solid var(--ipa-border);
+    border-radius: 10px;
+    background: var(--ipa-card);
+    color: var(--ipa-subtle);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ipa-pbtn:hover,
+.ipa-pbtn:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--ipa-surface);
+    color: var(--ipa-text);
+}
+
+.ipa-pbtn--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    color: var(--ipa-danger-deep);
+}
+
+.ipa-pbtn--danger:hover,
+.ipa-pbtn--danger:focus-visible {
+    border-color: var(--ipa-danger);
+    background: var(--ipa-danger-soft);
+    color: var(--ipa-danger-deep);
+}
+
+.ipa-pbtn--primary {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--color-primary-lift), var(--color-primary));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.22);
+}
+
+.ipa-pbtn--primary:hover,
+.ipa-pbtn--primary:focus-visible {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+    color: var(--color-white);
+}
+
+/* ── Polish ─────────────────────────────────────────────────────────────── */
+
+/*
+ * Row hover.
+ *
+ * Six columns of small type is a long way for an eye to carry a line, and
+ * nothing tied them together — the reader crossed on trust. The tint is
+ * deliberately the same one the toolbar and the footer already use, so the
+ * row lifts without introducing a colour.
+ */
+.ipa-row {
+    transition: background-color 0.12s ease;
+}
+
+.ipa-row:hover {
+    background: var(--ipa-surface);
+}
+
+/* The held-back row keeps its own ground; it only warms. */
+.ipa-row--held:hover {
+    background: rgba(var(--color-warning-rgb), 0.07);
+}
+
+/*
+ * A ring on everything that takes focus.
+ *
+ * Operators work this screen by keyboard, and without it the caret is
+ * somewhere on the page and nowhere on the screen. :focus-visible, so a
+ * mouse click never paints one.
+ */
+.ipa-seg__btn:focus-visible,
+.ipa-btn:focus-visible,
+.ipa-act:focus-visible,
+.ipa-why__title:focus-visible,
+.ipa-pbtn:focus-visible,
+.ipa-panel__close:focus-visible {
+    outline: 2px solid var(--ipa-primary);
+    outline-offset: 2px;
+}
+
+/* The field is the control here, not the input inside it. */
+.ipa-find:focus-within {
+    border-color: var(--ipa-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+.ipa-find input:focus-visible {
+    outline: none;
+}
+
+/* A row the panel is open for stays marked while the reader is in it. */
+.ipa-row:has(.ipa-act:focus-visible),
+.ipa-row:has(.ipa-why__title:focus-visible) {
+    background: var(--ipa-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ipa-row {
+        transition: none;
+    }
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────── */
+
+/*
+ * _variables.css declares its tokens under [data-coreui-theme="light"] only,
+ * so a page sheet that reads them gets light values in both themes unless it
+ * says otherwise — which is why every sheet in this folder carries a block
+ * like this one. Only the values that cannot be derived from a token are
+ * restated: the hairline ring, the veil behind a held-back row, and the two
+ * tonal row washes, which need more alpha to read on a dark ground.
+ */
+[data-coreui-theme='dark'] .ipa-page,
+[data-coreui-theme='dark'] .ipa-drawer {
+    --ipa-veil: rgba(255, 255, 255, 0.02);
+    --ipa-ring: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-coreui-theme='dark'] .ipa-row--held {
+    background: rgba(var(--color-warning-rgb), 0.08);
+}
+
+[data-coreui-theme='dark'] .ipa-chip,
+[data-coreui-theme='dark'] .ipa-seg__btn.is-active {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+[data-coreui-theme='dark'] .ipa-verdict {
+    background: rgba(var(--color-danger-rgb), 0.12);
+}
+
+[data-coreui-theme='dark'] .ipa-verdict--calm {
+    background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+[data-coreui-theme='dark'] .ipa-verdict--done {
+    background: rgba(var(--color-success-rgb), 0.12);
+}
+
+[data-coreui-theme='dark'] .ipa-drawer {
+    box-shadow: -24px 0 48px -32px rgba(0, 0, 0, 0.6);
+}
+
+[dir='rtl'][data-coreui-theme='dark'] .ipa-drawer {
+    box-shadow: 24px 0 48px -32px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+    .ipa-toolbar {
+        align-items: stretch;
+    }
+
+    .ipa-find {
+        inline-size: 100%;
+    }
+
+    .ipa-note {
+        flex-wrap: wrap;
+    }
+}

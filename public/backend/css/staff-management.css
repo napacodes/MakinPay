@@ -1,0 +1,906 @@
+/*
+ * Team members — scoped to .team and to the Manage modal.
+ *
+ * Colours resolve to tokens in _variables.css; sides are logical throughout so
+ * the panel, the presence dot and the row marker mirror in Arabic.
+ *
+ * `.team-modal` carries the same tokens because Manage is rendered outside
+ * `.team` — a dialog's backdrop has to cover the page, not one column — and a
+ * custom property declared only on an ancestor it no longer has resolves to
+ * nothing at all.
+ */
+
+.team,
+.team-modal {
+    --team-card: var(--color-card);
+    --team-text: var(--color-text);
+    --team-soft: var(--color-text-soft);
+    --team-muted: var(--color-text-muted);
+    --team-faint: var(--color-text-faint);
+    --team-border: var(--color-border);
+    --team-border-soft: var(--color-border-soft);
+    --team-surface: var(--color-surface-alt);
+    --team-surface-soft: var(--color-surface-soft);
+    --team-veil: var(--color-surface-veil);
+    --team-primary: var(--color-primary);
+    --team-primary-hover: var(--color-primary-hover);
+    --team-ring: var(--top-border-hover);
+    --team-shadow-card: var(--dash-shadow-card);
+    --team-radius-lg: var(--dash-radius-card);
+    --team-ease: var(--shell-ease);
+}
+
+/*
+ * Layout belongs to the page, not to the dialog. `.modal` is shown and hidden
+ * by toggling `display`, so handing it `display: flex` here would pin it open
+ * over every screen it is on.
+ */
+.team {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--team-text);
+}
+
+.team-modal {
+    color: var(--team-text);
+}
+
+/* The panel is the dialog now: it fills the content box rather than sitting beside a table. */
+.team-modal .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--team-radius-lg);
+    background: var(--team-card);
+}
+
+.team-modal .team-drawer {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+}
+
+.team-chip:focus-visible,
+.team-seg:focus-visible,
+.team-manage:focus-visible,
+.team-switch:focus-visible {
+    outline: none;
+    box-shadow: var(--top-focus-ring);
+}
+
+/* ────────────────────────────────  layout  ─────────────────────────────── */
+
+.team-panes {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.team-table-card {
+    flex: 10 1 32.5rem;
+    min-width: 0;
+    border-radius: var(--team-radius-lg);
+    background: var(--team-card);
+    box-shadow: var(--team-shadow-card);
+    overflow: hidden;
+}
+
+/* ────────────────────────────────  toolbar  ────────────────────────────── */
+
+.team-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--team-border-soft);
+}
+
+.team-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 12.5rem;
+    max-width: 20rem;
+    height: 2.25rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--team-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--team-surface);
+    transition: background-color 0.2s var(--team-ease), border-color 0.2s var(--team-ease);
+}
+
+.team-search:hover,
+.team-search:focus-within {
+    border-color: var(--team-ring);
+    background: var(--team-card);
+}
+
+.team-search__icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--team-muted);
+}
+
+.team-search__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.8125rem;
+    color: var(--team-text);
+    outline: none;
+}
+
+.team-chips {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.team-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.875rem;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--team-border);
+    border-radius: 999px;
+    background: var(--team-card);
+    color: var(--team-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s var(--team-ease), border-color 0.2s var(--team-ease), color 0.2s var(--team-ease);
+}
+
+.team-chip:hover {
+    border-color: var(--team-ring);
+    color: var(--team-soft);
+}
+
+.team-chip.is-active {
+    background: var(--team-primary);
+    border-color: var(--team-primary);
+    color: rgb(var(--color-white-rgb));
+}
+
+.team-chip__count {
+    font-size: 0.65625rem;
+    font-weight: 700;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+.team-segments {
+    display: inline-flex;
+    gap: 0.125rem;
+    margin-inline-start: auto;
+    padding: 0.1875rem;
+    border-radius: var(--dash-radius-control);
+    background: var(--team-surface-soft);
+}
+
+.team-seg {
+    height: 1.875rem;
+    padding-inline: 0.75rem;
+    border: 0;
+    border-radius: 0.4375rem;
+    background: transparent;
+    color: var(--team-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s var(--team-ease), color 0.2s var(--team-ease);
+}
+
+.team-seg.is-active {
+    background: var(--team-card);
+    color: var(--team-text);
+    box-shadow: var(--dash-shadow-seg);
+}
+
+/* ─────────────────────────────────  table  ─────────────────────────────── */
+
+.team-table__scroll {
+    overflow-x: auto;
+}
+
+/*
+ * The narrowest width every column still fits in, not `max-content`.
+ * `max-content` lets the flexible Member column claim whatever the longest
+ * email wants, which pushed the Actions column off the end of a 1440 screen
+ * instead of tightening the name.
+ */
+.team-table__inner {
+    min-width: 53.75rem;
+}
+
+.team-table__head,
+.team-row {
+    display: grid;
+    grid-template-columns: minmax(15rem, 2.2fr) minmax(9.375rem, 1.2fr) 6.25rem 5rem minmax(6.875rem, 1fr) 6.875rem 7.5rem;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.team-table__head {
+    padding: 0.625rem 1.25rem;
+    border-bottom: 1px solid var(--team-border-soft);
+    background: var(--team-surface);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--team-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.team-row {
+    position: relative;
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border: 0;
+    border-bottom: 1px solid var(--team-border-soft);
+    background: transparent;
+    text-align: start;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--team-text);
+    transition: background-color 0.2s var(--team-ease);
+}
+
+.team-row:hover {
+    background: linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.05), rgba(var(--color-primary-rgb), 0.015) 60%, transparent);
+}
+
+[dir='rtl'] .team-row:hover {
+    background: linear-gradient(270deg, rgba(var(--color-primary-rgb), 0.05), rgba(var(--color-primary-rgb), 0.015) 60%, transparent);
+}
+
+.team-row.is-selected {
+    background: rgba(var(--color-primary-rgb), 0.05);
+}
+
+.team-row__marker {
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.625rem;
+    bottom: 0.625rem;
+    width: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background: transparent;
+}
+
+.team-row.is-selected .team-row__marker {
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+}
+
+.team-member {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.team-avatar {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.team-avatar__face {
+    display: grid;
+    place-items: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border-radius: 0.6875rem;
+    overflow: hidden;
+    color: rgb(var(--color-white-rgb));
+    font-size: 0.78125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, var(--color-primary-lift), var(--color-primary-deep));
+}
+
+.team-avatar__face img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.team-avatar__face--g1 { background: linear-gradient(135deg, var(--color-primary-lift), var(--color-primary-deep)); }
+.team-avatar__face--g2 { background: linear-gradient(135deg, var(--color-info), var(--color-info-deep)); }
+.team-avatar__face--g3 { background: linear-gradient(135deg, var(--color-success), var(--color-success-deep)); }
+.team-avatar__face--g4 { background: linear-gradient(135deg, var(--color-warning), var(--color-warning-deep)); }
+.team-avatar__face--g5 { background: linear-gradient(135deg, var(--color-violet), var(--color-violet-deep)); }
+.team-avatar__face--g6 { background: linear-gradient(135deg, var(--color-danger), var(--color-danger-deep)); }
+
+.team-avatar__presence {
+    position: absolute;
+    inset-inline-end: -2px;
+    bottom: -2px;
+    width: 0.6875rem;
+    height: 0.6875rem;
+    border: 2px solid var(--team-card);
+    border-radius: 50%;
+    background: var(--color-border-strong);
+}
+
+.team-avatar__presence--online { background: var(--color-success); }
+.team-avatar__presence--blocked { background: var(--color-danger); }
+
+.team-member__body {
+    display: block;
+    min-width: 0;
+}
+
+.team-member__name {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+    color: var(--team-text);
+    white-space: nowrap;
+}
+
+.team-member__you {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 999px;
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--team-primary);
+}
+
+.team-member__email {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--team-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.team-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.625rem;
+    padding-inline: 0.625rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--team-primary-hover);
+    white-space: nowrap;
+}
+
+.team-role--protected {
+    border-color: rgba(var(--color-warning-rgb), 0.28);
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--color-warning-deep);
+}
+
+.team-role--none {
+    border-color: var(--team-border);
+    background: var(--team-surface-soft);
+    color: var(--team-muted);
+}
+
+.team-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.5rem;
+    padding-inline: 0.5625rem;
+    border-radius: 999px;
+    font-size: 0.71875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.team-status__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.team-status--active {
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+}
+
+.team-status--inactive {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.team-tfa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--team-faint);
+}
+
+.team-tfa--on {
+    color: var(--color-success-deep);
+}
+
+.team-cell {
+    font-size: 0.78125rem;
+    color: var(--team-soft);
+}
+
+.team-cell--muted {
+    color: var(--team-muted);
+}
+
+.team-row__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.team-manage {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 2rem;
+    padding-inline: 0.625rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.24);
+    border-radius: var(--dash-radius-chip);
+    background:
+        linear-gradient(180deg, rgba(var(--color-white-rgb), 0.55), transparent),
+        rgba(var(--color-primary-rgb), 0.1);
+    color: var(--team-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s var(--team-ease), color 0.2s var(--team-ease), border-color 0.2s var(--team-ease), transform 0.2s var(--team-ease);
+}
+
+.team-manage:hover {
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+    border-color: var(--color-primary);
+    color: rgb(var(--color-white-rgb));
+    transform: translateY(-1px);
+}
+
+.team-table__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    background: var(--team-veil);
+    font-size: 0.75rem;
+    color: var(--team-muted);
+}
+
+.team-table__foot strong {
+    color: var(--team-text);
+    font-weight: 600;
+}
+
+.team-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.team-online__dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.team-table__foot .pagination {
+    margin: 0;
+    gap: 0.25rem;
+}
+
+.team-table__foot .page-link {
+    height: 1.875rem;
+    min-width: 1.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.625rem;
+    border: 1px solid var(--team-border);
+    border-radius: var(--dash-radius-chip);
+    background: var(--team-card);
+    color: var(--team-soft);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.team-table__foot .page-item.active .page-link {
+    border-color: var(--team-primary);
+    background: var(--team-primary);
+    color: rgb(var(--color-white-rgb));
+}
+
+/* ─────────────────────────────────  drawer  ────────────────────────────── */
+
+.team-drawer {
+    flex: 1 1 18.75rem;
+    max-width: 21.25rem;
+    min-width: 17.5rem;
+    border-radius: var(--team-radius-lg);
+    background: var(--team-card);
+    box-shadow: var(--team-shadow-card);
+    overflow: hidden;
+    animation: dkPop 0.32s var(--team-ease) both;
+}
+
+.team-drawer__head {
+    position: relative;
+    padding: 1.125rem 1.125rem 1rem;
+    border-bottom: 1px solid var(--team-border-soft);
+    background:
+        radial-gradient(circle at 90% 0%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
+        var(--team-surface);
+}
+
+[dir='rtl'] .team-drawer__head {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(var(--color-primary-rgb), 0.14), transparent 40%),
+        var(--team-surface);
+}
+
+.team-drawer__close {
+    position: absolute;
+    top: 0.75rem;
+    inset-inline-end: 0.75rem;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    border-radius: var(--dash-radius-chip);
+    background: transparent;
+    color: var(--team-muted);
+    text-decoration: none;
+}
+
+.team-drawer__close:hover {
+    background: var(--team-card);
+    color: var(--team-text);
+}
+
+.team-drawer__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.team-drawer__identity .team-avatar__face {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 0.875rem;
+    font-size: 1.0625rem;
+    box-shadow: 0 0 0 2px var(--team-card), 0 0 0 3px rgba(var(--color-primary-rgb), 0.25);
+}
+
+.team-drawer__identity .team-avatar__presence {
+    inset-inline-end: -1px;
+    bottom: -1px;
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.team-drawer__name {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.team-drawer__email {
+    font-size: 0.75rem;
+    color: var(--team-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.team-drawer__chips {
+    display: flex;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.team-drawer__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 1.25rem;
+    padding-inline: 0.4375rem;
+    border-radius: 999px;
+    font-size: 0.65625rem;
+    font-weight: 700;
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--team-primary);
+}
+
+.team-drawer__chip--tfa-on {
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+}
+
+.team-drawer__chip--tfa-off {
+    background: var(--team-surface-soft);
+    color: var(--team-muted);
+}
+
+.team-drawer__body {
+    padding: 1rem 1.125rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.team-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--team-soft);
+}
+
+.team-field input,
+.team-field select {
+    height: 2.375rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--team-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--team-card);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--team-text);
+    outline: none;
+}
+
+.team-field input:focus,
+.team-field select:focus {
+    border-color: var(--team-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.team-switch-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--team-border-soft);
+    border-radius: var(--dash-radius-tile);
+    background: var(--team-veil);
+}
+
+.team-switch-card__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.team-switch-card__hint {
+    font-size: 0.71875rem;
+    color: var(--team-muted);
+}
+
+.team-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.625rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--team-border);
+    transition: background-color 0.2s var(--team-ease);
+    cursor: pointer;
+}
+
+.team-switch[aria-checked='true'] {
+    background: var(--team-primary);
+}
+
+.team-switch[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.team-switch__knob {
+    position: absolute;
+    top: 3px;
+    inset-inline-start: 3px;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    background: rgb(var(--color-white-rgb));
+    box-shadow: 0 1px 3px rgba(var(--color-text-rgb), 0.25);
+    transition: transform 0.2s var(--team-ease);
+}
+
+.team-switch[aria-checked='true'] .team-switch__knob {
+    transform: translateX(1.125rem);
+}
+
+[dir='rtl'] .team-switch[aria-checked='true'] .team-switch__knob {
+    transform: translateX(-1.125rem);
+}
+
+.team-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--dash-radius-tile);
+    background: var(--team-surface);
+    font-size: 0.75rem;
+}
+
+.team-meta__label {
+    font-size: 0.65625rem;
+    font-weight: 700;
+    color: var(--team-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.team-meta__value {
+    margin-top: 0.125rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.team-meta__value--mono {
+    font-family: var(--font-mono);
+    font-size: 0.71875rem;
+}
+
+.team-drawer__actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.125rem;
+}
+
+.team-save {
+    flex: 1;
+    height: 2.375rem;
+    border: 0;
+    border-radius: var(--dash-radius-control);
+    background: var(--team-primary);
+    color: rgb(var(--color-white-rgb));
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.team-save:hover {
+    background: var(--team-primary-hover);
+}
+
+.team-secondary {
+    height: 2.375rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--team-border);
+    border-radius: var(--dash-radius-control);
+    background: var(--team-card);
+    color: var(--team-soft);
+    font-size: 0.78125rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.team-secondary:hover {
+    border-color: var(--team-ring);
+}
+
+.team-danger {
+    height: 2.25rem;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.2);
+    border-radius: var(--dash-radius-control);
+    background: rgba(var(--color-danger-rgb), 0.05);
+    color: var(--color-danger-deep);
+    font-size: 0.78125rem;
+    font-weight: 600;
+    transition: background-color 0.2s var(--team-ease), color 0.2s var(--team-ease), border-color 0.2s var(--team-ease);
+}
+
+.team-danger:hover {
+    border-color: var(--color-danger-strong);
+    background: var(--color-danger-strong);
+    color: rgb(var(--color-white-rgb));
+}
+
+.team-empty {
+    padding: 2rem 1rem;
+}
+
+/* ──────────────────────────────  responsive  ───────────────────────────── */
+
+@media (max-width: 991.98px) {
+    .team-drawer {
+        max-width: none;
+        flex-basis: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .team-segments {
+        margin-inline-start: 0;
+    }
+}
+
+/* ───────────────────────────────  dark mode  ───────────────────────────── */
+
+[data-coreui-theme='dark'] .team,
+[data-coreui-theme='dark'] .team-modal {
+    --team-card: var(--cui-body-bg);
+    --team-text: rgba(var(--color-white-rgb), 0.92);
+    --team-soft: rgba(var(--color-white-rgb), 0.78);
+    --team-muted: rgba(var(--color-white-rgb), 0.62);
+    --team-faint: rgba(var(--color-white-rgb), 0.45);
+    --team-border: rgba(var(--color-white-rgb), 0.12);
+    --team-border-soft: rgba(var(--color-white-rgb), 0.08);
+    --team-surface: rgba(var(--color-white-rgb), 0.04);
+    --team-surface-soft: rgba(var(--color-white-rgb), 0.06);
+    --team-veil: rgba(var(--color-white-rgb), 0.03);
+    --team-ring: rgba(var(--color-primary-rgb), 0.5);
+    --team-shadow-card: 0 1rem 2.2rem rgba(var(--color-black-rgb), 0.22);
+}
+
+/* ────────────────────────────  reduced motion  ─────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .team-drawer {
+        animation: none;
+    }
+
+    .team-row,
+    .team-chip,
+    .team-seg,
+    .team-manage,
+    .team-switch,
+    .team-switch__knob,
+    .team-danger {
+        transition: none;
+    }
+
+    .team-manage:hover {
+        transform: none;
+    }
+}
+
+/*
+ * A filter chip is a tap target on a phone.
+ *
+ * Every one of these is a fixed 1.875rem tall, which reads well under a mouse and
+ * is under the 36px floor this admin already committed to for its top-bar
+ * controls. `min-block-size` is enough on its own — it wins over `height`,
+ * so the desktop rule above is left exactly as written and only a touch
+ * screen sees the difference. The strip that holds them has padding and no
+ * height of its own, so it grows with them.
+ */
+@media (max-width: 991.98px) {
+    .team-seg,
+    .team-chip {
+        min-block-size: 36px;
+    }
+}

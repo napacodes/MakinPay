@@ -1,0 +1,2628 @@
+/*
+ * Admin → Users → Manage user.
+ *
+ * One page, one prefix. Everything below hangs off `.um-page`; the header is
+ * `<x-page-header>` and is styled only by page-header.css. Logical properties
+ * throughout — the admin ships in Arabic — and every colour is a token from
+ * _variables.css so the dark theme falls out of the same rules.
+ */
+
+.um-page {
+    --um-text: var(--color-text);
+    --um-text-soft: var(--color-text-soft);
+    --um-subtle: var(--color-text-subtle);
+    --um-muted: var(--color-text-muted);
+    --um-faint: var(--color-text-faint);
+    --um-card: var(--color-card);
+    --um-surface: var(--color-surface-alt);
+    --um-soft: var(--color-surface-soft);
+    --um-veil: var(--color-surface-veil, #fcfcfd);
+    --um-border: var(--color-border);
+    --um-border-soft: var(--color-border-soft);
+    --um-border-strong: var(--color-border-strong);
+    --um-primary: var(--color-primary);
+    --um-primary-hover: var(--color-primary-hover);
+    --um-primary-deep: var(--color-primary-deep);
+    --um-primary-lift: var(--color-primary-lift);
+    --um-primary-tint: var(--color-primary-tint, #c7d2fe);
+    --um-primary-soft: rgba(var(--color-primary-rgb), 0.08);
+    --um-success: var(--color-success-strong);
+    --um-success-deep: var(--color-success-deep);
+    --um-success-soft: rgba(var(--color-success-rgb), 0.12);
+    --um-warning: var(--color-warning);
+    --um-warning-strong: var(--color-warning-strong);
+    --um-warning-deep: var(--color-warning-deep);
+    --um-warning-soft: rgba(var(--color-warning-rgb), 0.14);
+    --um-danger: var(--color-danger-strong);
+    --um-danger-deep: var(--color-danger-deep);
+    --um-danger-soft: rgba(var(--color-danger-rgb), 0.1);
+    --um-ring: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --um-ring-soft: 0 0 0 1px rgba(15, 23, 42, 0.08);
+    --um-ring-control: 0 0 0 1px rgba(15, 23, 42, 0.1);
+    --um-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+    --um-track: #d1d5db;
+    --um-mono: var(--font-mono);
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 1320px;
+    margin-inline: auto;
+    color: var(--um-text);
+    overflow-x: clip;
+}
+
+/* ── Body: main column + rail ─────────────────────────────────────────── */
+
+/*
+ * Delta 3: the two columns stretch to one height. The main column takes
+ * three shares to the rail's one on a 520px basis, which lands the rail at
+ * about a quarter of the row (≈366px at 1440) and stacks it under the main
+ * column below roughly 900px. No sticky rail.
+ */
+.um-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.um-main {
+    display: flex;
+    flex: 4 1 520px;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+/* Four shares to one and a 340px cap: the rail sits at ~30% of the row. */
+.um-rail {
+    display: flex;
+    flex: 1 1 280px;
+    flex-direction: column;
+    gap: 16px;
+    align-self: stretch;
+    max-width: 100%;
+    min-width: 0;
+}
+
+@media (min-width: 900px) {
+    .um-rail {
+        max-width: 340px;
+    }
+}
+
+.um-rail > .um-card {
+    flex: 0 0 auto;
+}
+
+/*
+ * The controls card fills whatever height the wallets card leaves, and only
+ * its list scrolls: on a desktop the card's bottom meets the main column's,
+ * with no empty band inside; stacked, the list caps at 392px.
+ */
+.um-rail > .um-card--fill {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.um-card--fill > .um-card__head {
+    flex: 0 0 auto;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+
+.um-card {
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--um-card);
+    box-shadow: var(--um-ring);
+}
+
+.um-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-rail .um-card__head {
+    padding: 16px 18px;
+}
+
+.um-card__title {
+    margin: 0;
+    color: var(--um-text);
+    font-size: 15px;
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.um-rail .um-card__title {
+    font-size: 14px;
+}
+
+.um-card__sub {
+    margin: 2px 0 0;
+    color: var(--um-muted);
+    font-size: 12.5px;
+}
+
+.um-card__aside {
+    color: var(--um-muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.um-card__aside strong {
+    color: var(--um-text);
+    font-weight: var(--font-semibold);
+}
+
+.um-card__aside strong.is-brand {
+    color: var(--um-primary);
+}
+
+.um-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 22px;
+    background: var(--um-veil);
+}
+
+.um-rail .um-card__foot {
+    padding: 12px 18px;
+}
+
+.um-card__foot--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.um-card__empty {
+    padding: 40px 22px;
+    color: var(--um-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.um-link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--um-primary);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.um-link:hover,
+.um-link:focus-visible {
+    color: var(--um-primary-hover);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+
+.um-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--um-border);
+    border-radius: 10px;
+    background: var(--um-card);
+    color: var(--um-subtle);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: var(--font-semibold) !important;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.um-btn > svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+/* Stroke-drawn glyphs (e.g. history) keep their outline; CoreUI's .icon would fill them. */
+.um-btn > svg[stroke] {
+    fill: none;
+}
+
+.um-btn:hover,
+.um-btn:focus-visible {
+    background: var(--um-surface);
+    border-color: var(--um-primary-tint);
+    color: var(--um-text);
+}
+
+.um-btn:focus-visible {
+    outline: 0;
+    box-shadow: var(--um-focus);
+}
+
+.um-btn--primary {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    background: linear-gradient(180deg, var(--um-primary-lift), var(--um-primary));
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.um-btn--primary:hover,
+.um-btn--primary:focus-visible {
+    background: linear-gradient(180deg, #5b5ef0, var(--um-primary-hover));
+    color: #fff;
+}
+
+.um-btn--warning {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    background: var(--um-warning-deep);
+    color: #fff;
+}
+
+.um-btn--warning:hover,
+.um-btn--warning:focus-visible {
+    background: #92400e;
+    color: #fff;
+}
+
+.um-btn--danger {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    background: var(--um-danger);
+    color: #fff;
+}
+
+.um-btn--danger:hover,
+.um-btn--danger:focus-visible {
+    background: var(--um-danger-deep);
+    color: #fff;
+}
+
+.um-btn--h40 {
+    height: 40px;
+}
+
+.um-btn--sm {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+}
+
+.um-btn--block {
+    width: 100%;
+    height: 36px;
+    border-radius: 9px;
+    font-size: 13px;
+}
+
+.um-btn:disabled,
+.um-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.um-btn--sm:disabled {
+    color: var(--um-faint);
+}
+
+/* ── Segmented control ────────────────────────────────────────────────── */
+
+.um-seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--um-soft);
+}
+
+.um-seg--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+
+.um-seg--halves {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.um-seg__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--um-muted);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.um-seg--grid .um-seg__btn {
+    height: 32px;
+}
+
+.um-seg--halves .um-seg__btn {
+    height: 34px;
+    font-size: 13px;
+}
+
+.um-seg__btn:hover {
+    color: var(--um-text);
+}
+
+.um-seg__btn.is-active {
+    background: var(--um-card);
+    color: var(--um-text);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+/* ── Badges and pills ─────────────────────────────────────────────────── */
+
+.um-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--um-soft);
+    color: var(--um-subtle);
+    font-size: 11.5px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.um-badge--xs {
+    height: 18px;
+    padding: 0 7px;
+    font-size: 11px;
+}
+
+.um-badge__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.um-badge--success {
+    background: var(--um-success-soft);
+    color: var(--um-success-deep);
+}
+
+.um-badge--success .um-badge__dot {
+    background: var(--um-success);
+}
+
+.um-badge--warning {
+    background: var(--um-warning-soft);
+    color: var(--um-warning-deep);
+}
+
+.um-badge--warning .um-badge__dot {
+    background: var(--um-warning);
+}
+
+.um-badge--danger {
+    background: var(--um-danger-soft);
+    color: var(--um-danger-deep);
+}
+
+.um-badge--danger .um-badge__dot {
+    background: var(--um-danger);
+}
+
+.um-badge--brand {
+    background: var(--um-primary-soft);
+    color: var(--um-primary-deep);
+}
+
+.um-badge--brand .um-badge__dot {
+    background: var(--um-primary);
+}
+
+.um-badge--info {
+    background: rgba(var(--color-info-rgb), 0.12);
+    color: var(--color-info-deep);
+}
+
+.um-badge--info .um-badge__dot {
+    background: var(--color-info);
+}
+
+.um-badge--bold {
+    height: 22px;
+    padding: 0 9px;
+    font-weight: var(--font-bold);
+}
+
+/* ── Tiles (icon in a rounded square) ─────────────────────────────────── */
+
+.um-tile {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--um-soft);
+    color: var(--um-subtle);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.um-tile > svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.um-tile--sm {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+}
+
+.um-tile--sm > svg {
+    width: 15px;
+    height: 15px;
+}
+
+.um-tile--xs {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+}
+
+.um-tile--xs > svg {
+    width: 15px;
+    height: 15px;
+}
+
+.um-tile--in {
+    background: var(--um-success-soft);
+    color: var(--um-success-deep);
+}
+
+.um-tile--out {
+    background: var(--um-warning-soft);
+    color: var(--um-warning-deep);
+}
+
+.um-tile--brand {
+    background: var(--um-primary-soft);
+    color: var(--um-primary);
+}
+
+.um-tile--success {
+    background: var(--um-success-soft);
+    color: var(--um-success);
+}
+
+.um-tile--warning {
+    background: var(--um-warning-soft);
+    color: var(--um-warning-strong);
+}
+
+.um-tile--danger {
+    background: var(--um-danger-soft);
+    color: var(--um-danger);
+}
+
+.um-tile--solid {
+    background: var(--um-primary);
+    color: #fff;
+}
+
+.um-mono {
+    font-family: var(--um-mono);
+    font-size: 11.5px;
+}
+
+.um-num {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Overview: transaction summary ────────────────────────────────────── */
+
+/*
+ * KPI strip: three cells whose swatches double as the legend, so there is
+ * no separate In/Out key under the chart (delta 2).
+ */
+.um-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    border-block-end: 1px solid var(--um-border-soft);
+    background: linear-gradient(180deg, rgba(var(--color-surface-alt-rgb), 0.7), var(--um-card));
+}
+
+.um-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 16px clamp(14px, 2vw, 22px);
+    border-inline-end: 1px solid var(--um-border-soft);
+}
+
+.um-kpi:last-child {
+    border-inline-end: 0;
+}
+
+.um-kpi__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.um-kpi__swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--um-primary);
+}
+
+.um-kpi__swatch--out {
+    background: var(--um-primary-tint);
+}
+
+.um-kpi__value {
+    color: var(--um-text);
+    font-size: 22px;
+    font-weight: var(--font-bold);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.um-kpi__value--in {
+    color: var(--um-success-deep);
+}
+
+.um-kpi__value--net {
+    color: var(--um-primary);
+}
+
+.um-kpi__note {
+    color: var(--um-muted);
+    font-size: 12px;
+}
+
+/*
+ * The chart: a y-axis column beside a 170px plot with one dashed gridline
+ * per tick (the base line solid), two bars per bucket capped at 18px, and
+ * the x labels on a second grid row that shares the bucket columns.
+ */
+.um-chart {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0 12px;
+    padding: 18px clamp(14px, 2vw, 22px) 14px;
+}
+
+.um-chart__axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 170px;
+    padding-block-end: 1px;
+    color: var(--um-faint);
+    font-size: 10.5px;
+    line-height: 1;
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.um-chart__plot {
+    position: relative;
+    height: 170px;
+}
+
+.um-chart__grid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.um-chart__grid > span {
+    border-block-start: 1px dashed var(--um-border);
+}
+
+.um-chart__grid > span.is-base {
+    border-block-start-style: solid;
+}
+
+.um-chart__bars,
+.um-chart__labels {
+    display: grid;
+    grid-template-columns: repeat(var(--um-buckets, 12), minmax(0, 1fr));
+    gap: clamp(6px, 1.2vw, 14px);
+}
+
+.um-chart__bars {
+    position: absolute;
+    inset: 0 0 1px 0;
+    align-items: end;
+    padding-inline: clamp(2px, 0.8vw, 8px);
+}
+
+.um-chart__group {
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 3px;
+    height: 100%;
+}
+
+.um-chart__bar {
+    flex: 1;
+    max-width: 18px;
+    border-start-start-radius: 4px;
+    border-start-end-radius: 4px;
+    background: var(--um-primary);
+    transition: height 0.3s ease;
+}
+
+.um-chart__group.is-current .um-chart__bar:not(.um-chart__bar--out) {
+    background: linear-gradient(180deg, var(--um-primary-lift), var(--um-primary));
+}
+
+.um-chart__bar--out {
+    background: var(--um-primary-tint);
+}
+
+.um-chart__labels {
+    padding: 8px clamp(2px, 0.8vw, 8px) 0;
+    color: var(--um-faint);
+    font-size: 10.5px;
+    text-align: center;
+}
+
+.um-chart__labels span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-chart__labels span.is-current {
+    color: var(--um-subtle);
+    font-weight: var(--font-semibold);
+}
+
+.um-chart.is-loading {
+    opacity: 0.6;
+}
+
+/* ── Transaction rows (overview list + transactions table) ────────────── */
+
+.um-trx {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+    transition: background-color 0.12s ease;
+}
+
+.um-trx:hover,
+.um-table__row:hover,
+.um-list__row:hover,
+.um-wallet:hover,
+.um-control:hover {
+    background: var(--um-veil);
+}
+
+/*
+ * A row that opens the transaction dialogue.
+ *
+ * The hover tint above already reaches every row, clickable or not, so what
+ * these add is the part that tells the truth: a pointer, and a ring for the
+ * reader who arrives by keyboard. The modifier is only printed where the
+ * administrator holds `transaction-list`, so a row that cannot be opened
+ * neither invites the click nor takes the tab stop.
+ */
+.um-table__row--open,
+.um-trx--open {
+    cursor: pointer;
+}
+
+.um-table__row--open:focus-visible,
+.um-trx--open:focus-visible {
+    outline: 0;
+    box-shadow: var(--um-focus);
+}
+
+.um-trx__copy,
+.um-cell__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.um-trx__title,
+.um-cell__title {
+    overflow: hidden;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-trx__meta,
+.um-cell__meta {
+    overflow: hidden;
+    color: var(--um-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-trx__end {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.um-amount {
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.um-amount--in {
+    color: var(--um-success-deep);
+}
+
+.um-amount--muted {
+    color: var(--um-faint);
+}
+
+.um-fee {
+    color: var(--um-faint);
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+/* ── Information form ─────────────────────────────────────────────────── */
+
+.um-form__section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 24px;
+    padding: clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-form__intro {
+    flex: 0 1 220px;
+    min-width: 180px;
+}
+
+.um-form__intro h3 {
+    margin: 0;
+    color: var(--um-text);
+    font-size: 14px;
+    font-weight: var(--font-bold) !important;
+}
+
+.um-form__intro p {
+    margin: 4px 0 0;
+    color: var(--um-muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.um-form__grid {
+    display: grid;
+    flex: 1 1 420px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    min-width: 0;
+}
+
+.um-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.um-field--span {
+    grid-column: 1 / -1;
+}
+
+.um-field__label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--um-text-soft);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+}
+
+.um-field__label .is-required {
+    color: var(--um-danger);
+}
+
+.um-field__label .is-optional {
+    color: var(--um-faint);
+    font-weight: var(--font-medium);
+}
+
+.um-field__tag {
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-medium);
+}
+
+.um-field__count {
+    color: var(--um-faint);
+    font-size: 11.5px;
+    font-weight: var(--font-normal);
+}
+
+.um-field__count.is-hot {
+    color: var(--um-warning-deep);
+}
+
+.um-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--um-border);
+    border-radius: 10px;
+    background: var(--um-card);
+    color: var(--um-text);
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.4;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.um-input:focus {
+    border-color: var(--um-primary);
+    outline: 0;
+    box-shadow: var(--um-focus);
+}
+
+.um-input--lg {
+    height: 42px;
+    font-size: 14px;
+}
+
+.um-input--mono {
+    font-family: var(--um-mono);
+    letter-spacing: 0.08em;
+}
+
+.um-input--danger:focus {
+    border-color: var(--um-danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+textarea.um-input {
+    height: auto;
+    min-height: 74px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: none;
+}
+
+textarea.um-input--tall {
+    min-height: 110px;
+    font-size: 14px;
+    line-height: 1.55;
+    resize: vertical;
+}
+
+select.um-input {
+    appearance: none;
+    padding-inline-end: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+}
+
+[dir="rtl"] select.um-input {
+    background-position: left 12px center;
+}
+
+.um-input:disabled,
+.um-input--locked {
+    background: var(--um-surface);
+    color: var(--um-muted);
+}
+
+.um-field__error {
+    color: var(--um-danger-deep);
+    font-size: 12px;
+}
+
+.um-field__hint {
+    color: var(--um-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* ── Transactions tab ─────────────────────────────────────────────────── */
+
+.um-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-toolbar__end {
+    display: flex;
+    gap: 10px;
+    margin-inline-start: auto;
+}
+
+.um-search {
+    position: relative;
+    display: flex;
+    flex: 1 1 220px;
+    align-items: center;
+    max-width: 320px;
+}
+
+.um-search__icon {
+    position: absolute;
+    inset-inline-start: 12px;
+    display: inline-flex;
+    color: var(--um-faint);
+    pointer-events: none;
+}
+
+.um-search__icon > svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.um-search .um-input {
+    height: 38px;
+    padding-inline-start: 34px;
+    font-size: 13px;
+}
+
+.um-table-wrap {
+    overflow-x: auto;
+}
+
+.um-table__head,
+.um-table__row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto;
+    gap: 16px;
+    min-width: 620px;
+    padding: 12px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-table__head {
+    padding-block: 10px;
+    background: var(--um-veil);
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.um-table__row {
+    align-items: center;
+    transition: background-color 0.12s ease;
+}
+
+.um-table__cell--end {
+    text-align: end;
+}
+
+.um-cell {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.um-cell__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.um-cell__ref {
+    color: var(--um-text-soft);
+    font-family: var(--um-mono);
+    font-size: 12px;
+}
+
+.um-cell__date {
+    color: var(--um-muted);
+    font-size: 12px;
+}
+
+.um-cell__end {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.um-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 22px;
+    background: var(--um-veil);
+    color: var(--um-muted);
+    font-size: 12.5px;
+}
+
+.um-pager strong {
+    color: var(--um-text);
+    font-weight: var(--font-semibold);
+}
+
+.um-pager__nav {
+    display: flex;
+    gap: 6px;
+}
+
+/* ── Simple lists (referrals, tickets, activity) ──────────────────────── */
+
+.um-list__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 13px 22px;
+    border-block-end: 1px solid var(--um-border-soft);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.12s ease;
+}
+
+a.um-list__row:hover .um-list__title {
+    color: var(--um-primary);
+}
+
+.um-list__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.um-list__title {
+    overflow: hidden;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-list__sub {
+    overflow: hidden;
+    color: var(--um-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-list__end {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.um-list__when {
+    color: var(--um-faint);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ── Rail: wallets ────────────────────────────────────────────────────── */
+
+/*
+ * Four wallets show; the rest scroll inside the card. user-manage.js sets
+ * the exact height of the first four rows; 67px per row is the no-JS fallback.
+ */
+.um-wallets__list {
+    max-height: calc(4 * 67px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.um-wallet {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    border-block-end: 1px solid var(--um-border-soft);
+    transition: background-color 0.12s ease;
+}
+
+.um-wallet__tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--um-soft);
+    color: var(--um-subtle);
+    font-size: 11.5px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.02em;
+}
+
+.um-wallet__tile.is-default {
+    background: linear-gradient(160deg, var(--um-primary-lift), var(--um-primary-hover));
+    color: #fff;
+}
+
+/*
+ * The currency's own flag, when it has one; the code is the fallback and
+ * takes over the instant the image fails (onerror removes the img).
+ */
+.um-wallet__tile img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/*
+ * A coloured currency icon on the indigo gradient read as two brands
+ * fighting. With an image present the default wallet keeps a quiet white
+ * tile and says "default" with a thin brand ring instead; the gradient
+ * only backs the two-letter fallback, where it is the only colour.
+ */
+.um-wallet__tile:has(img) {
+    background: var(--um-card);
+    box-shadow: inset 0 0 0 1px var(--um-border);
+}
+
+.um-wallet__tile.is-default:has(img) {
+    background: var(--um-card);
+    box-shadow: inset 0 0 0 1.5px var(--um-primary), 0 0 0 3px var(--um-primary-soft);
+}
+
+[data-coreui-theme="dark"] .um-wallet__tile:has(img) {
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px var(--um-border);
+}
+
+[data-coreui-theme="dark"] .um-wallet__tile.is-default:has(img) {
+    box-shadow: inset 0 0 0 1.5px var(--color-primary-light, #818cf8), 0 0 0 3px var(--um-primary-soft);
+}
+
+.um-wallet__tile img + .um-wallet__code {
+    display: none;
+}
+
+.um-option__code {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.um-option__flag {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.um-wallet__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.um-wallet__name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+}
+
+/* "United States Dollar" beside a Default pill wrapped to three lines. */
+.um-wallet__name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-wallet__name .um-badge {
+    flex: 0 0 auto;
+}
+
+.um-wallet__recent {
+    overflow: hidden;
+    color: var(--um-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-wallet__balance {
+    color: var(--um-text);
+    font-size: 14px;
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* ── Rail: account controls ───────────────────────────────────────────── */
+
+/*
+ * `auto` basis rather than the delta's `0`: with a zero basis the list
+ * resolves to its 240px minimum whenever the rail is stacked and unstretched,
+ * which is the opposite of "caps at 392px". With `auto` it fills the card on
+ * a desktop (the card's height is fixed by the row) and shows its content up
+ * to the cap when stacked.
+ */
+.um-controls {
+    flex: 1 1 auto;
+    min-height: 240px;
+    max-height: max(392px, (100vw - 940px) * 100);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.um-control {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    border-block-end: 1px solid var(--um-border-soft);
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.um-control.is-on .um-tile {
+    background: var(--um-primary-soft);
+    color: var(--um-primary);
+}
+
+.um-control:not(.is-on) .um-tile {
+    color: var(--um-faint);
+}
+
+.um-control__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.um-control__label {
+    color: var(--um-subtle);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+}
+
+.um-control.is-on .um-control__label {
+    color: var(--um-text);
+}
+
+.um-control__hint {
+    color: var(--um-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.um-control.is-busy {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ── Switch ───────────────────────────────────────────────────────────── */
+
+.um-switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--um-track);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.um-switch::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-start: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.um-switch[aria-checked="true"] {
+    background: var(--um-primary);
+}
+
+.um-switch[aria-checked="true"]::after {
+    transform: translateX(18px);
+}
+
+[dir="rtl"] .um-switch[aria-checked="true"]::after {
+    transform: translateX(-18px);
+}
+
+.um-switch:focus-visible {
+    outline: 0;
+    box-shadow: var(--um-focus);
+}
+
+.um-switch-row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--um-surface);
+    cursor: pointer;
+}
+
+.um-switch-row__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.um-switch-row__label {
+    color: var(--um-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+}
+
+.um-switch-row__hint {
+    color: var(--um-muted);
+    font-size: 12px;
+}
+
+/* ── Security strip (Overview, first card) ────────────────────────────── */
+
+.um-security__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-security__title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.um-security__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.um-btn--xs {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 9px;
+    font-size: 12.5px;
+}
+
+.um-btn--xs > svg {
+    width: 13px;
+    height: 13px;
+}
+
+/* The 1px gap on a border-soft background draws the dividers between tiles. */
+.um-security__tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    background: var(--um-border-soft);
+}
+
+.um-security__tile {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 max(clamp(calc(25% - 1px), (700px - 100%) * 100, calc(50% - 1px)), min(100%, (380px - 100%) * 100));
+    min-width: 0;
+    padding: 14px clamp(14px, 2vw, 20px);
+    background: var(--um-card);
+    box-sizing: border-box;
+}
+
+.um-tile--sec {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+}
+
+.um-tile--sec > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.um-security__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.um-security__label {
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.um-security__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.um-security__status .um-badge__dot {
+    width: 7px;
+    height: 7px;
+}
+
+.um-security__status--success {
+    color: var(--um-success-deep);
+}
+
+.um-security__status--success .um-badge__dot {
+    background: var(--um-success);
+}
+
+.um-security__status--warning {
+    color: var(--um-warning-deep);
+}
+
+.um-security__status--warning .um-badge__dot {
+    background: var(--um-warning);
+}
+
+.um-security__status--danger {
+    color: var(--um-danger-deep);
+}
+
+.um-security__status--danger .um-badge__dot {
+    background: var(--um-danger);
+}
+
+.um-security__sub {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--um-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* ── Modals (CoreUI modal, restyled) ──────────────────────────────────── */
+
+.um-modal .modal-dialog {
+    max-width: 520px;
+    margin: 10px auto;
+}
+
+.um-modal--sm .modal-dialog {
+    max-width: 500px;
+}
+
+.um-modal--md .modal-dialog {
+    max-width: 560px;
+}
+
+.um-modal.fade .modal-dialog {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.26s ease;
+}
+
+.um-modal.show .modal-dialog {
+    opacity: 1;
+    transform: none;
+}
+
+.um-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 20px);
+    overflow: hidden;
+    border: 0;
+    border-radius: 18px;
+    background: var(--um-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 12px 16px -12px rgba(15, 23, 42, 0.3);
+}
+
+/*
+ * CoreUI appends the backdrop to <body>, so it cannot be scoped under
+ * .um-page; this sheet is only linked on the manage page, which is scope
+ * enough. The transition keeps CoreUI's fade.
+ */
+body > .modal-backdrop {
+    background: #0f172a;
+    backdrop-filter: blur(3px);
+}
+
+body > .modal-backdrop.show {
+    opacity: 0.45;
+}
+
+.um-modal__head {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 14px;
+    padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px) 14px;
+    border-block-end: 1px solid var(--um-border-soft);
+}
+
+.um-modal__tile {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--um-primary-soft);
+    color: var(--um-primary);
+}
+
+.um-modal__tile > svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.um-modal__tile--warning {
+    background: var(--um-warning-soft);
+    color: var(--um-warning-strong);
+}
+
+.um-modal__tile--danger {
+    background: var(--um-danger-soft);
+    color: var(--um-danger);
+}
+
+.um-modal__heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.um-modal__title {
+    margin: 0;
+    color: var(--um-text);
+    font-size: 16px;
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.01em;
+}
+
+.um-modal__sub {
+    margin: 2px 0 0;
+    color: var(--um-muted);
+    font-size: 12.5px;
+}
+
+.um-modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--um-faint);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.um-modal__close:hover {
+    background: var(--um-soft);
+    color: var(--um-text);
+}
+
+.um-modal__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+    padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px);
+    overflow-y: auto;
+}
+
+.um-modal__body--tight {
+    gap: 16px;
+}
+
+.um-modal__foot {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px clamp(14px, 3vw, 24px) clamp(14px, 3vw, 20px);
+    border-block-start: 1px solid var(--um-border-soft);
+    background: var(--um-veil);
+}
+
+.um-modal__foot .um-btn {
+    height: 40px;
+}
+
+.um-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.um-group__label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--um-text-soft);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+}
+
+.um-group__label .is-optional {
+    color: var(--um-faint);
+    font-weight: var(--font-medium);
+}
+
+.um-group__label .is-required {
+    color: var(--um-danger);
+}
+
+.um-group__meta {
+    color: var(--um-muted);
+    font-size: 11.5px;
+    font-weight: var(--font-normal);
+}
+
+.um-group__meta strong {
+    color: var(--um-text);
+    font-weight: var(--font-semibold);
+}
+
+/* Option cards (wallets, channels, methods) */
+
+.um-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.um-options--wide {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.um-options--stack {
+    grid-template-columns: 1fr;
+}
+
+.um-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--um-card);
+    box-shadow: var(--um-ring-control);
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.um-option:hover {
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.4);
+}
+
+.um-option.is-active {
+    background: rgba(var(--color-primary-rgb), 0.06);
+    box-shadow: 0 0 0 1.5px var(--um-primary);
+}
+
+.um-option__code {
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+}
+
+.um-option.is-active .um-option__code {
+    color: var(--um-primary);
+}
+
+.um-option__value {
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.um-option--row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+.um-option--radio {
+    grid-template-columns: 34px minmax(0, 1fr) 18px;
+    padding: 12px 14px;
+    gap: 12px;
+}
+
+.um-option .um-tile {
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.um-option.is-active .um-tile {
+    background: var(--um-primary);
+    color: #fff;
+}
+
+.um-option__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.um-option__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+}
+
+.um-option__sub {
+    overflow: hidden;
+    color: var(--um-muted);
+    font-size: 11.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-option__desc {
+    color: var(--um-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: normal;
+}
+
+.um-radio {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--um-border-strong);
+    border-radius: 50%;
+    background: var(--um-card);
+    box-sizing: border-box;
+}
+
+.um-radio::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+}
+
+.um-option.is-active .um-radio {
+    border-color: var(--um-primary);
+    background: var(--um-primary);
+}
+
+.um-option.is-active .um-radio::after {
+    opacity: 1;
+}
+
+/* Chips (templates, reasons, quick amounts) */
+
+.um-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.um-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 11px;
+    border: 1px solid var(--um-border);
+    border-radius: 999px;
+    background: var(--um-card);
+    color: var(--um-subtle);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.um-chip:hover {
+    border-color: var(--um-primary-tint);
+    color: var(--um-primary);
+}
+
+.um-chip.is-active {
+    border-color: var(--um-primary);
+    background: var(--um-primary-soft);
+    color: var(--um-primary-deep);
+}
+
+.um-chip--warning {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 12.5px;
+}
+
+.um-chip--warning:hover {
+    border-color: var(--color-warning-tint, #fcd34d);
+    color: var(--um-subtle);
+}
+
+.um-chip--warning.is-active {
+    border-color: var(--um-warning-strong);
+    background: var(--um-warning-soft);
+    color: #92400e;
+}
+
+/* Amount field */
+
+.um-amount-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--um-border);
+    border-radius: 12px;
+    background: var(--um-card);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.um-amount-field:focus-within {
+    border-color: var(--um-primary);
+    box-shadow: var(--um-focus);
+}
+
+.um-amount-field.is-invalid,
+.um-amount-field.is-invalid:focus-within {
+    border-color: var(--um-danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.um-amount-field__symbol {
+    color: var(--um-faint);
+    font-size: 18px;
+    font-weight: var(--font-semibold);
+}
+
+.um-amount-field__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--um-text);
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: var(--font-bold);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.um-amount-field__input:focus {
+    outline: 0;
+}
+
+.um-amount-field__code {
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--um-soft);
+    color: var(--um-subtle);
+    font-size: 12px;
+    font-weight: var(--font-bold);
+}
+
+.um-compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--um-surface);
+}
+
+.um-compare__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.um-compare__cell--end {
+    text-align: end;
+}
+
+.um-compare__label {
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.um-compare__value {
+    color: var(--um-text);
+    font-size: 14px;
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.um-compare__value.is-in {
+    color: var(--um-success-deep);
+    font-weight: var(--font-bold);
+}
+
+.um-compare__value.is-over {
+    color: var(--um-danger-deep);
+    font-weight: var(--font-bold);
+}
+
+.um-compare__arrow {
+    color: var(--um-faint);
+    font-size: 16px;
+}
+
+[dir="rtl"] .um-compare__arrow {
+    transform: scaleX(-1);
+}
+
+.um-compare__side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.um-compare__side--end {
+    justify-content: flex-end;
+}
+
+/* Callouts and ledgers */
+
+.um-callout {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(var(--color-primary-rgb), 0.06);
+    color: var(--um-primary-deep);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.um-callout > svg {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    margin-block-start: 1px;
+    fill: currentColor;
+}
+
+.um-callout--warning {
+    background: rgba(var(--color-warning-rgb), 0.1);
+    color: #92400e;
+}
+
+.um-callout--warning > svg {
+    color: var(--um-warning-strong);
+}
+
+.um-callout--danger {
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: #991b1b;
+}
+
+.um-callout--danger > svg {
+    color: var(--um-danger);
+}
+
+.um-ledger {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: var(--um-ring-soft);
+}
+
+.um-ledger__head {
+    padding: 10px 14px;
+    border-block-end: 1px solid var(--um-border-soft);
+    background: var(--um-veil);
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.um-ledger__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-block-end: 1px solid var(--um-border-soft);
+    color: var(--um-text-soft);
+    font-size: 12.5px;
+}
+
+.um-ledger__row:last-child {
+    border-block-end: 0;
+}
+
+.um-ledger__value {
+    color: var(--um-text);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.um-ledger__value--warning {
+    color: var(--um-warning-deep);
+}
+
+.um-ledger__value--success {
+    color: var(--um-success-deep);
+}
+
+.um-ledger__value--muted {
+    color: var(--um-muted);
+}
+
+.um-ledger__row--check {
+    grid-template-columns: 18px minmax(0, 1fr);
+}
+
+.um-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--um-soft);
+    color: var(--um-faint);
+}
+
+.um-check > svg {
+    width: 9px;
+    height: 9px;
+    fill: currentColor;
+}
+
+.um-check--on {
+    background: rgba(var(--color-success-rgb), 0.14);
+    color: var(--um-success);
+}
+
+.um-kbd {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--um-soft);
+    font-family: var(--um-mono);
+    font-weight: var(--font-medium);
+}
+
+/* Password field with show/hide and strength */
+
+.um-pw {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding-inline: 12px 6px;
+    border: 1px solid var(--um-border);
+    border-radius: 10px;
+    background: var(--um-card);
+}
+
+.um-pw:focus-within {
+    border-color: var(--um-primary);
+}
+
+.um-pw__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--um-text);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.um-pw__input.is-visible {
+    font-family: var(--um-mono);
+}
+
+.um-pw__input:focus {
+    outline: 0;
+}
+
+.um-pw__toggle {
+    height: 30px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--um-soft);
+    color: var(--um-subtle);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.um-pw__toggle:hover {
+    background: var(--um-border);
+}
+
+.um-strength {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.um-strength__bars {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+.um-strength__bar {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--um-border);
+    transition: background-color 0.2s ease;
+}
+
+.um-strength[data-score="1"] .um-strength__bar:nth-child(-n + 1) {
+    background: var(--um-danger);
+}
+
+.um-strength[data-score="2"] .um-strength__bar:nth-child(-n + 2) {
+    background: var(--um-warning);
+}
+
+.um-strength[data-score="3"] .um-strength__bar:nth-child(-n + 3) {
+    background: #84cc16;
+}
+
+.um-strength[data-score="4"] .um-strength__bar:nth-child(-n + 4) {
+    background: var(--um-success);
+}
+
+.um-strength__label {
+    color: var(--um-faint);
+    font-size: 11.5px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.um-strength[data-score="1"] .um-strength__label {
+    color: var(--um-danger-deep);
+}
+
+.um-strength[data-score="2"] .um-strength__label {
+    color: var(--um-warning-deep);
+}
+
+.um-strength[data-score="3"] .um-strength__label {
+    color: #4d7c0f;
+}
+
+.um-strength[data-score="4"] .um-strength__label {
+    color: var(--um-success-deep);
+}
+
+/* Notify preview */
+
+.um-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--um-soft);
+}
+
+.um-preview__kind {
+    color: var(--um-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.um-preview__push {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--um-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 8px 16px -12px rgba(15, 23, 42, 0.25);
+}
+
+.um-preview__push .um-tile {
+    width: 36px;
+    height: 36px;
+    background: var(--um-primary-soft);
+    color: var(--um-primary);
+}
+
+.um-preview__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.um-preview__title {
+    overflow: hidden;
+    color: var(--um-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-preview__now {
+    color: var(--um-faint);
+    font-size: 11px;
+}
+
+.um-preview__text {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--um-subtle);
+    font-size: 12.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.um-preview__email {
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--um-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 8px 16px -12px rgba(15, 23, 42, 0.25);
+}
+
+.um-preview__subject {
+    display: flex;
+    gap: 8px;
+    padding: 8px 14px;
+    border-block-end: 1px solid var(--um-border-soft);
+    font-size: 12px;
+}
+
+.um-preview__subject > span:first-child {
+    color: var(--um-faint);
+}
+
+.um-preview__subject > span:last-child {
+    overflow: hidden;
+    color: var(--um-text);
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-preview__brand {
+    padding: 9px 14px;
+    background: var(--um-primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: var(--font-bold);
+}
+
+.um-preview__mail-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+}
+
+.um-preview__mail-title {
+    color: var(--um-primary);
+    font-size: 14px;
+    font-weight: var(--font-bold);
+}
+
+.um-preview__mail-text {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--um-text-soft);
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+}
+
+.um-readiness {
+    display: inline-flex;
+    flex: 1 1 200px;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: var(--um-muted);
+    font-size: 12.5px;
+}
+
+.um-readiness__dot {
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--um-track);
+}
+
+.um-readiness.is-ready .um-readiness__dot {
+    background: var(--um-success);
+}
+
+.um-readiness__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.um-hidden {
+    display: none !important;
+}
+
+/* ── Dark theme ───────────────────────────────────────────────────────── */
+
+[data-coreui-theme="dark"] .um-page {
+    --um-text: #ffffff;
+    --um-text-soft: rgba(255, 255, 255, 0.85);
+    --um-subtle: rgba(255, 255, 255, 0.78);
+    --um-muted: rgba(255, 255, 255, 0.62);
+    --um-faint: rgba(255, 255, 255, 0.42);
+    --um-card: #202634;
+    --um-surface: rgba(255, 255, 255, 0.04);
+    --um-soft: rgba(255, 255, 255, 0.06);
+    --um-veil: rgba(255, 255, 255, 0.02);
+    --um-border: rgba(255, 255, 255, 0.1);
+    --um-border-soft: rgba(255, 255, 255, 0.08);
+    --um-border-strong: rgba(255, 255, 255, 0.16);
+    --um-primary-soft: rgba(129, 140, 248, 0.14);
+    --um-primary-deep: var(--color-primary-tint, #c7d2fe);
+    --um-success-deep: var(--color-success-mint, #86efac);
+    --um-warning-deep: var(--color-warning-tint, #fcd34d);
+    --um-danger-deep: var(--color-danger-tint, #fca5a5);
+    --um-ring: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --um-ring-soft: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    --um-ring-control: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    --um-track: rgba(255, 255, 255, 0.18);
+}
+
+[data-coreui-theme="dark"] .um-seg__btn.is-active {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+[data-coreui-theme="dark"] .um-callout--warning {
+    color: var(--color-warning-tint, #fcd34d);
+}
+
+[data-coreui-theme="dark"] .um-callout--danger {
+    color: var(--color-danger-tint, #fca5a5);
+}
+
+[data-coreui-theme="dark"] .um-chip--warning.is-active {
+    color: var(--color-warning-tint, #fcd34d);
+}
+
+[data-coreui-theme="dark"] .um-modal .modal-content {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-coreui-theme="dark"] .um-input,
+[data-coreui-theme="dark"] .um-option,
+[data-coreui-theme="dark"] .um-chip,
+[data-coreui-theme="dark"] .um-amount-field,
+[data-coreui-theme="dark"] .um-pw,
+[data-coreui-theme="dark"] .um-btn {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+[data-coreui-theme="dark"] .um-btn--primary {
+    background: linear-gradient(180deg, var(--um-primary-lift), var(--um-primary));
+}
+
+[data-coreui-theme="dark"] .um-btn--warning {
+    background: var(--color-warning-strong);
+}
+
+[data-coreui-theme="dark"] .um-btn--danger {
+    background: var(--color-danger-strong);
+}
+
+[data-coreui-theme="dark"] select.um-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-opacity='0.5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+[data-coreui-theme="dark"] .um-preview__push,
+[data-coreui-theme="dark"] .um-preview__email {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+    .um-page {
+        gap: 14px;
+    }
+
+    .um-card__foot--split {
+        grid-template-columns: 1fr;
+    }
+
+    .um-toolbar__end {
+        width: 100%;
+        margin-inline-start: 0;
+    }
+
+    .um-toolbar__end .um-btn {
+        flex: 1 1 auto;
+    }
+
+    .um-compare {
+        grid-template-columns: 1fr;
+    }
+
+    .um-compare__arrow {
+        display: none;
+    }
+
+    .um-compare__cell--end,
+    .um-compare__side--end {
+        text-align: start;
+        justify-content: flex-start;
+    }
+
+    .um-chart__labels span:nth-child(odd) {
+        visibility: hidden;
+    }
+
+    .um-list__row {
+        padding-inline: 16px;
+    }
+
+    .um-modal .modal-dialog {
+        margin: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .um-modal.fade .modal-dialog,
+    .um-switch,
+    .um-switch::after,
+    .um-seg__btn,
+    .um-option,
+    .um-chip {
+        transition: none;
+    }
+}

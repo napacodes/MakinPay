@@ -1,0 +1,373 @@
+/* ==========================================================================
+   Mass payments admin
+   The batch list and one batch's detail. Every selector is prefixed mpa-
+   and scoped to the page, so nothing leaks into the rest of the panel.
+
+   This sheet draws no page header (page-header.css owns it), no scrollbar
+   (custom.css owns it), no checkbox (the checkbox canon owns it) and no save
+   bar (admin-savebar.css owns it).
+   ========================================================================== */
+
+.mpa-admin {
+    --mpa-radius: 14px;
+    --mpa-border: var(--color-border-soft);
+    --mpa-surface: var(--color-card);
+    --mpa-surface-alt: var(--color-surface-alt);
+    --mpa-text: var(--color-text);
+    --mpa-muted: var(--color-text-muted);
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ==================== Notices ==================== */
+
+.mpa-notice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(var(--color-warning-rgb), 0.35);
+    border-radius: var(--mpa-radius);
+    background: var(--color-warning-soft);
+    color: var(--mpa-text);
+}
+
+.mpa-notice__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--color-warning-deep);
+}
+
+.mpa-notice__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    font-size: var(--font-sm, 0.875rem);
+}
+
+.mpa-notice__link {
+    margin-inline-start: auto;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.mpa-notice__list {
+    margin: 4px 0 0;
+    padding-inline-start: 18px;
+}
+
+.mpa-notice--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    background: var(--color-danger-soft);
+}
+
+.mpa-notice--danger .mpa-notice__icon {
+    color: var(--color-danger-deep);
+}
+
+/* ==================== Shared bits ==================== */
+
+.mpa-card {
+    border-radius: var(--mpa-radius);
+}
+
+.mpa-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mpa-muted {
+    color: var(--mpa-muted);
+    font-size: 0.8125rem;
+}
+
+.mpa-mono {
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.mpa-break {
+    overflow-wrap: anywhere;
+}
+
+.mpa-prewrap {
+    white-space: pre-line;
+}
+
+.mpa-inline-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.mpa-row-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.mpa-pill + .mpa-pill {
+    margin-inline-start: 4px;
+}
+
+.mpa-hint {
+    display: block;
+    margin-block-start: 4px;
+    color: var(--color-danger-deep);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.mpa-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--mpa-surface-alt);
+    color: var(--mpa-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.mpa-pill--success {
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+}
+
+.mpa-pill--info,
+.mpa-pill--primary {
+    background: var(--color-info-soft);
+    color: var(--color-info-deep);
+}
+
+.mpa-pill--warning {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-deep);
+}
+
+.mpa-pill--danger {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+.mpa-pill--dark {
+    background: var(--mpa-text);
+    color: var(--mpa-surface);
+}
+
+.mpa-person {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.mpa-person__name {
+    color: var(--mpa-text);
+    font-weight: 600;
+}
+
+.mpa-ref {
+    color: var(--color-primary);
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.mpa-ref:hover,
+.mpa-ref:focus-visible {
+    text-decoration: underline;
+}
+
+.mpa-ledger {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+}
+
+/* A line the ledger disagrees with: no button, just the mark. */
+.mpa-row--flagged > td {
+    background: rgba(var(--color-danger-rgb), 0.05);
+}
+
+/* ==================== Sections ==================== */
+
+.mpa-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-block-end: 14px;
+}
+
+.mpa-section-head__title {
+    margin: 0;
+    color: var(--mpa-text);
+    font-size: 1rem;
+    font-weight: 600 !important;
+}
+
+.mpa-row-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+
+.mpa-facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin: 0;
+}
+
+.mpa-facts dt {
+    margin-block-end: 2px;
+    color: var(--mpa-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mpa-facts dd {
+    margin: 0;
+    color: var(--mpa-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ==================== Timeline ==================== */
+
+.mpa-timeline {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mpa-timeline__item {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding-block-end: 16px;
+}
+
+.mpa-timeline__item:last-child {
+    padding-block-end: 0;
+}
+
+/* The rail between two dots. */
+.mpa-timeline__item:not(:last-child)::before {
+    position: absolute;
+    inset-block: 14px 0;
+    inset-inline-start: 5px;
+    width: 2px;
+    background: var(--mpa-border);
+    content: "";
+}
+
+.mpa-timeline__dot {
+    position: relative;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    margin-block-start: 4px;
+    border: 2px solid var(--mpa-surface);
+    border-radius: 999px;
+    background: var(--mpa-muted);
+    box-shadow: 0 0 0 1px var(--mpa-border);
+}
+
+.mpa-timeline__item--admin .mpa-timeline__dot {
+    background: var(--color-primary);
+}
+
+.mpa-timeline__item--user .mpa-timeline__dot {
+    background: var(--color-success);
+}
+
+.mpa-timeline__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.mpa-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    color: var(--mpa-text);
+    font-size: 0.875rem;
+}
+
+.mpa-timeline__move {
+    color: var(--mpa-muted);
+    font-size: 0.8125rem;
+}
+
+.mpa-timeline__note {
+    margin: 2px 0 0;
+    color: var(--mpa-text);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+}
+
+/* ==================== Narrow screens ==================== */
+
+@media (max-width: 767.98px) {
+    .mpa-notice {
+        flex-wrap: wrap;
+    }
+
+    .mpa-notice__link {
+        margin-inline-start: 30px;
+    }
+}
+
+/* ==================== Dark ==================== */
+
+[data-coreui-theme="dark"] .mpa-notice {
+    border-color: rgba(var(--color-warning-rgb), 0.4);
+    background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .mpa-notice__icon,
+[data-coreui-theme="dark"] .mpa-pill--warning {
+    color: var(--color-warning);
+}
+
+[data-coreui-theme="dark"] .mpa-notice--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.4);
+    background: rgba(var(--color-danger-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .mpa-notice--danger .mpa-notice__icon,
+[data-coreui-theme="dark"] .mpa-pill--danger,
+[data-coreui-theme="dark"] .mpa-hint {
+    color: var(--color-danger);
+}
+
+[data-coreui-theme="dark"] .mpa-pill--success {
+    color: var(--color-success-mint, var(--color-success));
+}
+
+[data-coreui-theme="dark"] .mpa-pill--info,
+[data-coreui-theme="dark"] .mpa-pill--primary {
+    color: var(--color-info);
+}
+
+[data-coreui-theme="dark"] .mpa-row--flagged > td {
+    background: rgba(var(--color-danger-rgb), 0.1);
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Smile ID">
+  <rect width="64" height="64" rx="16" fill="#10A360"/>
+  <circle cx="24" cy="26" r="4" fill="#ffffff"/>
+  <circle cx="40" cy="26" r="4" fill="#ffffff"/>
+  <path d="M20 38c3.4 5.2 8 7.8 12 7.8S40.6 43.2 44 38" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

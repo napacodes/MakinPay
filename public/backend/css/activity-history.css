@@ -1,0 +1,1146 @@
+/*
+ * Admin → Security → Activity history.
+ *
+ * One page, one prefix. Everything below hangs off `.ah-page`; the header is
+ * <x-page-header> and is styled only by page-header.css. Logical properties
+ * throughout — the admin ships in Arabic — and every colour is a token from
+ * _variables.css so the dark theme falls out of the same rules.
+ */
+
+/*
+ * The tokens are declared on the drawer as well as the page. The drawer is
+ * `position: fixed` and therefore rendered outside `.ah-page`, so a token
+ * block on the page alone leaves every shared class inside the panel — the
+ * role pill, the avatar — resolving to nothing and painting transparent.
+ */
+.ah-page,
+.ah-drawer {
+    --ah-text: var(--color-text);
+    --ah-strong: var(--color-text-soft);
+    --ah-subtle: var(--color-text-subtle);
+    --ah-muted: var(--color-text-muted);
+    --ah-faint: var(--color-text-faint);
+    --ah-card: var(--color-card);
+    --ah-surface: var(--color-surface-alt);
+    --ah-soft: var(--color-surface-soft);
+    --ah-veil: var(--color-surface-veil, #fcfcfd);
+    --ah-border: var(--color-border);
+    --ah-border-soft: var(--color-border-soft);
+    --ah-primary: var(--color-primary);
+    --ah-primary-deep: var(--color-primary-deep);
+    --ah-primary-tint: var(--color-primary-tint, #c7d2fe);
+    --ah-primary-soft: rgba(var(--color-primary-rgb), 0.1);
+    --ah-success: var(--color-success-strong);
+    --ah-success-deep: var(--color-success-deep);
+    --ah-success-soft: rgba(var(--color-success-rgb), 0.12);
+    --ah-warning: var(--color-warning);
+    --ah-warning-deep: var(--color-warning-deep);
+    --ah-warning-soft: rgba(var(--color-warning-rgb), 0.14);
+    --ah-danger: var(--color-danger-strong);
+    --ah-danger-deep: var(--color-danger-deep);
+    --ah-danger-soft: rgba(var(--color-danger-rgb), 0.1);
+    --ah-ring: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --ah-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+    --ah-mono: var(--font-mono);
+
+    /*
+     * The table's own minimum width. Six columns of real content do not fold
+     * into a phone, so the card scrolls horizontally instead of ellipsising
+     * every cell into uselessness — and the number lives here so the header
+     * row and the body rows can never disagree about it.
+     */
+    --ah-row-min: 900px;
+
+    color: var(--ah-text);
+}
+
+.ah-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 1320px;
+    margin-inline: auto;
+    overflow-x: clip;
+}
+
+.ah-hidden {
+    display: none;
+}
+
+.ah-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+
+.ah-card {
+    background: var(--ah-card);
+    border-radius: 16px;
+    box-shadow: var(--ah-ring);
+    overflow: hidden;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────────────────── */
+
+.ah-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--ah-border-soft);
+}
+
+.ah-search {
+    position: relative;
+    display: flex;
+    flex: 1 1 240px;
+    align-items: center;
+    max-width: 360px;
+    min-width: 0;
+}
+
+.ah-search > svg {
+    position: absolute;
+    inset-inline-start: 12px;
+    width: 14px;
+    height: 14px;
+    color: var(--ah-faint);
+    fill: currentColor;
+    pointer-events: none;
+}
+
+.ah-search > svg[stroke] {
+    fill: none;
+}
+
+.ah-search input {
+    width: 100%;
+    height: 38px;
+    padding-inline: 34px 12px;
+    border: 1px solid var(--ah-border);
+    border-radius: 10px;
+    background: var(--ah-card);
+    color: var(--ah-text);
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.ah-search input::placeholder {
+    color: var(--ah-faint);
+}
+
+.ah-search input:focus {
+    border-color: var(--ah-primary);
+    box-shadow: var(--ah-focus);
+    outline: none;
+}
+
+/* ── Segmented filters ──────────────────────────────────────────────────── */
+
+.ah-seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--ah-soft);
+}
+
+.ah-seg__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding-inline: 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ah-muted);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ah-seg__item:hover {
+    color: var(--ah-text);
+}
+
+.ah-seg__item.is-on {
+    background: var(--ah-card);
+    color: var(--ah-text);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.ah-seg__item:focus-visible {
+    outline: none;
+    box-shadow: var(--ah-focus);
+}
+
+.ah-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ah-dot--warning {
+    background: var(--ah-warning);
+}
+
+.ah-dot--danger {
+    background: var(--ah-danger);
+}
+
+/* ── Date range button ──────────────────────────────────────────────────── */
+
+.ah-range {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding-inline: 14px;
+    margin-inline-start: auto;
+    border: 1px solid var(--ah-border);
+    border-radius: 10px;
+    background: var(--ah-card);
+    color: var(--ah-subtle);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ah-range:hover {
+    background: var(--ah-surface);
+    color: var(--ah-text);
+}
+
+.ah-range > svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.ah-range > svg[stroke] {
+    fill: none;
+}
+
+/* A chevron drawn from two borders, so it mirrors with the text in RTL. */
+.ah-range__caret {
+    width: 5px;
+    height: 5px;
+    margin-block-start: -3px;
+    border-block-end: 1.5px solid var(--ah-faint);
+    border-inline-end: 1.5px solid var(--ah-faint);
+    transform: rotate(45deg);
+}
+
+/* ── Filter chips ───────────────────────────────────────────────────────── */
+
+.ah-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--ah-border-soft);
+    background: var(--ah-veil);
+    color: var(--ah-muted);
+    font-size: 12px;
+}
+
+.ah-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding-inline: 10px 8px;
+    border: 1px solid var(--ah-border);
+    border-radius: 999px;
+    background: var(--ah-card);
+    color: var(--ah-strong);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+.ah-chip:hover {
+    border-color: var(--ah-primary-tint);
+    color: var(--ah-text);
+}
+
+.ah-chip__x {
+    color: var(--ah-faint);
+    font-size: 14px;
+    line-height: 1;
+}
+
+.ah-chips__clear {
+    padding-inline: 4px;
+    color: var(--ah-primary);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+/* ── Table ──────────────────────────────────────────────────────────────── */
+
+.ah-scroll {
+    overflow-x: auto;
+}
+
+.ah-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 1.6fr)
+        minmax(170px, 1.1fr)
+        minmax(150px, 1fr)
+        minmax(150px, 1fr)
+        minmax(120px, 0.8fr)
+        36px;
+    gap: 16px;
+    align-items: center;
+    min-width: var(--ah-row-min);
+    padding: 12px clamp(14px, 2vw, 22px);
+    text-align: start;
+}
+
+.ah-grid--head {
+    padding-block: 10px;
+    border-block-end: 1px solid var(--ah-border-soft);
+    background: var(--ah-veil);
+    color: var(--ah-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+/*
+ * The day header sticks while its own rows scroll past. It is inside the
+ * horizontal scroller, so it carries the row's minimum width too — without
+ * it the label would detach from the columns as soon as the table scrolls.
+ */
+.ah-group {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    min-width: var(--ah-row-min);
+    padding: 8px clamp(14px, 2vw, 22px);
+    border-block-end: 1px solid var(--ah-border-soft);
+    background: var(--ah-surface);
+    color: var(--ah-subtle);
+    font-size: 11.5px;
+    font-weight: var(--font-bold);
+}
+
+.ah-group__count {
+    color: var(--ah-faint);
+    font-weight: var(--font-medium);
+}
+
+.ah-row {
+    width: 100%;
+    border: 0;
+    border-block-end: 1px solid var(--ah-border-soft);
+    background: var(--ah-card);
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.ah-row:hover {
+    background: var(--ah-veil);
+}
+
+.ah-row:focus-visible {
+    outline: none;
+    box-shadow: inset var(--ah-focus);
+}
+
+/*
+ * A flagged row is tinted, not coloured: the risk pill is the statement, and
+ * a strong wash across the whole row would make the five normal columns look
+ * like part of the warning.
+ */
+.ah-row--suspicious {
+    background: rgba(var(--color-warning-rgb), 0.03);
+}
+
+.ah-row--blocked {
+    background: rgba(var(--color-danger-rgb), 0.025);
+}
+
+/* ── Account cell ───────────────────────────────────────────────────────── */
+
+.ah-account {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+}
+
+.ah-avatar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--ah-primary-soft);
+    color: var(--ah-primary-deep);
+    font-size: 12px;
+    font-weight: var(--font-bold);
+    overflow: hidden;
+}
+
+.ah-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/*
+ * Four tints keyed off the row id, so a list of strangers is scannable
+ * without the colour meaning anything. It deliberately does not encode the
+ * role or the risk — those are stated in words two columns over.
+ */
+.ah-avatar--1 {
+    background: var(--ah-success-soft);
+    color: var(--ah-success-deep);
+}
+
+.ah-avatar--2 {
+    background: var(--ah-warning-soft);
+    color: var(--ah-warning-deep);
+}
+
+.ah-avatar--3 {
+    background: rgba(14, 165, 233, 0.14);
+    color: #0369a1;
+}
+
+.ah-avatar--lg {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.ah-account__copy,
+.ah-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ah-account__line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ah-account__name {
+    overflow: hidden;
+    color: var(--ah-text);
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ah-row:hover .ah-account__name {
+    color: var(--ah-primary);
+}
+
+.ah-account__handle {
+    color: var(--ah-muted);
+    font-family: var(--ah-mono);
+    font-size: 12px;
+}
+
+.ah-pill {
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--ah-soft);
+    color: var(--ah-subtle);
+    font-size: 10.5px;
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.ah-pill--merchant {
+    background: var(--ah-primary-soft);
+    color: var(--ah-primary-deep);
+}
+
+.ah-pill--agent {
+    background: var(--ah-warning-soft);
+    color: var(--ah-warning-deep);
+}
+
+/* ── Remaining cells ────────────────────────────────────────────────────── */
+
+/*
+ * An IPv6 address is 39 characters of unbreakable monospace. Without this it
+ * ignores the column it was given, overlaps the Device cell beside it and
+ * drags the row out of alignment with every other row on the page — which is
+ * what a grid track does when its content refuses to shrink.
+ */
+.ah-mono {
+    overflow: hidden;
+    min-width: 0;
+    color: var(--ah-strong);
+    font-family: var(--ah-mono);
+    font-size: 12.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ah-strong {
+    color: var(--ah-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+}
+
+.ah-tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+.ah-sub {
+    overflow: hidden;
+    color: var(--ah-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ah-risk {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding-inline: 7px 9px;
+    border-radius: 999px;
+    background: var(--ah-soft);
+    color: var(--ah-subtle);
+    font-size: 11.5px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ah-risk .ah-dot {
+    background: var(--ah-faint);
+}
+
+.ah-risk--brand {
+    background: var(--ah-primary-soft);
+    color: var(--ah-primary-deep);
+}
+
+.ah-risk--brand .ah-dot {
+    background: var(--ah-primary);
+}
+
+.ah-risk--warning {
+    background: var(--ah-warning-soft);
+    color: var(--ah-warning-deep);
+}
+
+.ah-risk--warning .ah-dot {
+    background: var(--ah-warning);
+}
+
+.ah-risk--danger {
+    background: var(--ah-danger-soft);
+    color: var(--ah-danger-deep);
+}
+
+.ah-risk--danger .ah-dot {
+    background: var(--ah-danger);
+}
+
+.ah-risk--success {
+    background: var(--ah-success-soft);
+    color: var(--ah-success-deep);
+}
+
+.ah-risk--success .ah-dot {
+    background: var(--ah-success);
+}
+
+.ah-caret {
+    justify-self: center;
+    width: 5px;
+    height: 5px;
+    border-block-start: 1.5px solid var(--ah-faint);
+    border-inline-end: 1.5px solid var(--ah-faint);
+    transform: rotate(45deg);
+}
+
+[dir='rtl'] .ah-caret {
+    transform: rotate(-135deg);
+}
+
+/* ── Empty state and footer ─────────────────────────────────────────────── */
+
+.ah-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 56px 24px;
+    text-align: center;
+}
+
+.ah-empty__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--ah-soft);
+    color: var(--ah-faint);
+}
+
+.ah-empty__tile > svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.ah-empty__tile > svg[stroke] {
+    fill: none;
+}
+
+.ah-empty__title {
+    font-size: 14px;
+    font-weight: var(--font-semibold);
+}
+
+.ah-empty__hint {
+    color: var(--ah-muted);
+    font-size: 12.5px;
+}
+
+.ah-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px clamp(14px, 2vw, 22px);
+    background: var(--ah-veil);
+    color: var(--ah-muted);
+    font-size: 12.5px;
+}
+
+.ah-foot__count strong {
+    color: var(--ah-text);
+    font-weight: var(--font-semibold);
+}
+
+.ah-foot__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.ah-rows {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ah-rows select {
+    height: 30px;
+    padding-inline: 8px;
+    border: 1px solid var(--ah-border);
+    border-radius: 8px;
+    background: var(--ah-card);
+    color: var(--ah-strong);
+    font-family: inherit;
+    font-size: 12.5px;
+}
+
+/*
+ * The paginator is the shared admin partial, so it arrives as Bootstrap
+ * classes. Restyling them here keeps the page consistent without forking a
+ * paginator view that would then drift from every other admin screen.
+ */
+.ah-pagination .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ah-pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding-inline: 12px;
+    border: 1px solid var(--ah-border);
+    border-radius: 8px;
+    background: var(--ah-card);
+    color: var(--ah-subtle);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+.ah-pagination .page-link:hover {
+    background: var(--ah-surface);
+    color: var(--ah-text);
+}
+
+.ah-pagination .active .page-link {
+    border-color: var(--ah-primary);
+    background: var(--ah-primary-soft);
+    color: var(--ah-primary-deep);
+}
+
+.ah-pagination .disabled .page-link {
+    color: var(--ah-faint);
+    pointer-events: none;
+}
+
+/* ── Drawer ─────────────────────────────────────────────────────────────── */
+
+.ah-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(15, 23, 42, 0.35);
+    animation: ahFade 0.18s ease-out both;
+}
+
+.ah-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 1041;
+    display: flex;
+    flex-direction: column;
+    width: min(440px, 100vw);
+    background: var(--color-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), -24px 0 60px -30px rgba(15, 23, 42, 0.35);
+    animation: ahSlide 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* The panel enters from whichever edge it is pinned to. */
+[dir='rtl'] .ah-drawer {
+    animation-name: ahSlideRtl;
+}
+
+@keyframes ahFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ahSlide {
+    from { transform: translateX(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+@keyframes ahSlideRtl {
+    from { transform: translateX(-24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+.ah-drawer[hidden],
+.ah-overlay[hidden] {
+    display: none;
+}
+
+.ah-drawer__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-block-end: 1px solid var(--color-border-soft);
+}
+
+.ah-drawer__identity {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ah-drawer__line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ah-drawer__name {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: var(--font-bold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ah-drawer__handle {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+.ah-drawer__close {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-faint);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ah-drawer__close:hover {
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+}
+
+.ah-drawer__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 18px;
+    padding: 18px 22px;
+    overflow-y: auto;
+}
+
+.ah-drawer__foot {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 14px 22px;
+    border-block-start: 1px solid var(--color-border-soft);
+    background: var(--color-surface-veil, #fcfcfd);
+}
+
+/* ── Drawer contents ────────────────────────────────────────────────────── */
+
+.ah-assess {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.ah-assess--brand {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary-deep);
+}
+
+.ah-assess--warning {
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--color-warning-deep);
+}
+
+.ah-assess--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.ah-assess--success {
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-deep);
+}
+
+.ah-assess__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ah-assess__label {
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.ah-assess__value {
+    font-size: 13.5px;
+    font-weight: var(--font-bold);
+}
+
+.ah-assess__why {
+    max-width: 200px;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: end;
+}
+
+.ah-section-label {
+    display: block;
+    padding-block-end: 8px;
+    color: var(--color-text-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.ah-facts__list {
+    margin: 0;
+}
+
+.ah-fact {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 12px;
+    padding-block: 9px;
+    border-block-end: 1px solid var(--color-border-soft);
+    font-size: 12.5px;
+}
+
+.ah-fact dt {
+    color: var(--color-text-muted);
+    font-weight: var(--font-regular);
+}
+
+.ah-fact dd {
+    margin: 0;
+    color: var(--color-text);
+    font-weight: var(--font-medium);
+    word-break: break-word;
+}
+
+.ah-fact dd.is-mono {
+    font-family: var(--font-mono);
+}
+
+.ah-history__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ah-history__row {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding-block: 6px;
+    font-size: 12.5px;
+}
+
+.ah-history__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-text-faint);
+}
+
+.ah-history__dot--success {
+    background: var(--color-success-strong);
+}
+
+.ah-history__dot--warning {
+    background: var(--color-warning);
+}
+
+.ah-history__dot--danger {
+    background: var(--color-danger-strong);
+}
+
+.ah-history__dot--brand {
+    background: var(--color-primary);
+}
+
+.ah-history__text {
+    overflow: hidden;
+    color: var(--color-text-soft);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ah-history__when {
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+.ah-history__empty {
+    color: var(--color-text-muted);
+    font-size: 12.5px;
+}
+
+/* ── Drawer buttons ─────────────────────────────────────────────────────── */
+
+.ah-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding-inline: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-card);
+    color: var(--color-text-subtle);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ah-btn:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.ah-btn--cta {
+    border-color: transparent;
+    background: var(--color-text-subtle);
+    color: #fff;
+}
+
+.ah-btn--cta:hover {
+    background: var(--color-text-soft);
+    color: #fff;
+}
+
+.ah-btn--cta.is-warning {
+    background: var(--color-warning-deep);
+}
+
+.ah-btn--cta.is-brand {
+    background: var(--color-primary);
+}
+
+.ah-btn--cta.is-brand:hover {
+    background: var(--color-primary-hover);
+}
+
+.ah-btn[aria-disabled='true'],
+.ah-btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────── */
+
+[data-coreui-theme='dark'] .ah-page {
+    --ah-veil: rgba(255, 255, 255, 0.02);
+    --ah-ring: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-coreui-theme='dark'] .ah-row--suspicious {
+    background: rgba(var(--color-warning-rgb), 0.08);
+}
+
+[data-coreui-theme='dark'] .ah-row--blocked {
+    background: rgba(var(--color-danger-rgb), 0.08);
+}
+
+[data-coreui-theme='dark'] .ah-seg__item.is-on {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+[data-coreui-theme='dark'] .ah-avatar--3 {
+    background: rgba(14, 165, 233, 0.2);
+    color: #7dd3fc;
+}
+
+[data-coreui-theme='dark'] .ah-btn--cta {
+    color: #0b1120;
+}
+
+[data-coreui-theme='dark'] .ah-btn--cta:hover {
+    color: #0b1120;
+}
+
+/* ── Narrow ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+    .ah-toolbar {
+        gap: 8px;
+    }
+
+    .ah-search {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .ah-range {
+        margin-inline-start: 0;
+    }
+
+    /* The panel becomes a sheet: a 440px drawer on a 390px phone is a modal. */
+    .ah-drawer {
+        width: 100vw;
+    }
+
+    .ah-assess {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ah-assess__why {
+        max-width: none;
+        text-align: start;
+    }
+
+    .ah-fact {
+        grid-template-columns: 100px minmax(0, 1fr);
+    }
+}
+
+/*
+ * A filter chip is a tap target on a phone.
+ *
+ * Every one of these is a fixed 30px tall, which reads well under a mouse and
+ * is under the 36px floor this admin already committed to for its top-bar
+ * controls. `min-block-size` is enough on its own — it wins over `height`,
+ * so the desktop rule above is left exactly as written and only a touch
+ * screen sees the difference. The strip that holds them has padding and no
+ * height of its own, so it grows with them.
+ */
+@media (max-width: 991.98px) {
+    .ah-seg__item {
+        min-block-size: 36px;
+    }
+}

@@ -1,0 +1,1334 @@
+/*
+ * KYC verification providers — admin panel
+ *
+ * The provider catalog (admin › KYC › Verification Providers) and the
+ * credential modal it opens. Lifted out of custom.css unchanged: that file
+ * holds the admin-wide scrollbar and checkbox canons, and a single page's
+ * rules do not belong beside them.
+ *
+ * Declares no scrollbar and no checkbox rules by design — both are canon,
+ * declared once in custom.css and enforced by
+ * tests/Feature/AdminScrollbarConsistencyTest.php and
+ * tests/Feature/AdminCheckboxConsistencyTest.php.
+ */
+
+/* =====================================================================
+   KYC Provider Catalog (admin › KYC › Verification Providers)
+   One card per supported engine; exactly one may be active at a time.
+   ===================================================================== */
+.kyc-providers-page {
+    display: grid;
+    gap: 12px;
+    padding-block: 2px 16px;
+}
+
+/* ---------------------------------------------------------------------
+   Routing strip — how a submission reaches a decision.
+
+   This replaced three alternative paragraphs, each of which described one
+   branch of the routing and hid the other two. A reader could not tell
+   what the other states even were. Drawn once, every step states its own
+   condition and reads its value from the controller.
+   --------------------------------------------------------------------- */
+.kyc-route {
+    padding-block: 16px;
+    padding-inline: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.kyc-route__flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.kyc-route__step {
+    /* One tone per step, declared here so a modifier swaps four values. */
+    --kyc-route-line: var(--color-border);
+    --kyc-route-bg: var(--color-surface-alt);
+    --kyc-route-ink: var(--color-text);
+    --kyc-route-note: var(--color-text-muted);
+    --kyc-route-tile-bg: var(--color-primary-subtle);
+    --kyc-route-tile-ink: var(--color-primary-hover);
+    --kyc-route-edge: 1px;
+
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+    padding-block: 10px;
+    padding-inline: 14px;
+    border: var(--kyc-route-edge) solid var(--kyc-route-line);
+    border-radius: 10px;
+    background: var(--kyc-route-bg);
+}
+
+.kyc-route__icon {
+    display: grid;
+    inline-size: 30px;
+    block-size: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--kyc-route-tile-ink);
+    background: var(--kyc-route-tile-bg);
+    font-size: var(--font-size-px-11);
+}
+
+/* The live engine wears its own initials, the same two letters the queue
+   uses for it, rather than a generic glyph. */
+.kyc-route__icon--mark {
+    color: var(--color-white);
+    background: var(--color-text-soft);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-bold);
+}
+
+.kyc-route__body {
+    min-width: 0;
+}
+
+.kyc-route__label {
+    display: block;
+    color: var(--kyc-route-ink);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+}
+
+.kyc-route__note {
+    display: block;
+    color: var(--kyc-route-note);
+    font-size: var(--font-size-px-11);
+    line-height: 1.35;
+}
+
+.kyc-route__step--on {
+    --kyc-route-line: rgba(var(--color-success-rgb), 0.32);
+    --kyc-route-bg: rgba(var(--color-success-rgb), 0.07);
+    --kyc-route-ink: var(--color-success-deep);
+    --kyc-route-note: var(--color-success-deep);
+    --kyc-route-tile-bg: rgba(var(--color-success-rgb), 0.16);
+    --kyc-route-tile-ink: var(--color-success-deep);
+}
+
+.kyc-route__step--off,
+.kyc-route__step--idle {
+    --kyc-route-ink: var(--color-text-muted);
+    --kyc-route-tile-bg: var(--color-surface-soft);
+    --kyc-route-tile-ink: var(--color-text-muted);
+}
+
+.kyc-route__step--engine {
+    --kyc-route-line: var(--color-primary);
+    --kyc-route-bg: var(--color-primary-subtle);
+    --kyc-route-ink: var(--color-primary-deep);
+    --kyc-route-note: var(--color-primary-hover);
+    --kyc-route-edge: 1.5px;
+}
+
+.kyc-route__step--manual {
+    --kyc-route-line: rgba(var(--color-warning-rgb), 0.4);
+    --kyc-route-bg: rgba(var(--color-warning-rgb), 0.08);
+    --kyc-route-ink: var(--color-warning-deep);
+    --kyc-route-note: var(--color-warning-deep);
+    --kyc-route-tile-bg: rgba(var(--color-warning-rgb), 0.18);
+    --kyc-route-tile-ink: var(--color-warning-deep);
+}
+
+.kyc-route__arrow {
+    position: relative;
+    flex: 1 1 auto;
+    min-inline-size: 14px;
+    block-size: 2px;
+    background: var(--color-border);
+}
+
+.kyc-route__arrow::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-start: -4px;
+    inline-size: 0;
+    block-size: 0;
+    border-block: 5px solid transparent;
+    border-inline-start: 7px solid var(--color-border);
+}
+
+.kyc-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.kyc-pcard {
+    --kyc-accent-rgb: var(--color-primary-rgb);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    min-width: 0;
+    padding: 16px;
+    background: var(--color-white);
+    /* 1.5px even when inactive: the live card's heavier border must not
+       move its own contents by half a pixel when it goes live. */
+    border: 1.5px solid var(--color-border-soft);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.kyc-pcard::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 2px;
+    background: rgba(var(--kyc-accent-rgb), 0.58);
+}
+
+.kyc-pcard--emerald {
+    --kyc-accent-rgb: 16, 163, 96;
+}
+
+.kyc-pcard--azure {
+    --kyc-accent-rgb: 37, 99, 235;
+}
+
+.kyc-pcard--violet {
+    --kyc-accent-rgb: 109, 40, 217;
+}
+
+.kyc-pcard.is-active {
+    border-color: rgb(var(--kyc-accent-rgb));
+    box-shadow: 0 10px 28px rgba(var(--kyc-accent-rgb), 0.12);
+}
+
+.kyc-pcard.is-active::before {
+    block-size: 3px;
+    background: linear-gradient(90deg, rgb(var(--kyc-accent-rgb)), rgba(var(--kyc-accent-rgb), 0.55));
+}
+
+/* Configured but paused: the accent stays, quieter, so "off" is not the
+   same picture as "never set up". */
+.kyc-pcard.is-configured::before {
+    background: rgba(var(--kyc-accent-rgb), 0.35);
+}
+
+/* Never configured: a placeholder, drawn as one. Both classes were emitted
+   on every card for months and matched by no rule at all. */
+.kyc-pcard.is-empty {
+    border-style: dashed;
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-veil);
+    box-shadow: none;
+}
+
+.kyc-pcard.is-empty::before {
+    display: none;
+}
+
+.kyc-pcard__head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.kyc-pcard__logo {
+    flex: 0 0 auto;
+    inline-size: 44px;
+    block-size: 44px;
+    display: grid;
+    place-items: center;
+    font-size: 1.4rem;
+    color: rgb(var(--kyc-accent-rgb));
+    border-radius: 11px;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border-soft);
+    overflow: hidden;
+}
+
+.kyc-pcard__logo-img {
+    inline-size: 38px;
+    block-size: 38px;
+    object-fit: contain;
+    display: block;
+}
+
+.kyc-pcard__ident {
+    min-width: 0;
+}
+
+.kyc-pcard__name {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.kyc-pcard__driver {
+    font-size: var(--font-size-px-11);
+    font-family: var(--font-mono, monospace);
+    color: var(--color-text-muted);
+}
+
+.kyc-pcard__state {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-block-size: 23px;
+    padding-block: 0;
+    padding-inline: 9px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.kyc-pcard__state-dot {
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.kyc-pcard__state--active {
+    color: var(--color-success-deep);
+    background: rgba(var(--color-success-rgb), 0.16);
+}
+
+.kyc-pcard__state--ready {
+    color: var(--color-info-deep);
+    background: rgba(var(--color-info-rgb), 0.12);
+}
+
+.kyc-pcard__state--empty {
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+}
+
+.kyc-pcard__tagline {
+    margin: 0;
+    min-block-size: 2.8em;
+    color: var(--color-text-soft);
+    font-size: var(--font-size-px-125);
+    line-height: 1.5;
+}
+
+.kyc-pcard__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.kyc-pcard__meta-label {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.kyc-pcard__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.kyc-pcard__badge {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 21px;
+    padding-block: 0;
+    padding-inline: 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-medium);
+    color: rgb(var(--kyc-accent-rgb));
+    background: rgba(var(--kyc-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--kyc-accent-rgb), 0.18);
+}
+
+.kyc-pcard__badge--soft {
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+    border-color: transparent;
+}
+
+.kyc-pcard.is-empty .kyc-pcard__badge--soft {
+    background: var(--color-white);
+    border-color: var(--color-border);
+}
+
+/* ---------------------------------------------------------------------
+   The four facts a configured engine is judged on. Two of them — when it
+   was last reached, and how much it cleared today — had nowhere to live
+   before, which is why a silent queue could not be traced to its cause.
+   --------------------------------------------------------------------- */
+.kyc-pcard__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--color-surface-alt);
+}
+
+.kyc-pcard__fact {
+    min-width: 0;
+}
+
+.kyc-pcard__fact dt {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-normal);
+}
+
+.kyc-pcard__fact dd {
+    margin: 0;
+    margin-block-start: 2px;
+    color: var(--color-text);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    overflow-wrap: anywhere;
+}
+
+.kyc-pcard__fact dd.is-success {
+    color: var(--color-success-deep);
+}
+
+.kyc-pcard__fact dd.is-warn {
+    color: var(--color-warning-deep);
+}
+
+.kyc-pcard__fact dd.is-danger {
+    color: var(--color-danger-deep);
+}
+
+.kyc-pcard__fact dd.is-muted {
+    color: var(--color-text-muted);
+}
+
+/* The unconfigured card says what is missing, in the space the facts
+   panel occupies on its configured neighbours, so the grid stays level. */
+.kyc-pcard__locknote {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    border-radius: 10px;
+    color: var(--color-text-soft);
+    background: var(--color-surface-alt);
+    font-size: var(--font-size-px-115);
+    line-height: 1.45;
+}
+
+.kyc-pcard__locknote i {
+    flex: 0 0 auto;
+    margin-block-start: 2px;
+    color: var(--color-text-muted);
+}
+
+.kyc-pcard__actions {
+    margin-block-start: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+}
+
+.kyc-pcard__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-block-size: 34px;
+    padding-block: 6px;
+    padding-inline: 12px;
+    border-radius: 8px;
+    box-shadow: none !important;
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+}
+
+.kyc-pcard__site {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-primary-hover);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+}
+
+.kyc-pcard__site:hover {
+    color: var(--color-primary-deep);
+}
+
+/* The card-scoped connection test answers in the card. The modal's tester
+   writes into the modal; this one has no form around it to write into. */
+.kyc-pcard__test-result {
+    margin: 0;
+    padding-block: 7px;
+    padding-inline: 10px;
+    border-radius: 8px;
+    color: var(--color-text-soft);
+    background: var(--color-surface-alt);
+    font-size: var(--font-size-px-11);
+    line-height: 1.4;
+}
+
+.kyc-pcard__test-result.is-pending {
+    color: var(--color-info-deep);
+    background: rgba(var(--color-info-rgb), 0.1);
+}
+
+.kyc-pcard__test-result.is-success {
+    color: var(--color-success-deep);
+    background: rgba(var(--color-success-rgb), 0.12);
+}
+
+.kyc-pcard__test-result.is-warning {
+    color: var(--color-warning-deep);
+    background: rgba(var(--color-warning-rgb), 0.12);
+}
+
+.kyc-pcard__test-result.is-danger {
+    color: var(--color-danger-deep);
+    background: rgba(var(--color-danger-rgb), 0.1);
+}
+
+/* ---------------------------------------------------------------------
+   Manual review — the queue behind every engine. Not a provider, so it
+   sits below the grid instead of pretending to be a fourth card.
+   --------------------------------------------------------------------- */
+.kyc-manual {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-block: 13px;
+    padding-inline: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-white);
+    box-shadow: var(--shadow-sm);
+}
+
+.kyc-manual__icon {
+    display: grid;
+    inline-size: 38px;
+    block-size: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 10px;
+    color: var(--color-warning-deep);
+    background: rgba(var(--color-warning-rgb), 0.18);
+}
+
+.kyc-manual__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.kyc-manual__title {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-size-px-135);
+    font-weight: var(--font-semibold);
+}
+
+.kyc-manual__note {
+    display: block;
+    margin-block-start: 1px;
+    color: var(--color-text-soft);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+}
+
+.kyc-manual__action {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 34px;
+    padding-block: 6px;
+    padding-inline: 13px;
+    border-radius: 8px;
+    box-shadow: none !important;
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-medium);
+    white-space: nowrap;
+}
+
+/* The closing safeguard: one quiet page-level line, not a bordered card
+   competing with the rows above it. */
+.kyc-catalog__hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-block: 11px;
+    padding-inline: 14px;
+    border-radius: 10px;
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+    font-size: var(--font-xs);
+    line-height: 1.45;
+}
+
+.kyc-catalog__hint-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    color: var(--color-text-muted);
+}
+
+.kyc-catalog__hint strong {
+    font-weight: var(--font-semibold);
+    color: var(--color-text-soft);
+}
+
+@media (max-width: 991.98px) {
+
+    /* Four steps will not sit on one line here; they stack, and the
+       connector rules become a vertical run instead of a horizontal one. */
+    .kyc-route__flow {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .kyc-route__arrow {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .kyc-providers-page {
+        gap: 10px;
+    }
+
+    .kyc-route {
+        padding-block: 13px;
+        padding-inline: 13px;
+    }
+
+    .kyc-pcard {
+        padding: 13px;
+    }
+
+    .kyc-pcard__head {
+        flex-wrap: wrap;
+    }
+
+    .kyc-pcard__state {
+        margin-inline-start: 0;
+    }
+
+    .kyc-pcard__facts {
+        grid-template-columns: 1fr;
+    }
+
+    .kyc-pcard__site {
+        inline-size: 100%;
+        margin-block: 4px 0;
+        margin-inline: 0;
+    }
+
+    .kyc-manual {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .kyc-manual__action {
+        inline-size: 100%;
+        justify-content: center;
+    }
+
+    .kyc-catalog__hint {
+        align-items: flex-start;
+    }
+}
+
+/* ---------------------------------------------------------------------
+   KYC Provider setup form (Manage Provider)
+   --------------------------------------------------------------------- */
+.kyc-setup__card {
+    border: 1px solid rgba(var(--color-text-rgb), 0.1);
+    border-radius: 16px;
+}
+
+.kyc-setup__section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1.15rem;
+}
+
+.kyc-setup__step {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: var(--font-semibold);
+    color: rgb(var(--color-primary-rgb));
+    background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.kyc-setup__section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: var(--font-semibold);
+}
+
+.kyc-setup__section-sub {
+    margin: 0.15rem 0 0;
+    font-size: 0.82rem;
+    color: rgba(var(--color-text-rgb), 0.6);
+}
+
+.kyc-setup__choice-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+    gap: 0.75rem;
+}
+
+.kyc-setup__choice {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(var(--color-text-rgb), 0.12);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.kyc-setup__choice input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.kyc-setup__choice.is-selected {
+    border-color: rgba(var(--color-primary-rgb), 0.55);
+    background: rgba(var(--color-primary-rgb), 0.04);
+}
+
+.kyc-setup__choice:focus-within {
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.35);
+    outline-offset: 2px;
+}
+
+.kyc-setup__choice-icon {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: rgb(var(--color-primary-rgb));
+    background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.kyc-setup__choice-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.kyc-setup__choice-body strong {
+    font-size: 0.88rem;
+    font-weight: var(--font-semibold);
+}
+
+.kyc-setup__choice-body small {
+    font-size: 0.75rem;
+    color: rgba(var(--color-text-rgb), 0.55);
+}
+
+.kyc-setup__saved-note {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: #0f8a4d;
+    background: rgba(16, 163, 96, 0.08);
+    border: 1px solid rgba(16, 163, 96, 0.16);
+}
+
+.kyc-setup__webhook .form-control[readonly] {
+    background: rgba(var(--color-text-rgb), 0.03);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8rem;
+}
+
+.kyc-setup__summary {
+    position: sticky;
+    top: 90px;
+}
+
+.kyc-setup__identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+
+.kyc-setup__identity-logo {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: contain;
+}
+
+.kyc-setup__identity-name {
+    margin: 0 0 0.2rem;
+    font-size: 1rem;
+    font-weight: var(--font-semibold);
+}
+
+.kyc-setup__identity-tag {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(var(--color-text-rgb), 0.6);
+}
+
+.kyc-setup__divider {
+    margin: 1rem 0;
+    border-color: rgba(var(--color-text-rgb), 0.08);
+    opacity: 1;
+}
+
+.kyc-setup__hint {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: rgba(var(--color-text-rgb), 0.55);
+}
+
+@media (max-width: 991.98px) {
+    .kyc-setup__summary {
+        position: static;
+    }
+}
+
+/* =====================================================================
+   KYC Provider configuration modal
+   Mirrors the payment gateway credential flow with KYC-specific routing.
+   ===================================================================== */
+.kpm-modal .modal-dialog {
+    max-width: 900px;
+}
+
+.kpm-modal__content {
+    border-radius: 16px;
+    box-shadow: 0 14px 34px rgba(var(--color-text-rgb), 0.14);
+}
+
+.kpm-modal__header {
+    padding: 15px 18px;
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.14);
+    color: var(--color-text);
+    background: linear-gradient(135deg, var(--color-white), rgba(var(--color-primary-rgb), 0.07));
+}
+
+.kpm-modal__header .pgm-modal__icon {
+    width: 38px;
+    height: 38px;
+    border-color: rgba(var(--color-primary-rgb), 0.18);
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.kpm-modal__header .pgm-modal__title h2 {
+    color: var(--color-text);
+    font-size: 1.05rem;
+}
+
+.kpm-modal__header .pgm-modal__title p {
+    margin-top: 2px;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.kpm-modal__header .pgm-modal__close {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.22);
+    border-radius: 50%;
+    color: var(--color-danger);
+    background: rgba(var(--color-danger-rgb), 0.06);
+}
+
+.kpm-modal__eyebrow {
+    display: block;
+    margin-bottom: 1px;
+    color: var(--color-primary);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-extrabold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.kpm-modal__body {
+    max-height: min(82vh, 760px);
+    padding: 14px;
+    background: var(--color-surface-alt);
+}
+
+.kpm-modal .pgm-form {
+    gap: 10px;
+}
+
+.kpm-modal .pgm-input {
+    min-height: 38px;
+    border-radius: 8px !important;
+}
+
+.kpm-provider {
+    min-height: 64px;
+    padding: 9px 12px;
+}
+
+.kpm-provider__logo {
+    width: 42px;
+    height: 42px;
+    color: var(--color-primary);
+    font-size: var(--font-size-px-22);
+}
+
+.kpm-provider .pgm-provider__meta strong {
+    font-size: 1rem;
+}
+
+.kpm-modal .pgm-provider,
+.kpm-modal .pgm-panel {
+    box-shadow: none;
+}
+
+.kpm-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 10px;
+}
+
+.kpm-panel {
+    min-width: 0;
+    padding: 13px;
+}
+
+.kpm-panel .pgm-panel__head {
+    margin-bottom: 10px;
+}
+
+.kpm-panel .pgm-panel__head > div {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    column-gap: 9px;
+}
+
+.kpm-panel .pgm-panel__head h3,
+.kpm-panel .pgm-panel__head p {
+    grid-column: 2;
+}
+
+.kpm-panel .pgm-panel__head h3 {
+    font-size: var(--font-sm);
+}
+
+.kpm-panel .pgm-panel__head p {
+    margin-top: 2px;
+    font-size: var(--font-size-px-11);
+    line-height: 1.4;
+}
+
+.kpm-step {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    grid-row: 1 / span 2;
+    place-items: center;
+    border-radius: 8px;
+    font-size: var(--font-xs);
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.09);
+}
+
+.kpm-panel .kyc-setup__choice-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+}
+
+.kpm-panel .kyc-setup__choice {
+    position: relative;
+    min-height: 54px;
+    padding-block: 8px;
+    padding-inline: 10px 34px;
+    background: var(--color-white);
+}
+
+.kpm-panel .kyc-setup__choice-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+.kpm-panel .kyc-setup__choice:hover {
+    border-color: rgba(var(--color-primary-rgb), 0.28);
+}
+
+.kpm-panel .kyc-setup__choice.is-selected {
+    border-color: rgba(var(--color-primary-rgb), 0.48);
+    background: rgba(var(--color-primary-rgb), 0.045);
+}
+
+.kpm-choice-check {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    color: var(--color-primary);
+    opacity: 0;
+    transform: translateY(-50%) scale(0.75);
+}
+
+.kyc-setup__choice.is-selected .kpm-choice-check {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}
+
+.kpm-country-picker .form-select {
+    height: 158px;
+    padding: 8px;
+}
+
+.kpm-country-picker option {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.kpm-mode {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.kpm-mode__label {
+    color: var(--color-text-soft);
+    font-size: var(--font-xs);
+    font-weight: var(--font-extrabold);
+}
+
+.kpm-mode__options {
+    display: inline-flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 9px;
+    background: var(--color-surface-alt);
+}
+
+.kpm-mode__option {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 5px 8px;
+    border-radius: 7px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-extrabold);
+    cursor: pointer;
+}
+
+.kpm-mode__options .btn-check:checked + .kpm-mode__option {
+    color: var(--color-primary);
+    background: var(--color-white);
+}
+
+.kpm-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.kyc-setup__saved-note {
+    align-items: flex-start;
+}
+
+.kyc-setup__saved-note span,
+.kyc-setup__saved-note strong {
+    display: block;
+}
+
+.kyc-setup__saved-note strong {
+    margin-bottom: 1px;
+}
+
+.kpm-webhook {
+    display: grid;
+    gap: 8px;
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.kpm-webhook__copy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpm-webhook__icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--color-success-deep);
+    background: var(--color-palette-e8f8f1);
+}
+
+.kpm-webhook__copy strong,
+.kpm-webhook__copy small {
+    display: block;
+}
+
+.kpm-webhook__copy strong {
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-extrabold);
+}
+
+.kpm-webhook__copy small {
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.kpm-webhook .pgm-input {
+    min-width: 0;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+    text-overflow: ellipsis;
+}
+
+.kpm-health__control {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.kpm-health .pgm-panel__head {
+    align-items: center;
+    margin-bottom: 7px;
+}
+
+.kpm-health .pgm-panel__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 82px;
+    justify-content: center;
+}
+
+.kpm-health .pgm-panel__pill i {
+    display: inline-block;
+    flex: 0 0 auto;
+    font-size: var(--font-size-px-11);
+}
+
+.kpm-health__note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+}
+
+.kpm-health__note i {
+    color: var(--color-primary);
+}
+
+.kpm-health .pgm-test-btn,
+.kpm-health .pgm-test-btn:hover,
+.kpm-health .pgm-test-btn:focus {
+    box-shadow: none;
+}
+
+.kpm-health .pgm-test-btn {
+    min-height: 38px;
+    padding: 5px 9px !important;
+}
+
+.kpm-activation {
+    padding: 0;
+    border-color: rgba(var(--color-primary-rgb), 0.16);
+    background: linear-gradient(135deg, var(--color-white), rgba(var(--color-primary-rgb), 0.045));
+}
+
+.kpm-activation__label {
+    display: flex;
+    min-height: 60px;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 9px 12px;
+    cursor: pointer;
+}
+
+.kpm-activation__icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 9px;
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.kpm-activation__copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.kpm-activation__copy strong,
+.kpm-activation__copy small {
+    display: block;
+}
+
+.kpm-activation__copy strong {
+    margin-bottom: 1px;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-extrabold);
+}
+
+.kpm-activation__copy small {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+    line-height: 1.35;
+}
+
+.kpm-switch {
+    margin: 0;
+    padding-left: 0;
+}
+
+.kpm-switch .form-check-input {
+    width: 46px;
+    height: 24px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.kpm-footer {
+    position: sticky;
+    z-index: 2;
+    bottom: -14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin: 0 -14px -14px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--color-border-soft);
+    background: var(--color-white);
+}
+
+.kpm-footer .btn {
+    min-height: 38px;
+    padding-inline: 15px;
+    border-radius: 8px;
+    font-weight: var(--font-extrabold);
+}
+
+@media (max-width: 767.98px) {
+    .kpm-modal .modal-dialog {
+        max-width: none;
+        margin: 10px;
+    }
+
+    .kpm-modal__header {
+        padding: 14px;
+    }
+
+    .kpm-modal__header .pgm-modal__title p {
+        display: none;
+    }
+
+    .kpm-modal__body {
+        max-height: calc(100vh - 110px);
+        padding: 12px;
+    }
+
+    .kpm-grid,
+    .kpm-fields,
+    .kpm-health__control {
+        grid-template-columns: 1fr;
+    }
+
+    .kpm-provider {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .kpm-provider .pgm-provider__badge {
+        width: fit-content;
+        margin-left: 68px;
+    }
+
+    .kpm-panel {
+        padding: 12px;
+    }
+
+    .kpm-activation__label {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .kpm-switch {
+        margin-left: 54px;
+    }
+
+    .kpm-footer {
+        bottom: -12px;
+        margin: 0 -12px -12px;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .kpm-mode {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .kpm-mode__options,
+    .kpm-mode__option {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .kpm-footer .btn {
+        flex: 1;
+        padding-inline: 10px;
+    }
+}

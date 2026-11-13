@@ -1,0 +1,13 @@
+.page-edit-admin {
+    --pe-ink: var(--color-text);
+    --pe-soft-ink: var(--color-text-soft);
+    --pe-muted: var(--color-text-muted);
+    --pe-surface: var(--color-card);
+    --pe-shadow: var(--shadow-md);
+    color: var(--pe-ink);
+}
+
+.page-edit-admin svg {
+    display: block;
+}
+

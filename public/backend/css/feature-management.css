@@ -1,0 +1,3674 @@
+/* ==========================================================================
+   Feature Management
+   Premium, compact SaaS-style layout for the Feature Governance admin page.
+   All selectors are scoped with the `.feature-mgmt-*` prefix so nothing
+   leaks into the rest of the backend theme.
+   ========================================================================== */
+
+.feature-mgmt-page,
+.feature-mgmt-modal,
+.feature-mgmt-modal-backdrop {
+    --fm-radius-sm: var(--radius-sm);
+    --fm-radius: var(--radius-md);
+    --fm-radius-lg: var(--radius-lg);
+    --fm-border: rgba(var(--color-secondary-rgb), 0.22);
+    --fm-border-strong: rgba(var(--color-secondary-rgb), 0.32);
+    --fm-text: var(--color-text);
+    --fm-muted: var(--color-text-muted);
+    --fm-soft: var(--color-text-faint);
+    --fm-surface: var(--color-card);
+    --fm-surface-alt: var(--color-surface-alt);
+    --fm-primary: var(--color-primary);
+    --fm-primary-strong: var(--color-primary-hover);
+    --fm-success: var(--color-success);
+    --fm-success-strong: var(--color-success-strong);
+    --fm-warning: var(--color-warning);
+    --fm-warning-strong: var(--color-warning-deep);
+    --fm-shadow: var(--shadow-md);
+    --fm-shadow-soft: var(--shadow-sm);
+    --fm-hover-shadow: 0 2px 8px rgba(var(--color-text-rgb), 0.035);
+}
+
+.feature-mgmt-page {
+    background: linear-gradient(180deg, var(--color-white) 0%, var(--color-surface-alt) 100%);
+    border: 1px solid rgba(var(--color-text-faint-rgb), 0.18);
+    border-radius: 1rem;
+    padding: 1.15rem 1.15rem 1.35rem;
+    box-shadow: var(--fm-shadow-soft);
+}
+
+/* ==========================================================================
+   Catalog screen
+
+   Traced from the design reference: every size, radius, ring and colour below
+   is the value the reference states, read back through the token that already
+   holds it. Physical sides become logical ones, which is the only place this
+   deliberately departs from an LTR-only reference.
+   ========================================================================== */
+
+.feature-mgmt-page--catalog {
+    --fm-ring: rgba(var(--color-text-rgb), 0.05);
+    /*
+     * One flat ring and a hairline for every card. The reference's soft
+     * 24px drop read as a second shadow under each card once the cards sat
+     * on the panel's own surface, so both screens use the small lift.
+     */
+    --fm-lift:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    --fm-lift-sm:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+/* ---------- Workspace ---------- */
+
+.feature-mgmt-workspace {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.feature-mgmt-rail {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---------- Category rail ---------- */
+
+.feature-mgmt-cats {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow: var(--fm-lift-sm);
+}
+
+.feature-mgmt-cat {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    text-align: start;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.feature-mgmt-cat:hover {
+    background: var(--color-surface-alt);
+}
+
+.feature-mgmt-cat.is-active,
+.feature-mgmt-cat.is-active:hover {
+    background: var(--color-surface-soft);
+}
+
+.feature-mgmt-cat__icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--fm-cat-bg, var(--color-surface-soft));
+    color: var(--fm-cat-fg, var(--color-primary));
+    font-size: var(--font-size-rem-08125);
+}
+
+.feature-mgmt-cat__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.feature-mgmt-cat__label {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.feature-mgmt-cat.is-active .feature-mgmt-cat__label {
+    font-weight: var(--font-semibold);
+}
+
+.feature-mgmt-cat__meta {
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+.feature-mgmt-cat__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-071875);
+    font-weight: var(--font-semibold);
+}
+
+.feature-mgmt-cat.is-active .feature-mgmt-cat__count {
+    background: var(--color-text);
+    color: var(--color-white);
+}
+
+@keyframes featureMgmtPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+/* ---------- Overview card ---------- */
+
+.feature-mgmt-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow: var(--fm-lift-sm);
+}
+
+.feature-mgmt-overview__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.feature-mgmt-overview__eyebrow {
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-overview__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-overview__live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success-strong);
+    animation: featureMgmtPulse 2s infinite;
+}
+
+@keyframes featureMgmtPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.feature-mgmt-overview__figure {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.feature-mgmt-overview__count {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.feature-mgmt-overview__value {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-30);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.feature-mgmt-overview__total {
+    font-size: var(--font-size-rem-0875);
+    font-weight: var(--font-medium);
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-overview__label {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-overview__pct {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-overview__bar {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+}
+
+.feature-mgmt-overview__seg {
+    border-radius: 3px;
+}
+
+.feature-mgmt-overview__seg--on {
+    background: linear-gradient(90deg, var(--color-palette-22c55e), var(--color-success-strong));
+}
+
+.feature-mgmt-overview__seg--core {
+    background: var(--color-warning);
+}
+
+.feature-mgmt-overview__seg--role {
+    background: var(--color-violet);
+}
+
+/* --color-border-strong, so the segment is the shade its swatch draws. */
+.feature-mgmt-overview__seg--off {
+    background: var(--color-border-strong);
+}
+
+.feature-mgmt-overview__legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: var(--font-size-rem-078125);
+}
+
+.feature-mgmt-overview__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.feature-mgmt-overview__row > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-overview__swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--color-border-strong);
+}
+
+.feature-mgmt-overview__swatch--on {
+    background: var(--color-success-strong);
+}
+
+.feature-mgmt-overview__swatch--core {
+    background: var(--color-warning);
+}
+
+.feature-mgmt-overview__swatch--role {
+    background: var(--color-violet);
+}
+
+.feature-mgmt-overview__num {
+    font-family: var(--font-mono);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-overview__num--off {
+    color: var(--color-palette-64748b);
+}
+
+.feature-mgmt-overview__num--core {
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-overview__num--role {
+    color: var(--color-violet-deep);
+}
+
+.feature-mgmt-overview__foot {
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border-soft);
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+}
+
+/* ---------- Catalog panel ---------- */
+
+.feature-mgmt-catalog-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: 16px;
+    background: var(--color-white);
+    box-shadow:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 1px rgba(var(--color-text-rgb), 0.03),
+        0 10px 24px -14px rgba(var(--color-text-rgb), 0.14),
+        0 36px 72px -36px rgba(var(--color-primary-rgb), 0.14);
+    overflow: hidden;
+}
+
+.feature-mgmt-catalog-panel__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.feature-mgmt-catalog-panel__header[hidden] {
+    display: none;
+}
+
+.feature-mgmt-catalog-panel__identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.feature-mgmt-catalog-panel__icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--fm-cat-bg, var(--color-surface-soft));
+    color: var(--fm-cat-fg, var(--color-primary));
+    font-size: var(--font-size-rem-0875);
+}
+
+.feature-mgmt-catalog-panel__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.feature-mgmt-catalog-panel__title {
+    margin: 0;
+    font-size: var(--font-size-rem-1);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.feature-mgmt-catalog-panel__desc {
+    margin: 0;
+    font-size: var(--font-size-rem-078125);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.feature-mgmt-catalog-panel__tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Search and filters ---------- */
+
+.feature-mgmt-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 9px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-search:focus-within {
+    box-shadow:
+        inset 0 0 0 1px var(--color-palette-c7d2fe),
+        0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.feature-mgmt-search__icon {
+    font-size: var(--font-size-rem-06875);
+}
+
+.feature-mgmt-search__input {
+    width: 140px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text);
+}
+
+.feature-mgmt-filters {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--color-surface-soft);
+}
+
+.feature-mgmt-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.feature-mgmt-filter.is-active {
+    background: var(--color-white);
+    color: var(--color-text);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.08);
+}
+
+.feature-mgmt-filter__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-065625);
+    color: var(--color-text-faint);
+}
+
+/* ---------- Feature cards ---------- */
+
+/*
+ * Two per row, fixed — not an auto-filling track. A card carries a name, a
+ * key, two lines of description, three panel chips and a Manage button on one
+ * row; at three across the chips wrap and the description clips mid-word,
+ * which is what the reference is showing when it draws two.
+ */
+.feature-mgmt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px 22px 20px;
+}
+
+.feature-mgmt-grid[hidden] {
+    display: none;
+}
+
+.feature-mgmt-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+    background: var(--color-white);
+    box-shadow:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.06),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    transition: opacity 0.2s ease;
+}
+
+/*
+ * No hover lift. The card is a shelf for its own switch and Manage button;
+ * raising it under the pointer drew a second, tinted shadow over the grid
+ * and made the whole card read as one large control it is not.
+ */
+
+/* A switched-off feature is still on the shelf, just dimmed. */
+.feature-mgmt-item.is-disabled {
+    opacity: 0.72;
+}
+
+.feature-mgmt-item[hidden] {
+    display: none;
+}
+
+.feature-mgmt-item__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.feature-mgmt-item__identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.feature-mgmt-title-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--fm-cat-bg, var(--color-surface-soft));
+    color: var(--fm-cat-fg, var(--color-primary));
+    font-size: var(--font-size-rem-09375);
+}
+
+.feature-mgmt-item__names {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.feature-mgmt-item__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+}
+
+.feature-mgmt-item__title-text {
+    font-size: var(--font-size-rem-084375);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.005em;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.feature-mgmt-item__key {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-065625);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.feature-mgmt-item__description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    font-size: var(--font-size-rem-075);
+    line-height: 1.45;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+.feature-mgmt-item__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.feature-mgmt-item__panels {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.feature-mgmt-panel-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--fm-panel-bg, var(--color-surface-soft));
+    color: var(--fm-panel-fg, var(--color-text-faint));
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.feature-mgmt-panel-chip i {
+    font-size: var(--font-size-rem-05625);
+}
+
+.feature-mgmt-panel-chip--muted {
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-panel-chip--role {
+    background: transparent;
+    color: var(--color-text-muted);
+    padding: 0;
+    font-size: var(--font-size-rem-071875);
+    font-weight: var(--font-normal);
+}
+
+.feature-mgmt-panel-chip--role i {
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-manage-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 11px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-white);
+    color: var(--color-text);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    transition: box-shadow 0.15s ease;
+}
+
+.feature-mgmt-manage-btn:hover {
+    color: var(--color-text);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+.feature-mgmt-manage-btn i {
+    font-size: var(--font-size-rem-05625);
+}
+
+/* The chevron points along the text, so it mirrors with it. */
+[dir="rtl"] .feature-mgmt-manage-btn i {
+    transform: scaleX(-1);
+}
+
+/* ---------- The card's own switch ---------- */
+
+.feature-mgmt-card-switch-form {
+    display: flex;
+    align-items: center;
+    margin: 0;
+}
+
+.feature-mgmt-card-switch {
+    flex: 0 0 auto;
+}
+
+/* ==================== Empty state ==================== */
+
+.feature-mgmt-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 56px 22px;
+    text-align: center;
+}
+
+.feature-mgmt-empty[hidden] {
+    display: none;
+}
+
+.feature-mgmt-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+    font-size: var(--font-lg);
+}
+
+.feature-mgmt-empty__title {
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-empty__body {
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-empty__action {
+    margin-block-start: 4px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+/* ==================== Confirmation modal ==================== */
+
+.feature-mgmt-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1054;
+    display: none;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(6px);
+}
+
+.feature-mgmt-modal-backdrop.is-visible {
+    display: block;
+    animation: featureMgmtFade 0.2s ease-out;
+}
+
+.feature-mgmt-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: none;
+    place-items: center;
+    padding: 24px;
+}
+
+.feature-mgmt-modal.is-visible {
+    display: grid;
+}
+
+@keyframes featureMgmtFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes featureMgmtPop {
+    from {
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.feature-mgmt-modal__dialog {
+    position: relative;
+    width: min(440px, 100%);
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background: var(--color-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 30px 80px -20px rgba(15, 23, 42, 0.45);
+    overflow: hidden;
+    animation: featureMgmtPop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* The glows belonged to the previous dialog; the shape carries itself now. */
+.feature-mgmt-modal__glow {
+    display: none;
+}
+
+.feature-mgmt-modal__close {
+    position: absolute;
+    inset-block-start: 14px;
+    inset-inline-end: 14px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-11);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.feature-mgmt-modal__close:hover {
+    background: var(--color-border);
+}
+
+.feature-mgmt-modal__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 28px 26px 8px;
+    text-align: center;
+}
+
+.feature-mgmt-modal__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+    font-size: var(--font-2xl);
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__icon {
+    background: var(--tint-danger);
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-modal__icon-glyph--danger {
+    display: none;
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__icon-glyph--danger {
+    display: inline-block;
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__icon-glyph--success {
+    display: none;
+}
+
+.feature-mgmt-modal__eyebrow {
+    display: none;
+}
+
+.feature-mgmt-modal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 26px;
+    text-align: center;
+}
+
+.feature-mgmt-modal__title {
+    margin: 0;
+    font-size: var(--font-xl);
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.015em;
+    color: var(--color-text);
+}
+
+.feature-mgmt-modal__text {
+    margin: 0;
+    font-size: var(--font-sm);
+    color: var(--color-text-muted);
+}
+
+/*
+ * What actually happens, stated apart from the question. An admin turning a
+ * core feature off is deciding about downstream flows, not about a switch.
+ */
+.feature-mgmt-modal__impact {
+    display: flex;
+    gap: 12px;
+    margin: 14px 26px 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-xl);
+    background: var(--color-palette-f0fdf4, var(--tint-success));
+    box-shadow: inset 0 0 0 1px var(--color-palette-bbf7d0, var(--color-success-soft));
+    text-align: start;
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__impact {
+    background: var(--tint-danger);
+    box-shadow: inset 0 0 0 1px var(--color-palette-fecaca, var(--color-danger-soft));
+}
+
+.feature-mgmt-modal__impact-dot {
+    margin-block-start: 5px;
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--color-success-deep);
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__impact-dot {
+    background: var(--color-danger-deep);
+}
+
+.feature-mgmt-modal__impact-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--font-size-px-125);
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-modal__impact-label {
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-modal__impact-label {
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-modal__actions {
+    display: flex;
+    gap: 8px;
+    padding: 20px 26px 24px;
+}
+
+.feature-mgmt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex: 1;
+    height: 38px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.feature-mgmt-btn--ghost {
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+}
+
+.feature-mgmt-btn--primary {
+    border: 1px solid var(--color-success-strong);
+    background: var(--color-success-strong);
+    color: var(--color-text-inverse);
+    box-shadow: 0 6px 14px -8px rgba(var(--color-success-rgb), 0.8);
+}
+
+.feature-mgmt-modal.is-danger .feature-mgmt-btn--primary {
+    border-color: var(--color-danger-deep);
+    background: var(--color-danger-deep);
+    box-shadow: 0 6px 14px -8px rgba(var(--color-danger-deep-rgb), 0.8);
+}
+
+.feature-mgmt-btn__icon {
+    font-size: var(--font-size-px-11);
+}
+
+/* ==================== Inline switch ==================== */
+
+.feature-mgmt-toggle-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+.feature-mgmt-switch {
+    padding: 0;
+    margin: 0;
+    min-height: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.feature-mgmt-switch .form-check-input {
+    width: 2.25rem;
+    height: 1.25rem;
+    margin: 0;
+    border: 0;
+    background-color: var(--color-palette-cbd5e1);
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.feature-mgmt-switch .form-check-input:focus {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.feature-mgmt-switch .form-check-input:checked {
+    background-color: var(--fm-primary);
+}
+
+.feature-mgmt-switch--card .form-check-input {
+    width: 1.62rem;
+    height: 0.9rem;
+    border: 1px solid rgba(var(--color-white-rgb), 0.5);
+    background-color: var(--color-text-faint);
+    box-shadow: inset 0 1px 2px rgba(var(--color-text-rgb), 0.08);
+}
+
+.feature-mgmt-switch--card .form-check-input:checked {
+    background-color: rgba(var(--color-primary-rgb), 0.82);
+    box-shadow: 0 0 0 0.08rem rgba(var(--color-primary-rgb), 0.08);
+}
+
+.feature-mgmt-switch--lg .form-check-input {
+    width: 2.6rem;
+    height: 1.45rem;
+}
+
+/* ==================== Badges ==================== */
+
+/*
+ * A tag beside the feature name, not a pill on its own line: it qualifies the
+ * title it sits next to, so it stays small and square-ish rather than
+ * competing with it.
+ */
+.feature-mgmt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: var(--font-size-rem-0625);
+    font-weight: var(--font-semibold);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.feature-mgmt-badge i {
+    font-size: var(--font-size-px-7);
+}
+
+.feature-mgmt-badge--success {
+    background: rgba(var(--color-success-rgb), 0.12);
+    border: 1px solid rgba(var(--color-success-rgb), 0.16);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-badge--secondary {
+    background: rgba(var(--color-text-faint-rgb), 0.18);
+    border: 1px solid rgba(var(--color-text-faint-rgb), 0.18);
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-badge--warning {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-badge--role {
+    background: var(--tint-violet);
+    color: var(--color-violet-deep);
+}
+
+/* ==========================================================================
+   Manage screen
+
+   Traced from the design reference rather than written from its prose: every
+   size, radius, ring and colour below is the value the reference states, read
+   back through the token that already holds it. The one thing that is not a
+   copy is the direction — the reference is LTR only, so physical sides become
+   logical ones.
+   ========================================================================== */
+
+.feature-mgmt-page--manage {
+    --fm-ring: rgba(var(--color-text-rgb), 0.05);
+    --fm-lift:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+    --fm-lift-sm:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ---------- Breadcrumb ---------- */
+
+/* ---------- Switch ---------- */
+
+.feature-mgmt-sw {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.feature-mgmt-sw__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.feature-mgmt-sw__track {
+    position: relative;
+    display: block;
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--color-palette-cbd5e1);
+    transition: background 0.2s ease;
+}
+
+.feature-mgmt-sw__track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-white);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.25);
+    transition: inset-inline-start 0.2s ease;
+}
+
+.feature-mgmt-sw__input:checked + .feature-mgmt-sw__track {
+    background: var(--color-success-strong);
+}
+
+.feature-mgmt-sw__input:checked + .feature-mgmt-sw__track::after {
+    inset-inline-start: 18px;
+}
+
+.feature-mgmt-sw__input:focus-visible + .feature-mgmt-sw__track {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.feature-mgmt-sw--sm .feature-mgmt-sw__track {
+    width: 32px;
+    height: 18px;
+}
+
+.feature-mgmt-sw--sm .feature-mgmt-sw__track::after {
+    width: 14px;
+    height: 14px;
+}
+
+.feature-mgmt-sw--sm .feature-mgmt-sw__input:checked + .feature-mgmt-sw__track::after {
+    inset-inline-start: 16px;
+}
+
+.feature-mgmt-sw--lg .feature-mgmt-sw__track {
+    width: 44px;
+    height: 24px;
+}
+
+.feature-mgmt-sw--lg .feature-mgmt-sw__track::after {
+    width: 20px;
+    height: 20px;
+}
+
+.feature-mgmt-sw--lg .feature-mgmt-sw__input:checked + .feature-mgmt-sw__track::after {
+    inset-inline-start: 22px;
+}
+
+/* ---------- Header ---------- */
+
+.feature-mgmt-head {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 26px;
+    border-radius: 16px;
+    background: var(--color-white);
+    box-shadow: var(--fm-lift);
+    overflow: hidden;
+}
+
+/* ---------- Status and Core pills ---------- */
+
+.feature-mgmt-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+}
+
+.feature-mgmt-status__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success-strong);
+}
+
+.feature-mgmt-status.is-off {
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+}
+
+.feature-mgmt-status.is-off .feature-mgmt-status__dot {
+    background: var(--color-palette-cbd5e1);
+}
+
+/* ---------- Master switch ---------- */
+
+.feature-mgmt-master {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+}
+
+/*
+ * Off is amber, not grey. A feature switched off platform-wide is a state
+ * worth noticing on arrival, and grey reads as "nothing to see here".
+ */
+.feature-mgmt-master.is-off {
+    background: var(--color-palette-fff7ed);
+    box-shadow: inset 0 0 0 1px var(--color-palette-fed7aa);
+}
+
+.feature-mgmt-master__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.feature-mgmt-master__label {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-master__hint {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-master__hint.is-core {
+    color: var(--color-warning-deep);
+}
+
+/* ---------- Layout ---------- */
+
+/*
+ * The form holds the header and the grid beneath it. It had no rule, so the
+ * page's 18px gap stopped at the breadcrumb and the header card sat flush
+ * against Panel rules.
+ */
+.feature-mgmt-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.feature-mgmt-manage-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* ---------- Panel rules card ---------- */
+
+.feature-mgmt-rules-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--color-white);
+    border-radius: 16px;
+    box-shadow: var(--fm-lift);
+    overflow: hidden;
+}
+
+.feature-mgmt-rules-card__head {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 18px 22px 0;
+}
+
+.feature-mgmt-rules-card__title {
+    margin: 0;
+    font-size: var(--font-size-rem-1);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.feature-mgmt-rules-card__subtitle {
+    font-size: var(--font-size-rem-078125);
+    color: var(--color-text-muted);
+}
+
+/* ---------- Panel tabs ---------- */
+
+.feature-mgmt-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 14px 22px 0;
+    border-bottom: 1px solid var(--color-border-soft);
+    overflow-x: auto;
+}
+
+.feature-mgmt-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.feature-mgmt-tab.is-active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary);
+}
+
+.feature-mgmt-tab__icon {
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-tab.is-active .feature-mgmt-tab__icon {
+    color: var(--fm-panel-fg, var(--color-primary));
+}
+
+/*
+ * The tab pill says what the panel does right now. "Blocked" — in the menu,
+ * refused by the route — is the state worth its own word, and usually the one
+ * an operator came to this screen to find.
+ */
+.feature-mgmt-tab__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: var(--font-size-rem-065625);
+    font-weight: var(--font-semibold);
+}
+
+.feature-mgmt-tab__pill--open {
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-tab__pill--blocked {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-tab__pill--hidden {
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+}
+
+/* ---------- Panel pane ---------- */
+
+.feature-mgmt-pane {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 22px 22px;
+}
+
+/*
+ * A `display` declaration outranks the user-agent [hidden] rule, so without
+ * this the closed panes stay on screen and every panel's fields pile up at
+ * once. The verify row below carries the same rule for the same reason.
+ */
+.feature-mgmt-pane[hidden] {
+    display: none;
+}
+
+/* ---------- Rule tiles ---------- */
+
+.feature-mgmt-rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+}
+
+.feature-mgmt-rule {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feature-mgmt-rule.is-on {
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-palette-e0e7ff);
+}
+
+.feature-mgmt-rule__identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+/*
+ * The icon keeps its own colour whether the rule is on or off. It names which
+ * rule this is; greying it out would make four tiles that differ only by the
+ * words, which is exactly the scan this layout exists to avoid.
+ */
+.feature-mgmt-rule__icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    color: var(--fm-rule-fg, var(--color-primary));
+    font-size: var(--font-size-rem-08125);
+}
+
+.feature-mgmt-rule__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.feature-mgmt-rule__label {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-rule__hint {
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-muted);
+}
+
+/* ---------- Sub-blocks: recipient lookup, allowed countries ---------- */
+
+.feature-mgmt-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+}
+
+.feature-mgmt-block__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.feature-mgmt-block__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.feature-mgmt-block__title {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-block__hint {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-block__meta {
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+.feature-mgmt-block__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.feature-mgmt-block__pill.is-limited {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-block__pill i {
+    font-size: var(--font-size-rem-05625);
+}
+
+/* ---------- Identifier tiles ---------- */
+
+.feature-mgmt-ids {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.feature-mgmt-id {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feature-mgmt-id.is-on {
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-palette-e0e7ff);
+}
+
+.feature-mgmt-id__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.feature-mgmt-id__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-id__label i {
+    font-size: var(--font-size-rem-06875);
+}
+
+.feature-mgmt-id__hint {
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-id__verify {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding-top: 8px;
+    border-top: 1px dashed var(--color-border);
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.feature-mgmt-id__verify[hidden] {
+    display: none;
+}
+
+.feature-mgmt-id__verify:has(.admin-check:checked) .feature-mgmt-id__verify-label {
+    color: var(--color-text);
+}
+
+/* The checkbox here is the panel's one checkbox, declared in custom.css
+   between the `checkbox-canon` markers. This page drew its own 16px square
+   before that existed. */
+
+/* ---------- Country chips ---------- */
+
+.feature-mgmt-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 42px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.feature-mgmt-chips:focus-within {
+    box-shadow:
+        inset 0 0 0 1px var(--color-primary),
+        0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+}
+
+/*
+ * The list is a layout no-op: the chips are laid out by the row itself, so
+ * they wrap together with the input instead of as one indivisible block.
+ */
+.feature-mgmt-chips__list {
+    display: contents;
+}
+
+.feature-mgmt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding-inline: 9px 4px;
+    border-radius: 7px;
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary-deep);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+}
+
+.feature-mgmt-chip__remove {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-primary-lift);
+    font-size: var(--font-size-px-8);
+    cursor: pointer;
+}
+
+.feature-mgmt-chip__remove:hover {
+    background: var(--color-palette-e0e7ff);
+}
+
+.feature-mgmt-chips__input {
+    flex: 1;
+    min-width: 140px;
+    height: 26px;
+    padding: 0 4px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text);
+}
+
+/* ---------- Aside ---------- */
+
+.feature-mgmt-aside {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---------- Access matrix ---------- */
+
+.feature-mgmt-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow: var(--fm-lift-sm);
+}
+
+.feature-mgmt-matrix__eyebrow {
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.feature-mgmt-matrix__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(var(--fm-matrix-cols, 3), 32px);
+    gap: 6px 4px;
+    align-items: center;
+    font-size: var(--font-size-rem-075);
+}
+
+.feature-mgmt-matrix__head {
+    display: grid;
+    place-items: center;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--fm-panel-bg, var(--color-surface-soft));
+    color: var(--fm-panel-fg, var(--color-text-muted));
+    font-size: var(--font-size-rem-0625);
+}
+
+.feature-mgmt-matrix__label {
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+}
+
+.feature-mgmt-matrix__cell {
+    display: grid;
+    place-items: center;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--color-surface-alt);
+    color: var(--color-palette-cbd5e1);
+    font-size: var(--font-size-rem-05625);
+}
+
+.feature-mgmt-matrix__cell.is-on {
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-matrix__foot {
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-soft);
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+    text-wrap: pretty;
+}
+
+/* ---------- Save card ---------- */
+
+.feature-mgmt-save {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow: var(--fm-lift-sm);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-mgmt-save.is-dirty {
+    background: var(--color-palette-fffbeb);
+    box-shadow:
+        0 0 0 1px var(--color-palette-fde68a),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+}
+
+.feature-mgmt-save__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.feature-mgmt-save__title {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.feature-mgmt-save__tag {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-071875);
+    font-weight: var(--font-semibold);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-save.is-dirty .feature-mgmt-save__tag {
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-save__hint {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+.feature-mgmt-save__actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.feature-mgmt-save__discard,
+.feature-mgmt-save__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.feature-mgmt-save__discard {
+    flex: 1;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    color: var(--color-text-soft);
+}
+
+.feature-mgmt-save__submit {
+    flex: 1.4;
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
+    /* Dimmed while there is nothing to save — still reachable, not disabled. */
+    opacity: 0.6;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.feature-mgmt-save.is-dirty .feature-mgmt-save__submit {
+    opacity: 1;
+}
+
+.feature-mgmt-save__submit:hover {
+    background: var(--color-primary-hover);
+    color: var(--color-white);
+}
+
+.feature-mgmt-save__submit i {
+    font-size: var(--font-size-rem-06875);
+}
+
+/* ==================== Responsive ==================== */
+
+@media (max-width: 899.98px) {
+    .feature-mgmt-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* A rail as tall as the viewport pins the page; the catalog below it
+       could no longer be scrolled past. */
+    .feature-mgmt-rail {
+        position: static;
+    }
+
+    .feature-mgmt-cats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 4px;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    /* The matrix and the save card belong under the rules, not beside them. */
+    .feature-mgmt-manage-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .feature-mgmt-aside {
+        position: static;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /*
+     * Two columns stop fitting the card here: three panel chips and the
+     * Manage button need the full row, and below this they wrap instead.
+     */
+    .feature-mgmt-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .feature-mgmt-catalog-panel__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .feature-mgmt-head {
+        align-items: stretch;
+    }
+
+    .feature-mgmt-master {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .feature-mgmt-catalog-panel__header,
+    .feature-mgmt-grid {
+        padding-inline: 16px;
+    }
+
+    .feature-mgmt-catalog-panel__tools {
+        width: 100%;
+    }
+
+    .feature-mgmt-search {
+        flex: 1 1 auto;
+    }
+
+    .feature-mgmt-search__input {
+        width: 100%;
+    }
+
+    .feature-mgmt-filters {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .feature-mgmt-modal__actions {
+        flex-direction: column;
+    }
+
+    .feature-mgmt-page {
+        padding: 1rem;
+    }
+
+    .feature-mgmt-page--catalog {
+        padding: 0;
+    }
+
+    .feature-mgmt-head {
+        padding: 16px;
+    }
+
+    .feature-mgmt-pane {
+        padding: 16px;
+    }
+
+    .feature-mgmt-rules-card__head,
+    .feature-mgmt-tabs {
+        padding-inline: 16px;
+    }
+
+    .feature-mgmt-rules,
+    .feature-mgmt-ids {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .feature-mgmt-save__actions {
+        flex-direction: column;
+    }
+}
+
+/*
+ * A role feature has no panel rules to manage, so its card carries an
+ * on/off line where the others carry panel chips and a Manage link. The
+ * shape is otherwise identical — it is the same kind of thing.
+ */
+.feature-mgmt-role-card .feature-mgmt-item__footer {
+    justify-content: flex-start;
+}
+
+/*
+ * A filter chip is a tap target on a phone.
+ *
+ * Every one of these is a fixed 28px tall, which reads well under a mouse and
+ * is under the 36px floor this admin already committed to for its top-bar
+ * controls. `min-block-size` is enough on its own — it wins over `height`,
+ * so the desktop rule above is left exactly as written and only a touch
+ * screen sees the difference. The strip that holds them has padding and no
+ * height of its own, so it grows with them.
+ */
+@media (max-width: 991.98px) {
+    .feature-mgmt-filter,
+    .feature-mgmt-manage-btn {
+        min-block-size: 36px;
+    }
+}
+
+/* ==========================================================================
+   Add-ons tab
+
+   The catalog reuses this sheet's rail, overview card, panel, filters, cards
+   and switch; what follows is only what an add-on card has that a feature
+   card does not — state pills, a toned footer note, publisher badges, the
+   four-bucket overview, the first-run hint and a switch that can be locked
+   with its reason. Values traced from docs/ui/addons/README.md §B–§C.
+   ========================================================================== */
+
+.feature-mgmt-badge--brand {
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary-hover);
+}
+
+.feature-mgmt-badge--neutral {
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+}
+
+.feature-mgmt-overview__seg--addon-active,
+.feature-mgmt-overview__swatch--addon-active {
+    background: linear-gradient(90deg, var(--color-palette-22c55e), var(--color-success-strong));
+}
+
+.feature-mgmt-overview__seg--addon-attention,
+.feature-mgmt-overview__swatch--addon-attention {
+    background: var(--color-warning);
+}
+
+.feature-mgmt-overview__seg--addon-disabled,
+.feature-mgmt-overview__swatch--addon-disabled {
+    background: var(--color-palette-64748b);
+}
+
+.feature-mgmt-overview__seg--addon-absent,
+.feature-mgmt-overview__swatch--addon-absent {
+    background: var(--color-border-strong);
+}
+
+.feature-mgmt-states {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-block-start: 10px;
+}
+
+.feature-mgmt-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 22px;
+    padding-inline: 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: var(--font-semibold);
+    line-height: 1.3;
+}
+
+.feature-mgmt-state i {
+    font-size: 10px;
+}
+
+.feature-mgmt-state--success,
+.feature-mgmt-note--success {
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-state--warning,
+.feature-mgmt-note--warning {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-state--danger,
+.feature-mgmt-note--danger {
+    background: var(--tint-danger);
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-state--neutral,
+.feature-mgmt-note--neutral {
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+}
+
+.feature-mgmt-addon__adds {
+    margin: 10px 0 0;
+    color: var(--color-text-faint);
+    font-size: 11.5px;
+}
+
+/* The note is text on the card, not a pill: tone colours the words only. */
+.feature-mgmt-note {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-inline-size: 0;
+    background: none;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.feature-mgmt-note i {
+    margin-block-start: 2px;
+    font-size: 11px;
+}
+
+.feature-mgmt-note span {
+    overflow-wrap: anywhere;
+}
+
+/* A switch that cannot be used says so: dimmed, and its reason in the title. */
+.feature-mgmt-sw.is-disabled {
+    cursor: not-allowed;
+}
+
+.feature-mgmt-sw__input:disabled + .feature-mgmt-sw__track {
+    opacity: 0.45;
+}
+
+.feature-mgmt-manage-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.feature-mgmt-hint {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-block-end: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--color-palette-eef2ff);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.14);
+    color: var(--color-text-soft);
+    font-size: 12px;
+}
+
+.feature-mgmt-hint__icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 32px;
+    block-size: 32px;
+    border-radius: 9px;
+    background: var(--color-card);
+    color: var(--color-primary);
+}
+
+.feature-mgmt-hint__copy {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    margin: 0;
+}
+
+.feature-mgmt-hint__copy strong {
+    color: var(--color-primary-hover);
+}
+
+.feature-mgmt-hint__dismiss {
+    flex: 0 0 auto;
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-badge--brand {
+    background: rgba(var(--color-primary-rgb), 0.16);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-badge--neutral,
+[data-coreui-theme="dark"] .feature-mgmt-state--neutral {
+    background: rgba(var(--color-white-rgb), 0.08);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-note--neutral {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-state--success {
+    background: rgba(var(--color-success-rgb), 0.16);
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-note--success {
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-state--warning {
+    background: rgba(var(--color-warning-rgb), 0.18);
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-note--warning {
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-state--danger {
+    background: rgba(var(--color-danger-rgb), 0.18);
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-note--danger {
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-addon__adds {
+    color: rgba(var(--color-white-rgb), 0.45);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-hint {
+    background: rgba(var(--color-primary-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.24);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-hint__copy strong {
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-hint__icon {
+    background: rgba(var(--color-white-rgb), 0.06);
+    color: var(--color-primary-tint);
+}
+
+@media (max-width: 575.98px) {
+    .feature-mgmt-hint {
+        flex-wrap: wrap;
+    }
+}
+
+/*
+ * Dark theme for the catalog surfaces both tabs share. Until now this sheet
+ * had no dark rules at all, so the rail, panel and cards stayed white under
+ * a dark admin — and the add-on pills' dark tones would have sat on white.
+ * Surface and ring mirror page-header.css's dark card (#202634, 8% ring),
+ * the one dark surface this admin already settled on.
+ */
+[data-coreui-theme="dark"] .feature-mgmt-page {
+    --fm-dark-surface: #202634;
+    --fm-dark-raised: #262d3d;
+    --fm-dark-ring: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-cats,
+[data-coreui-theme="dark"] .feature-mgmt-overview,
+[data-coreui-theme="dark"] .feature-mgmt-catalog-panel,
+[data-coreui-theme="dark"] .feature-mgmt-item {
+    background: var(--fm-dark-surface);
+    box-shadow: 0 0 0 1px var(--fm-dark-ring);
+    border-color: var(--fm-dark-ring);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-catalog-panel__header,
+[data-coreui-theme="dark"] .feature-mgmt-item__footer,
+[data-coreui-theme="dark"] .feature-mgmt-overview__foot {
+    border-color: var(--fm-dark-ring);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-cat.is-active {
+    background: var(--fm-dark-raised);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-filters,
+[data-coreui-theme="dark"] .feature-mgmt-search {
+    background: rgba(var(--color-white-rgb), 0.04);
+    border-color: var(--fm-dark-ring);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-filter.is-active,
+[data-coreui-theme="dark"] .feature-mgmt-manage-btn,
+[data-coreui-theme="dark"] .feature-mgmt-empty__action,
+[data-coreui-theme="dark"] .feature-mgmt-btn--ghost {
+    background: var(--fm-dark-raised);
+    border-color: var(--fm-dark-ring);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-item__title,
+[data-coreui-theme="dark"] .feature-mgmt-catalog-panel__title,
+[data-coreui-theme="dark"] .feature-mgmt-cat__label,
+[data-coreui-theme="dark"] .feature-mgmt-overview__value,
+[data-coreui-theme="dark"] .feature-mgmt-overview__num,
+[data-coreui-theme="dark"] .feature-mgmt-empty__title,
+[data-coreui-theme="dark"] .feature-mgmt-search__input {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-item__description,
+[data-coreui-theme="dark"] .feature-mgmt-catalog-panel__desc,
+[data-coreui-theme="dark"] .feature-mgmt-overview__label,
+[data-coreui-theme="dark"] .feature-mgmt-overview__row > span:first-child,
+[data-coreui-theme="dark"] .feature-mgmt-filter,
+[data-coreui-theme="dark"] .feature-mgmt-empty__body {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-item__key,
+[data-coreui-theme="dark"] .feature-mgmt-cat__meta,
+[data-coreui-theme="dark"] .feature-mgmt-overview__eyebrow,
+[data-coreui-theme="dark"] .feature-mgmt-overview__total,
+[data-coreui-theme="dark"] .feature-mgmt-overview__foot,
+[data-coreui-theme="dark"] .feature-mgmt-filter__count,
+[data-coreui-theme="dark"] .feature-mgmt-search__icon {
+    color: rgba(var(--color-white-rgb), 0.45);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-cat__count {
+    background: rgba(var(--color-white-rgb), 0.08);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-item__title-text {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-title-icon,
+[data-coreui-theme="dark"] .feature-mgmt-cat__icon,
+[data-coreui-theme="dark"] .feature-mgmt-catalog-panel__icon {
+    background: rgba(var(--color-white-rgb), 0.06);
+    color: var(--color-primary-tint);
+}
+
+/* --------------------------------------------------------------------------
+   Add-on detail drawer (README §E). 540px from the inline end; full screen
+   below 768px. The shadow's x-offset is physical, so RTL mirrors it.
+   -------------------------------------------------------------------------- */
+
+.feature-mgmt-drawer {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 1055;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(540px, 100vw);
+    background: var(--color-card);
+    box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.06), -24px 0 60px -30px rgba(var(--color-text-rgb), 0.45);
+}
+
+[dir="rtl"] .feature-mgmt-drawer {
+    box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.06), 24px 0 60px -30px rgba(var(--color-text-rgb), 0.45);
+}
+
+.feature-mgmt-drawer[hidden] {
+    display: none;
+}
+
+.feature-mgmt-drawer__body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding: 20px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    --scrollbar-inset: 12px;
+}
+
+.feature-mgmt-drawer__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.feature-mgmt-drawer__tile {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 48px;
+    block-size: 48px;
+    border-radius: 12px;
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary-hover);
+    font-size: 20px;
+}
+
+.feature-mgmt-drawer__identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+}
+
+.feature-mgmt-drawer__title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 17px;
+    font-weight: 700 !important;
+}
+
+.feature-mgmt-drawer__meta,
+.feature-mgmt-drawer__mono {
+    color: var(--color-text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.feature-mgmt-drawer__close {
+    position: static;
+    flex: 0 0 auto;
+}
+
+.feature-mgmt-drawer__section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+}
+
+.feature-mgmt-drawer__section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.feature-mgmt-drawer__eyebrow {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.feature-mgmt-drawer__text,
+.feature-mgmt-drawer__note {
+    margin: 0;
+    color: var(--color-text-subtle);
+    font-size: 12.5px;
+}
+
+.feature-mgmt-drawer__note {
+    color: var(--color-text-faint);
+    font-size: 11.5px;
+}
+
+.feature-mgmt-drawer__enable {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.feature-mgmt-drawer__switch {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1 1 260px;
+    margin: 0;
+}
+
+.feature-mgmt-drawer__enable-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--color-text-subtle);
+    font-size: 12px;
+}
+
+.feature-mgmt-drawer__enable-copy strong {
+    color: var(--color-text);
+    font-size: 13px;
+}
+
+.feature-mgmt-drawer__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+}
+
+.feature-mgmt-drawer__row-copy {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    color: var(--color-text);
+}
+
+.feature-mgmt-drawer__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.feature-mgmt-drawer__link--button {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.feature-mgmt-drawer__link .fa-chevron-right {
+    font-size: 9px;
+}
+
+[dir="rtl"] .feature-mgmt-drawer__link .fa-chevron-right {
+    transform: scaleX(-1);
+}
+
+.feature-mgmt-drawer__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.feature-mgmt-drawer__label {
+    inline-size: 100%;
+    color: var(--color-text-muted);
+    font-size: 11.5px;
+}
+
+.feature-mgmt-drawer__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12.5px;
+}
+
+.feature-mgmt-drawer__check-mark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 20px;
+    block-size: 20px;
+    border-radius: 50%;
+    font-size: 10px;
+}
+
+.feature-mgmt-drawer__check.is-passing .feature-mgmt-drawer__check-mark {
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-drawer__check.is-failing .feature-mgmt-drawer__check-mark {
+    background: var(--tint-danger);
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-drawer__check-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    color: var(--color-text);
+}
+
+.feature-mgmt-drawer__fix {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.feature-mgmt-drawer__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin: 0;
+}
+
+.feature-mgmt-drawer__facts dt {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: var(--font-medium);
+}
+
+.feature-mgmt-drawer__facts dd {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 12.5px;
+}
+
+.feature-mgmt-drawer__license {
+    display: flex;
+    gap: 8px;
+}
+
+.feature-mgmt-drawer__code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+@media (max-width: 767.98px) {
+    .feature-mgmt-drawer {
+        inline-size: 100vw;
+    }
+
+    .feature-mgmt-drawer__facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer {
+    background: #202634;
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__section {
+    box-shadow: inset 0 0 0 1px rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__title,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__enable-copy strong,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__row-copy,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__check-copy,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__facts dd {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__text,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__enable-copy,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__eyebrow,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__facts dt,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__label {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__meta,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__mono,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__note {
+    color: rgba(var(--color-white-rgb), 0.45);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__tile {
+    background: rgba(var(--color-primary-rgb), 0.16);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__fix {
+    background: rgba(var(--color-warning-rgb), 0.18);
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-drawer__link {
+    color: var(--color-primary-tint);
+}
+
+.feature-mgmt-drawer__license .feature-mgmt-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* ==================== Add-on installer & uninstall (AO10) ==================== */
+
+/*
+ * The installer reuses the confirmation modal's shell, widened to the
+ * design's 560px, and gives it a brand primary: installing is not the
+ * green "turn it on" the confirm dialog asks about.
+ */
+.feature-mgmt-modal__dialog--wide {
+    width: min(560px, 100%);
+    max-block-size: calc(100vh - 48px);
+}
+
+.feature-mgmt-installer .feature-mgmt-btn--primary {
+    border-color: var(--color-primary);
+    background: linear-gradient(180deg, var(--color-primary-lift), var(--color-primary));
+    box-shadow: 0 6px 14px -8px rgba(var(--color-primary-rgb), 0.8);
+}
+
+.feature-mgmt-installer .feature-mgmt-btn:disabled,
+.feature-mgmt-operation .feature-mgmt-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.feature-mgmt-installer .feature-mgmt-modal__close:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.feature-mgmt-installer.is-busy .feature-mgmt-installer__body {
+    cursor: progress;
+}
+
+.feature-mgmt-installer__head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px 26px 16px;
+    padding-inline-end: 56px;
+    border-block-end: 1px solid var(--color-border);
+}
+
+.feature-mgmt-installer__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+.feature-mgmt-installer .feature-mgmt-modal__title {
+    font-size: 17px;
+}
+
+/* Step rail: 24px circles joined by 2px connectors. */
+.feature-mgmt-steps {
+    display: flex;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.feature-mgmt-steps__item {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
+}
+
+.feature-mgmt-steps__item + .feature-mgmt-steps__item::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 11px;
+    inset-inline-end: calc(50% + 16px);
+    inline-size: calc(100% - 32px);
+    block-size: 2px;
+    border-radius: 2px;
+    background: var(--color-border);
+}
+
+.feature-mgmt-steps__item.is-done + .feature-mgmt-steps__item::before {
+    background: var(--color-success-strong);
+}
+
+.feature-mgmt-steps__dot {
+    display: grid;
+    place-items: center;
+    inline-size: 24px;
+    block-size: 24px;
+    border-radius: 50%;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.feature-mgmt-steps__check {
+    display: none;
+    font-size: 10px;
+}
+
+.feature-mgmt-steps__item.is-done .feature-mgmt-steps__dot {
+    background: var(--color-success-strong);
+    color: var(--color-white);
+}
+
+.feature-mgmt-steps__item.is-done .feature-mgmt-steps__num {
+    display: none;
+}
+
+.feature-mgmt-steps__item.is-done .feature-mgmt-steps__check {
+    display: inline-block;
+}
+
+.feature-mgmt-steps__item.is-skipped .feature-mgmt-steps__dot {
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-steps__item.is-current .feature-mgmt-steps__dot {
+    background: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.feature-mgmt-steps__label {
+    max-inline-size: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-steps__item.is-current .feature-mgmt-steps__label {
+    color: var(--color-text);
+}
+
+.feature-mgmt-installer__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 12px;
+    min-block-size: 220px;
+    padding: 20px 26px 4px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    --scrollbar-inset: 12px;
+    text-align: start;
+}
+
+.feature-mgmt-installer__body > section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.feature-mgmt-installer__body > section[hidden] {
+    display: none;
+}
+
+.feature-mgmt-installer__body .feature-mgmt-drawer__check + .feature-mgmt-drawer__check {
+    margin-block-start: 10px;
+}
+
+/* Drop zone: the native file input sits over the whole tile. */
+.feature-mgmt-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 28px 16px;
+    border: 1.5px dashed var(--color-border-strong);
+    border-radius: 14px;
+    background: var(--color-surface-soft);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.feature-mgmt-dropzone:hover,
+.feature-mgmt-dropzone.is-over {
+    border-color: var(--color-primary);
+    background: var(--color-palette-eef2ff);
+}
+
+.feature-mgmt-dropzone:focus-within {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.feature-mgmt-dropzone__input {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.feature-mgmt-dropzone__icon {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: 12px;
+    background: var(--color-card);
+    color: var(--color-primary);
+    font-size: 18px;
+    box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.feature-mgmt-dropzone__title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.feature-mgmt-dropzone__hint {
+    font-size: 12px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    font-size: 12.5px;
+    color: var(--color-text);
+}
+
+.feature-mgmt-installer__file[hidden] {
+    display: none;
+}
+
+.feature-mgmt-installer__file > i {
+    color: var(--color-primary);
+}
+
+.feature-mgmt-installer__file-name {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feature-mgmt-installer__file-size {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__error {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__lead {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.feature-mgmt-installer__note {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__note[hidden] {
+    display: none;
+}
+
+.feature-mgmt-installer__note--brand {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--color-palette-eef2ff);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.14);
+    color: var(--color-primary-hover);
+}
+
+.feature-mgmt-installer__group {
+    margin: 4px 0 -2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-faint);
+}
+
+.feature-mgmt-installer__group:not(:first-child) {
+    margin-block-start: 12px;
+}
+
+/* Fields: password, 2FA code, purchase code, typed key. */
+.feature-mgmt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    text-align: start;
+}
+
+.feature-mgmt-field[hidden] {
+    display: none;
+}
+
+.feature-mgmt-field__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-soft);
+}
+
+.feature-mgmt-field__input {
+    block-size: 38px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.feature-mgmt-field__input--mono {
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+}
+
+.feature-mgmt-field__hint {
+    min-block-size: 16px;
+    font-size: 11.5px;
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-field__hint.is-valid {
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-field__error {
+    font-size: 12px;
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-field__error[hidden] {
+    display: none;
+}
+
+.feature-mgmt-installer__confirm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-block-start: 4px;
+    text-align: start;
+}
+
+.feature-mgmt-installer__confirm > .feature-mgmt-field__error {
+    grid-column: 1 / -1;
+}
+
+/*
+ * Step 5 has one request and no measurable progress, so the bar says
+ * "working" and nothing more: a sliding band, never a percentage.
+ */
+.feature-mgmt-installer__running {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-block: 18px;
+}
+
+.feature-mgmt-installer__running[hidden] {
+    display: none;
+}
+
+.feature-mgmt-progress {
+    position: relative;
+    display: block;
+    block-size: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+}
+
+.feature-mgmt-progress__fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--color-primary-lift), var(--color-primary));
+    animation: featureMgmtSlide 1.4s ease-in-out infinite;
+}
+
+[dir="rtl"] .feature-mgmt-progress__fill {
+    background: linear-gradient(270deg, var(--color-primary-lift), var(--color-primary));
+    animation-name: featureMgmtSlideRtl;
+}
+
+@keyframes featureMgmtSlide {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(250%);
+    }
+}
+
+@keyframes featureMgmtSlideRtl {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(-250%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .feature-mgmt-progress__fill {
+        inline-size: 100%;
+        animation: none;
+        opacity: 0.6;
+    }
+}
+
+.feature-mgmt-installer__effect {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--tint-success);
+    box-shadow: inset 0 0 0 1px var(--color-success-soft);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-installer__toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    cursor: pointer;
+}
+
+.feature-mgmt-installer__toggle .feature-mgmt-sw.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.feature-mgmt-installer__toggle-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__toggle-copy strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* Outcomes: success, paused (warning) and failed (danger). */
+.feature-mgmt-installer__outcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-block: 8px 4px;
+    text-align: center;
+}
+
+.feature-mgmt-installer__outcome-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 52px;
+    block-size: 52px;
+    margin-block-end: 4px;
+    border-radius: 16px;
+    font-size: 22px;
+}
+
+.feature-mgmt-installer__glyph {
+    display: none;
+}
+
+.feature-mgmt-installer__outcome[data-tone="success"] .feature-mgmt-installer__outcome-icon {
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-installer__outcome[data-tone="warning"] .feature-mgmt-installer__outcome-icon {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.feature-mgmt-installer__outcome[data-tone="danger"] .feature-mgmt-installer__outcome-icon {
+    background: var(--tint-danger);
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-installer__outcome[data-tone="success"] .feature-mgmt-installer__glyph--success,
+.feature-mgmt-installer__outcome[data-tone="warning"] .feature-mgmt-installer__glyph--warning,
+.feature-mgmt-installer__outcome[data-tone="danger"] .feature-mgmt-installer__glyph--danger {
+    display: inline-block;
+}
+
+.feature-mgmt-installer__reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    inline-size: 100%;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: start;
+}
+
+.feature-mgmt-installer__reasons:empty {
+    display: none;
+}
+
+.feature-mgmt-installer__reasons li {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--color-palette-fffbeb);
+    font-size: 12.5px;
+    color: var(--color-warning-deep);
+    overflow-wrap: anywhere;
+}
+
+.feature-mgmt-installer__outcome[data-tone="success"] .feature-mgmt-installer__reasons li {
+    background: var(--tint-success);
+    color: var(--color-success-deep);
+}
+
+.feature-mgmt-installer__outcome[data-tone="danger"] .feature-mgmt-installer__reasons li {
+    background: var(--tint-danger);
+    color: var(--color-danger-deep);
+}
+
+.feature-mgmt-installer__foot {
+    align-items: center;
+    border-block-start: 1px solid var(--color-border);
+    padding-block: 14px 16px;
+}
+
+.feature-mgmt-installer__foot .feature-mgmt-btn {
+    flex: 0 0 auto;
+    padding-inline: 16px;
+    white-space: nowrap;
+}
+
+.feature-mgmt-installer__foot .feature-mgmt-btn[hidden] {
+    display: none;
+}
+
+.feature-mgmt-installer__spacer {
+    flex: 1 1 auto;
+}
+
+/*
+ * Uninstall: two radio tiles. The native radio stays in the page, visually
+ * hidden like the switch's checkbox, and the tile answers to :checked - the
+ * checkbox canon forbids repainting a native control.
+ */
+.feature-mgmt-operation .feature-mgmt-modal__body {
+    gap: 10px;
+}
+
+.feature-mgmt-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+    text-align: start;
+}
+
+.feature-mgmt-choices[hidden] {
+    display: none;
+}
+
+.feature-mgmt-choice {
+    position: relative;
+    display: block;
+    margin: 0;
+    cursor: pointer;
+}
+
+.feature-mgmt-choice__input {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.feature-mgmt-choice__tile {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    transition: box-shadow 0.15s, background 0.15s;
+}
+
+.feature-mgmt-choice__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.feature-mgmt-choice__hint {
+    font-size: 12px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-choice__input:checked + .feature-mgmt-choice__tile {
+    background: var(--color-palette-eef2ff);
+    box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.feature-mgmt-choice--danger .feature-mgmt-choice__input:checked + .feature-mgmt-choice__tile {
+    background: var(--tint-danger);
+    box-shadow: inset 0 0 0 2px var(--color-danger-deep);
+}
+
+.feature-mgmt-choice__input:focus-visible + .feature-mgmt-choice__tile {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.feature-mgmt-operation .feature-mgmt-installer__confirm {
+    margin-block-start: 8px;
+}
+
+/* The card's ⋯: a 30px page trigger; the header's .ph-more keeps its own size. */
+.feature-mgmt-addon__more {
+    flex: 0 0 auto;
+}
+
+.feature-mgmt-more {
+    display: grid;
+    place-items: center;
+    inline-size: 30px;
+    block-size: 30px;
+    min-block-size: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.feature-mgmt-more:hover,
+.feature-mgmt-more[aria-expanded="true"] {
+    background: var(--color-surface-soft);
+    color: var(--color-text);
+}
+
+.feature-mgmt-more:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.feature-mgmt-addon .dropdown-item > i {
+    inline-size: 16px;
+    margin-inline-end: 8px;
+    text-align: center;
+}
+
+@media (max-width: 575.98px) {
+    .feature-mgmt-modal:has(.feature-mgmt-modal__dialog--wide) {
+        align-items: end;
+        padding: 0;
+    }
+
+    .feature-mgmt-modal__dialog--wide {
+        max-block-size: 92vh;
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    .feature-mgmt-steps__label {
+        display: none;
+    }
+
+    .feature-mgmt-installer__head,
+    .feature-mgmt-installer__body {
+        padding-inline: 18px;
+    }
+
+    .feature-mgmt-installer__foot {
+        flex-wrap: wrap;
+        padding-inline: 18px;
+    }
+}
+
+/* Dark: the dialogs share the catalog's settled dark surface. */
+[data-coreui-theme="dark"] .feature-mgmt-modal__dialog {
+    background: #202634;
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.08), 0 30px 80px -20px rgba(0, 0, 0, 0.6);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__head,
+[data-coreui-theme="dark"] .feature-mgmt-installer__foot {
+    border-color: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-modal__title,
+[data-coreui-theme="dark"] .feature-mgmt-installer__lead,
+[data-coreui-theme="dark"] .feature-mgmt-dropzone__title,
+[data-coreui-theme="dark"] .feature-mgmt-installer__file,
+[data-coreui-theme="dark"] .feature-mgmt-installer__toggle-copy strong,
+[data-coreui-theme="dark"] .feature-mgmt-choice__title,
+[data-coreui-theme="dark"] .feature-mgmt-steps__item.is-current .feature-mgmt-steps__label,
+[data-coreui-theme="dark"] .feature-mgmt-installer .feature-mgmt-drawer__check-copy,
+[data-coreui-theme="dark"] .feature-mgmt-more:hover,
+[data-coreui-theme="dark"] .feature-mgmt-more[aria-expanded="true"] {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-modal__text,
+[data-coreui-theme="dark"] .feature-mgmt-installer__note,
+[data-coreui-theme="dark"] .feature-mgmt-installer__error,
+[data-coreui-theme="dark"] .feature-mgmt-dropzone__hint,
+[data-coreui-theme="dark"] .feature-mgmt-installer__toggle-copy,
+[data-coreui-theme="dark"] .feature-mgmt-choice__hint,
+[data-coreui-theme="dark"] .feature-mgmt-field__label,
+[data-coreui-theme="dark"] .feature-mgmt-steps__label,
+[data-coreui-theme="dark"] .feature-mgmt-more {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__group,
+[data-coreui-theme="dark"] .feature-mgmt-installer__file-size {
+    color: rgba(var(--color-white-rgb), 0.45);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-modal__close,
+[data-coreui-theme="dark"] .feature-mgmt-steps__dot,
+[data-coreui-theme="dark"] .feature-mgmt-progress,
+[data-coreui-theme="dark"] .feature-mgmt-more:hover,
+[data-coreui-theme="dark"] .feature-mgmt-more[aria-expanded="true"] {
+    background: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-steps__item + .feature-mgmt-steps__item::before {
+    background: rgba(var(--color-white-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-steps__item.is-done + .feature-mgmt-steps__item::before,
+[data-coreui-theme="dark"] .feature-mgmt-steps__item.is-done .feature-mgmt-steps__dot {
+    background: var(--color-success-strong);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-steps__item.is-current .feature-mgmt-steps__dot {
+    background: var(--color-primary);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-dropzone {
+    border-color: rgba(var(--color-white-rgb), 0.18);
+    background: rgba(var(--color-white-rgb), 0.04);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-dropzone:hover,
+[data-coreui-theme="dark"] .feature-mgmt-dropzone.is-over {
+    border-color: var(--color-primary-tint);
+    background: rgba(var(--color-primary-rgb), 0.12);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-dropzone__icon {
+    background: #262d3d;
+    color: var(--color-primary-tint);
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__file,
+[data-coreui-theme="dark"] .feature-mgmt-installer__toggle,
+[data-coreui-theme="dark"] .feature-mgmt-choice__tile {
+    box-shadow: inset 0 0 0 1px rgba(var(--color-white-rgb), 0.1);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__note--brand,
+[data-coreui-theme="dark"] .feature-mgmt-choice__input:checked + .feature-mgmt-choice__tile {
+    background: rgba(var(--color-primary-rgb), 0.16);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-choice__input:checked + .feature-mgmt-choice__tile {
+    box-shadow: inset 0 0 0 2px var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-choice--danger .feature-mgmt-choice__input:checked + .feature-mgmt-choice__tile {
+    background: rgba(var(--color-danger-rgb), 0.16);
+    box-shadow: inset 0 0 0 2px var(--color-danger);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__effect,
+[data-coreui-theme="dark"] .feature-mgmt-installer__outcome[data-tone="success"] .feature-mgmt-installer__outcome-icon,
+[data-coreui-theme="dark"] .feature-mgmt-installer__outcome[data-tone="success"] .feature-mgmt-installer__reasons li {
+    background: rgba(var(--color-success-rgb), 0.16);
+    box-shadow: none;
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__outcome[data-tone="warning"] .feature-mgmt-installer__outcome-icon,
+[data-coreui-theme="dark"] .feature-mgmt-installer__reasons li {
+    background: rgba(var(--color-warning-rgb), 0.18);
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__outcome[data-tone="danger"] .feature-mgmt-installer__outcome-icon,
+[data-coreui-theme="dark"] .feature-mgmt-installer__outcome[data-tone="danger"] .feature-mgmt-installer__reasons li {
+    background: rgba(var(--color-danger-rgb), 0.18);
+    color: var(--color-danger-tint);
+}
+
+.feature-mgmt-installer__check-hint {
+    font-size: 12px;
+    color: var(--color-text-subtle);
+}
+
+.feature-mgmt-installer__body .feature-mgmt-installer__group + .feature-mgmt-drawer__check {
+    margin-block-start: 6px;
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-installer__check-hint {
+    color: rgba(var(--color-white-rgb), 0.55);
+}
+
+/* The admin has no dark form-control of its own; this page's fields carry one. */
+[data-coreui-theme="dark"] .feature-mgmt-field__input,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__code {
+    border-color: rgba(var(--color-white-rgb), 0.12);
+    background: rgba(var(--color-white-rgb), 0.06);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-field__input::placeholder,
+[data-coreui-theme="dark"] .feature-mgmt-drawer__code::placeholder {
+    color: rgba(var(--color-white-rgb), 0.38);
+}
+
+@media (max-width: 575.98px) {
+    .feature-mgmt-installer .feature-mgmt-installer__foot {
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+
+    .feature-mgmt-installer__spacer {
+        display: none;
+    }
+
+    .feature-mgmt-installer__foot .feature-mgmt-btn {
+        flex: 1 1 0;
+        min-inline-size: 0;
+        padding-inline: 10px;
+    }
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-modal__icon {
+    background: rgba(var(--color-success-rgb), 0.16);
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-modal.is-danger .feature-mgmt-modal__icon {
+    background: rgba(var(--color-danger-rgb), 0.18);
+    color: var(--color-danger-tint);
+}
+
+/* ==================== Add-on features in the Features grid (AO11) ==================== */
+
+/*
+ * A feature its add-on is not running is off whatever its switch says, so
+ * the card says that instead of its panels: a lock line and the way back to
+ * the add-on. It stays dimmed like any switched-off feature, with a plain
+ * ring rather than the card's shadow.
+ */
+.feature-mgmt-item.is-locked {
+    box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.feature-mgmt-item__title:has(.feature-mgmt-badge--addon) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+.feature-mgmt-badge--addon {
+    max-inline-size: 180px;
+    overflow: hidden;
+    text-decoration: none;
+    text-overflow: ellipsis;
+}
+
+.feature-mgmt-badge--addon:hover,
+.feature-mgmt-badge--addon:focus-visible {
+    background: var(--color-primary-soft);
+    color: var(--color-primary-hover);
+}
+
+.feature-mgmt-badge--addon:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+.feature-mgmt-item.is-locked .feature-mgmt-note {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-item.is-locked {
+    box-shadow: 0 0 0 1px var(--fm-dark-ring);
+}
+
+[data-coreui-theme="dark"] .feature-mgmt-badge--addon:hover,
+[data-coreui-theme="dark"] .feature-mgmt-badge--addon:focus-visible {
+    background: rgba(var(--color-primary-rgb), 0.28);
+    color: var(--color-primary-tint);
+}

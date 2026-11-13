@@ -1,0 +1,251 @@
+/*
+ * Merchant list — admin › Business profiles
+ *
+ * Cell-level styling only. The card, the table frame and the filter bar come
+ * from admin-table.css; the header and its tabs come from page-header.css and
+ * are never restyled here.
+ *
+ * Declares no scrollbar and no checkbox rules by design — both are canon,
+ * declared once in custom.css and enforced by
+ * tests/Feature/AdminScrollbarConsistencyTest.php and
+ * tests/Feature/AdminCheckboxConsistencyTest.php.
+ */
+
+/* ----- Business ----- */
+.ma-logo {
+    flex: 0 0 auto;
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 1px rgba(var(--color-text-rgb), 0.08);
+    object-fit: cover;
+}
+
+.ma-cell {
+    min-width: 0;
+}
+
+.ma-business {
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ma-business__sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    margin-block-start: 2px;
+}
+
+.ma-business__sub a {
+    color: var(--color-primary);
+    font-size: var(--font-size-px-115);
+    text-decoration: none;
+}
+
+.ma-business__sub a:hover {
+    text-decoration: underline;
+}
+
+.ma-key {
+    color: var(--color-text-faint);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-px-11);
+}
+
+/* ----- Owner ----- */
+.ma-owner {
+    color: var(--color-primary);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+.ma-owner:hover {
+    text-decoration: underline;
+}
+
+.ma-muted {
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+/* ----- Fee -----
+   Tabular figures so a column of rates reads as a column, not as ragged text. */
+.ma-fee {
+    color: var(--color-text);
+    font-feature-settings: "tnum";
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ma-fee__bounds {
+    margin-block-start: 2px;
+    color: var(--color-text-muted);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-115);
+}
+
+.ma-fee--unset {
+    color: var(--color-text-faint);
+    font-size: var(--font-sm);
+    font-style: italic;
+}
+
+/* ----- Environment -----
+   A square chip, never a pill. Status is rounded; configuration is square, so
+   "Approved" and "Production" cannot be mistaken for the same kind of fact. */
+.ma-env {
+    display: inline-flex;
+    height: 23px;
+    align-items: center;
+    padding-inline: 9px;
+    border-radius: 7px;
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ma-env--production {
+    color: var(--color-primary-deep);
+    background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.ma-env--sandbox {
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+}
+
+/* ----- Status ----- */
+.ma-pill {
+    display: inline-flex;
+    height: 23px;
+    align-items: center;
+    gap: 6px;
+    padding-inline: 9px;
+    border-radius: 999px;
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.ma-pill__dot {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.ma-pill--warning {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.ma-pill--success {
+    color: var(--color-success-deep);
+    background: var(--color-success-soft);
+}
+
+.ma-pill--danger {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+.ma-pill--secondary {
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+}
+
+/* ----- Review queue -----
+   Only the pending screen draws these. */
+.ma-chip {
+    display: inline-flex;
+    height: 20px;
+    align-items: center;
+    padding-inline: 7px;
+    border-radius: 6px;
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+    font-size: var(--font-size-px-11);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ma-chip--warning {
+    margin-block-start: 8px;
+    height: 22px;
+    padding-inline: 8px;
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+/* The applicant's own words. Capped in the view, wrapped kindly here — this is
+   the text the decision is made on, so it reads as prose, not as a data cell. */
+.ma-said {
+    max-width: 46ch;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-125);
+    line-height: 1.55;
+    text-wrap: pretty;
+}
+
+.ma-break {
+    word-break: break-word;
+}
+
+/* Under a day, under the SLA, past it. The chip always spells the wait out, so
+   the tone is a second signal and never the only one. */
+.ma-wait-chip {
+    display: inline-flex;
+    height: 26px;
+    align-items: center;
+    gap: 7px;
+    padding-inline: 10px;
+    border-radius: 8px;
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-bold);
+    white-space: nowrap;
+}
+
+.ma-wait-chip--ok {
+    color: var(--color-success-deep);
+    background: var(--color-success-soft);
+}
+
+.ma-wait-chip--warn {
+    color: var(--color-warning-deep);
+    background: var(--color-warning-soft);
+}
+
+.ma-wait-chip--late {
+    color: var(--color-danger-deep);
+    background: var(--color-danger-soft);
+}
+
+/* ----- Requested ----- */
+.ma-date {
+    color: var(--color-text-soft);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-125);
+}
+
+.ma-wait {
+    margin-block-start: 2px;
+    color: var(--color-warning-deep);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+/* A request nobody has answered yet is the only row worth tinting, and it is
+   tinted faintly — the Pending pill and the primary Review button already say
+   so twice. */
+.ma-row--pending > td {
+    background: rgba(var(--color-warning-rgb), 0.035);
+}
+
+[data-coreui-theme="dark"] .ma-row--pending > td {
+    background: rgba(var(--color-warning-rgb), 0.07);
+}

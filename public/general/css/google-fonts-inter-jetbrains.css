@@ -1,0 +1,69 @@
+/*
+ * Inter v19 and JetBrains Mono v23, served from this installation.
+ *
+ * The release is pinned in every filename on purpose. An earlier attempt at
+ * self-hosting refreshed the stylesheet from Google and came back with Inter
+ * v20, whose metrics differ, which restyles every admin screen at once.
+ * Google serves v20 and JetBrains v24 today, so these files are NOT refreshed
+ * from there - the .woff2 below were transcoded from the v19/v23 .ttf this
+ * file used to name, and verified to carry every glyph unchanged: identical
+ * glyph counts, identical units-per-em, no differing outline, and identical
+ * hmtx, hhea, cmap, OS/2 and post tables. The type draws exactly as before.
+ *
+ * woff2 rather than truetype because the same faces weigh 0.53 MB instead of
+ * 1.56 MB. With font-display: block the text is not painted until its face
+ * arrives, so the weight of these files is the length of that wait.
+ *
+ * Inter at 300 is not declared. --font-light is used nowhere in the panel and
+ * no admin template carries Bootstrap's .fw-light, .lead or .display-*, so
+ * that face was 318 KB nothing had asked for.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(../webfonts/inter-v19-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(../webfonts/inter-v19-500.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(../webfonts/inter-v19-600.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url(../webfonts/inter-v19-700.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(../webfonts/jetbrains-mono-v23-400.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(../webfonts/jetbrains-mono-v23-500.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url(../webfonts/jetbrains-mono-v23-600.woff2) format('woff2');
+}

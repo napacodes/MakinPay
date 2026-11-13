@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\RemittanceQuote;
+use App\Services\Tax\TaxPresenter;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin RemittanceQuote
+ */
+class RemittanceQuoteResource extends JsonResource
+{
+    /**
+     * GF6: `tax` is on top of the fee and inside `total_pay`, a line per rule.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'quote_id'             => $this->quote_id,
+            'corridor_id'          => $this->corridor_id,
+            'source_currency'      => $this->source_currency,
+            'destination_currency' => $this->destination_currency,
+            'send_amount'          => (float) $this->send_amount,
+            'fee_amount'           => (float) $this->fee_amount,
+            'tax_amount'           => (float) ($this->tax_amount ?? 0),
+            'tax'                  => TaxPresenter::stored($this->tax_amount === null ? null : (string) $this->tax_amount, $this->tax_breakdown, (string) $this->source_currency),
+            'total_pay'            => (float) $this->total_pay,
+            'exchange_rate'        => (float) $this->exchange_rate,
+            'mid_market_rate'      => $this->mid_market_rate ? (float) $this->mid_market_rate : null,
+            'rate_provider'        => $this->rate_provider,
+            'rate_fetched_at'      => $this->rate_fetched_at?->toIso8601String(),
+            'receive_amount'       => (float) $this->receive_amount,
+            'payout_method'        => $this->payout_method?->value,
+            'expires_at'           => $this->expires_at?->toIso8601String(),
+            'expires_in_seconds'   => $this->expires_at ? max(0, now()->diffInSeconds($this->expires_at, false)) : 0,
+            'is_consumed'          => (bool) $this->is_consumed,
+        ];
+    }
+}

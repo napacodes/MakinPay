@@ -1,0 +1,1856 @@
+/* ==========================================================================
+   Page header — the one header every admin page starts with. (v2)
+
+   Rendered by resources/views/components/page-header.blade.php. Everything
+   with a ph- prefix is styled here and nowhere else: a page stylesheet that
+   restyles .ph-* is a fork, and forks are how the last eleven heroes came
+   to exist.
+
+   Anatomy: breadcrumb → identity row → controls → optional stats strip.
+   Logical properties only — the panel ships in Arabic. Measured in the
+   handoff at 1300px, 390px, dark and dir=rtl.
+
+   One deliberate departure from the v2 reference: its ⋯ menu blurs 48px.
+   The operator asked for the heavy shadows out of this header, so the menu
+   is capped at 16px — enough to read as floating, and the only blur left in
+   the sheet. AdminUnifiedPageHeaderTest enforces that cap.
+   ========================================================================== */
+
+.ph {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    margin-block-end: 20px;
+    font-family: var(--font-primary);
+    color: var(--color-text);
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+
+.ph__crumbs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-inline: 6px;
+    min-width: 0;
+}
+
+/* back-placement="crumbs": the labelled return link at the row's end. */
+.ph__crumb-back {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px;
+    height: 30px;
+    padding-inline: 8px 10px;
+    border-radius: 8px;
+    margin-inline-start: auto;
+    color: var(--color-text-subtle);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ph__crumb-back > svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+[dir='rtl'] .ph__crumb-back > svg {
+    transform: scaleX(-1);
+}
+
+.ph__crumb-back:hover,
+.ph__crumb-back:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.ph__crumb-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+}
+
+.ph__crumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-weight: var(--font-medium);
+}
+
+/*
+ * A chevron drawn as two borders on a rotated square, so it mirrors with
+ * the text rather than needing a flipped glyph.
+ */
+.ph__crumb + .ph__crumb::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    margin-inline: 4px;
+    border-block-start: 1.5px solid var(--color-text-faint);
+    border-inline-end: 1.5px solid var(--color-text-faint);
+    transform: rotate(45deg);
+    opacity: 0.8;
+}
+
+[dir='rtl'] .ph__crumb + .ph__crumb::before {
+    transform: rotate(-135deg);
+}
+
+.ph__crumb a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.ph__crumb a:hover,
+.ph__crumb a:focus-visible {
+    color: var(--color-primary);
+}
+
+.ph__crumb[aria-current="page"] > span {
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+
+.ph__head {
+    position: relative;
+    min-width: 0;
+}
+
+/*
+ * A hairline ring and the slightest lift — nothing more.
+ *
+ * The card shipped with --dash-shadow-card, whose third layer is a
+ * 32px blur spread 20px up from the card. At the header's width that
+ * pools into a visible grey smudge under the full run of the card, and
+ * with the strip attached the card is tall enough that the smudge reads
+ * as a second, blurred card behind the first. The ring is what separates
+ * the card from the page; the 1px shadow is all the depth it needs. v2
+ * states the same two layers.
+ */
+.ph--card .ph__head {
+    background: var(--color-card);
+    border-radius: 20px;
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+/*
+ * The decoration's own clip. The head used to clip itself, which also
+ * clipped the ⋯ menu: on Manage user the 268px menu with its hint rows
+ * lost its lower items and its start edge under the card. The wash and
+ * the blurred orb now sit in this layer, clipped to the card's radius,
+ * and the head overflows freely — as the reference builds it.
+ */
+.ph__decor {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    contain: paint;
+}
+
+/*
+ * The brand wash, at half the reference's strength.
+ *
+ * v2 states 5.5% fading out by 180px. On a full-width admin card that read
+ * as a tinted band across the top rather than a hint of warmth, and the
+ * operator asked for it softer twice. At 2.6% it is the difference between
+ * a white card and a very slightly warm one, which is the whole job: the
+ * card should look expensive, not coloured.
+ */
+.ph__wash {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 180px;
+    background: linear-gradient(
+        180deg,
+        rgba(var(--color-primary-rgb), 0.026) 0,
+        rgba(var(--color-primary-rgb), 0.009) 90px,
+        rgba(var(--color-primary-rgb), 0) 180px
+    );
+    pointer-events: none;
+}
+
+/*
+ * The corner glow, likewise halved and then some — v2 states 22%, and that
+ * put a visible lavender bloom over the actions. Blurred rather than a
+ * gradient stop so its edge stays soft at any card width.
+ */
+/*
+ * v2.1 replaced the blurred 320px circle with a contained block: the blur
+ * filter spilled past the card and forced a horizontal scrollbar at narrow
+ * widths. The gradient's focus is a physical position, so it is a custom
+ * property the RTL rule flips — otherwise the glow points inward instead of
+ * at the row's outer corner.
+ */
+.ph__orb {
+    --ph-orb-x: 75%;
+
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    width: min(320px, 60%);
+    height: 200px;
+    background: radial-gradient(
+        circle at var(--ph-orb-x) 0%,
+        rgba(var(--color-primary-lift-rgb), 0.09),
+        rgba(var(--color-primary-lift-rgb), 0) 60%
+    );
+    pointer-events: none;
+}
+
+[dir='rtl'] .ph__orb {
+    --ph-orb-x: 25%;
+}
+
+/*
+ * v2.2 trims three paddings and nothing else: the row from 24/26 to 20/24,
+ * its gap from 18 to 16, and the strip cell from 18 to 15 block. That is
+ * 14px back on a page carrying stats and 8px on one without. The tile stays
+ * 54, the title clamp stays 19–23, the figure stays 24 and the controls stay
+ * 40 — an operator who knows this header should not be able to say what
+ * moved, only notice the page under it sits higher. Radius, wash, glow and
+ * the 1px ring are untouched; those are what make it read as expensive.
+ */
+
+/* ── Identity row ───────────────────────────────────────────────────────── */
+
+.ph__row {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    padding: clamp(16px, 2.2vw, 20px) clamp(16px, 2.4vw, 24px);
+}
+
+.ph--compact .ph__row {
+    gap: 14px;
+    padding: 4px 6px;
+}
+
+.ph__tile,
+.ph__avatar {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 54px;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/*
+ * The gloss: a white top highlight that fades by 55%, which is what stops
+ * the filled tile reading as a flat swatch. Drawn on a pseudo-element so
+ * the icon inside keeps its own colour.
+ */
+.ph__tile--brand::after,
+.ph__tile--teal::after,
+.ph__tile--violet::after,
+.ph__tile--sky::after,
+.ph__avatar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.22), rgba(var(--color-white-rgb), 0) 55%);
+    pointer-events: none;
+}
+
+.ph__tile--brand {
+    background: linear-gradient(160deg, var(--color-primary-lift), var(--color-primary-hover));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.25);
+}
+
+.ph__tile--soft {
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--color-primary);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-primary-rgb), 0.16);
+}
+
+/*
+ * Module hues.
+ *
+ * The filled tile is indigo everywhere by default and stays that way; these
+ * three exist so a module whose pages sit side by side in one operator's day
+ * can tell them apart at the tile before reading the title. They are the
+ * same construction as --brand — gradient, white glyph, inset highlight —
+ * so nothing about the header's anatomy changes with the colour.
+ */
+.ph__tile--teal {
+    background: linear-gradient(160deg, var(--color-teal-lift), var(--color-teal));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.25);
+}
+
+.ph__tile--violet {
+    background: linear-gradient(160deg, var(--color-violet-lift), var(--color-violet));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.25);
+}
+
+.ph__tile--sky {
+    background: linear-gradient(160deg, var(--color-info), var(--color-info-deep));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.25);
+}
+
+.ph__tile svg {
+    position: relative;
+}
+
+.ph__tile i {
+    position: relative;
+    font-size: 21px;
+    line-height: 1;
+}
+
+.ph__avatar {
+    background: linear-gradient(160deg, var(--color-primary-lift), var(--color-primary-hover));
+    color: var(--color-white);
+    font-size: 18px;
+    font-weight: var(--font-bold);
+    letter-spacing: -0.01em;
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.25);
+}
+
+.ph__avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* A photograph needs no gloss over it. */
+.ph__avatar:has(img)::after {
+    content: none;
+}
+
+.ph__identity {
+    display: flex;
+    flex: 1 1 320px;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.ph--compact .ph__identity {
+    gap: 3px;
+}
+
+/* The module group, above the title. */
+.ph__eyebrow {
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.ph__titleline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+/* app.css sets every heading to 500 !important; the title is the one 700. */
+.ph__title {
+    margin: 0;
+    min-width: 0;
+    color: var(--color-text);
+    font-size: clamp(19px, 2.4vw, 23px);
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.022em;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.ph--compact .ph__title {
+    font-size: 20px;
+}
+
+.ph__badge {
+    padding: 3px 8px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 7px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: var(--font-medium);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.ph__subtitle {
+    margin: 0;
+    max-width: 64ch;
+    color: var(--color-text-muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.ph__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 18px;
+    margin: 2px 0 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+    color: var(--color-text-muted);
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+/*
+ * An item may wrap its own text. Flex breaks lines on each item's full
+ * width, so a short item still moves to the next line whole; only one
+ * longer than the entire row — "Master switch: vendor_marketplace in
+ * Feature Management" on a phone — wraps inside itself. With `nowrap` that
+ * item ran past the row, and the row's clip cut it off mid-word.
+ */
+.ph__meta-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+}
+
+/*
+ * The dot is drawn inside the item it follows, at a negative inline offset
+ * into the row's gap. The row clips, so an item that wraps to a new line
+ * loses its leading dot instead of opening the line with one.
+ */
+.ph__meta-item + .ph__meta-item::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -10.5px;
+    inset-block-start: 50%;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    margin-block-start: -1.5px;
+    background: var(--color-text-faint);
+}
+
+.ph__meta a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.ph__meta a:hover,
+.ph__meta a:focus-visible {
+    color: var(--color-primary-hover);
+}
+
+/* ── Status pill ────────────────────────────────────────────────────────── */
+
+/*
+ * One tone per pill, declared once as five custom properties. The dot's
+ * halo is a 3px spread with no blur, which reads as a ring rather than a
+ * glow and costs nothing to paint.
+ */
+.ph-pill {
+    --ph-tone-bg: var(--color-surface-soft);
+    --ph-tone-fg: var(--color-text-subtle);
+    --ph-tone-dot: var(--color-text-faint);
+    --ph-tone-ring: rgba(15, 23, 42, 0.06);
+    --ph-tone-halo: rgba(148, 163, 184, 0.2);
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 24px;
+    padding-block: 0;
+    padding-inline: 9px 10px;
+    border-radius: 999px;
+    background: var(--ph-tone-bg);
+    color: var(--ph-tone-fg);
+    box-shadow: inset 0 0 0 1px var(--ph-tone-ring);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ph-pill__dot {
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ph-tone-dot);
+    box-shadow: 0 0 0 3px var(--ph-tone-halo);
+}
+
+.ph-pill--success {
+    --ph-tone-bg: rgba(var(--color-accent-rgb), 0.1);
+    --ph-tone-fg: var(--color-success-deep);
+    --ph-tone-dot: var(--color-success-strong);
+    --ph-tone-ring: rgba(22, 163, 74, 0.18);
+    --ph-tone-halo: rgba(22, 163, 74, 0.16);
+}
+
+.ph-pill--warning {
+    --ph-tone-bg: rgba(var(--color-warning-rgb), 0.12);
+    --ph-tone-fg: var(--color-warning-deep);
+    --ph-tone-dot: var(--color-warning);
+    --ph-tone-ring: rgba(var(--color-warning-rgb), 0.22);
+    --ph-tone-halo: rgba(var(--color-warning-rgb), 0.18);
+}
+
+.ph-pill--danger {
+    --ph-tone-bg: rgba(var(--color-danger-rgb), 0.1);
+    --ph-tone-fg: var(--color-danger-deep);
+    --ph-tone-dot: var(--color-danger-strong);
+    --ph-tone-ring: rgba(220, 38, 38, 0.2);
+    --ph-tone-halo: rgba(220, 38, 38, 0.16);
+}
+
+.ph-pill--brand {
+    --ph-tone-bg: rgba(var(--color-primary-rgb), 0.08);
+    --ph-tone-fg: var(--color-primary-hover);
+    --ph-tone-dot: var(--color-primary);
+    --ph-tone-ring: rgba(var(--color-primary-rgb), 0.2);
+    --ph-tone-halo: rgba(var(--color-primary-rgb), 0.16);
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+
+.ph__actions {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+    margin-inline-start: auto;
+}
+
+.ph__state {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* The save-state indicator: a filled pill rather than a bare dot and label. */
+.ph-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding-block: 0;
+    padding-inline: 10px 12px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ph-state::before {
+    content: "";
+    flex: 0 0 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ph-state--warning {
+    background: rgba(var(--color-warning-rgb), 0.12);
+    color: var(--color-warning-deep);
+}
+
+.ph-state--warning::before {
+    background: var(--color-warning);
+}
+
+.ph-state--success {
+    background: rgba(var(--color-accent-rgb), 0.1);
+    color: var(--color-success-deep);
+}
+
+.ph-state--success::before {
+    background: var(--color-success-strong);
+}
+
+.ph-state--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.ph-state--danger::before {
+    background: var(--color-danger-strong);
+}
+
+.ph__search {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    margin: 0;
+}
+
+.ph__search-icon {
+    position: absolute;
+    inset-inline-start: 12px;
+    display: inline-flex;
+    color: var(--color-text-faint);
+    pointer-events: none;
+}
+
+.ph__search-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ph__search input {
+    width: min(200px, 100%);
+    height: 40px;
+    padding-block: 0;
+    padding-inline: 34px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--color-card);
+    color: var(--color-text);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ph__search input::placeholder {
+    color: var(--color-text-faint);
+}
+
+.ph__search input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.14);
+}
+
+/*
+ * Two button roles, one look. `.ph-btn--secondary` and `.ph-btn--primary`
+ * are the names; a page still passing Bootstrap's `.btn btn-primary` /
+ * `.btn btn-outline-secondary` into the actions slot gets the same two
+ * looks, so the swap from the old header changed nothing on screen.
+ */
+/*
+ * An icon-only action is square, and one with nowhere to go is inert.
+ *
+ * `data-ph-icon` is an explicit marker, and it has to be. This first
+ * shipped as `:has(> i:only-child)` — reading "the only child is an icon"
+ * as "there is no label". `:only-child` counts ELEMENT children, so
+ * `<i></i>Refresh` matched it: twenty admin pages had their labelled header
+ * actions squeezed into a 40px box with the text spilling across the
+ * neighbour. Absence of a text node is not something a selector can ask
+ * about, so the markup says it instead.
+ *
+ * The attribute, not a class: the action slot is held to two button roles
+ * by AdminPageHeaderActionTest, and that rule is about a control's visual
+ * role — which this is not.
+ */
+.ph__actions .btn[data-ph-icon] {
+    flex: 0 0 40px;
+    inline-size: 40px;
+    padding-inline: 0;
+}
+
+.ph__actions .btn[aria-disabled="true"] {
+    opacity: 0.45;
+    pointer-events: none;
+}
+.ph-btn,
+.ph__actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+    padding-block: 0;
+    /*
+     * The pair gives up its own padding before the row wraps, which is what
+     * keeps Secondary, Primary and the menu together on one line at 390px.
+     */
+    padding-inline: clamp(10px, 1.4vw, 15px);
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--color-card);
+    color: var(--color-text-subtle);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    font-family: inherit;
+    font-size: 13.5px;
+    /* app.css forces 400 !important on every .btn; the header restates it. */
+    font-weight: var(--font-semibold) !important;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ph-btn:hover,
+.ph-btn:focus-visible,
+.ph__actions .btn:hover,
+.ph__actions .btn:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    transform: none;
+}
+
+.ph-btn > svg,
+.ph__actions .btn > svg {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.ph-btn > i,
+.ph__actions .btn > i {
+    flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 1;
+}
+
+/*
+ * The call to action carries its weight in its fill, not in a halo.
+ *
+ * It shipped with an 18px indigo glow, which beside the now-flat card
+ * was the loudest thing on the screen and left a coloured haze on the
+ * card under the button. v2 states the same conclusion: a vertical brand
+ * gradient with a white top highlight inside it, and no drop shadow.
+ */
+.ph-btn--primary,
+.ph__actions .btn-primary {
+    padding-block: 0;
+    padding-inline: clamp(10px, 1.4vw, 15px) clamp(12px, 1.6vw, 17px);
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--color-primary-lift), var(--color-primary));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.22);
+}
+
+.ph-btn--primary:hover,
+.ph-btn--primary:focus-visible,
+.ph__actions .btn-primary:hover,
+.ph__actions .btn-primary:focus-visible {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.22);
+}
+
+.ph-btn:focus-visible,
+.ph__actions .btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.ph-btn:disabled,
+.ph-btn[aria-disabled="true"],
+.ph__actions .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.ph-more {
+    display: inline-flex;
+    flex: 0 0 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--color-card);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ph-more__dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-text-subtle);
+}
+
+.ph-more:hover,
+.ph-more:focus-visible {
+    border-color: var(--color-primary-tint);
+    background: var(--color-surface-alt);
+}
+
+.ph-more:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.ph-more[aria-expanded="true"],
+.ph__more.show .ph-more {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.06);
+}
+
+/*
+ * The one place a real shadow still earns its keep: the menu genuinely
+ * floats over the page, and without depth it reads as part of the card
+ * it is covering. v2 blurs it 48px; the operator asked for the heavy
+ * shadows out of this header, so it is capped at 16px.
+ */
+.ph-menu {
+    display: none;
+    flex-direction: column;
+    width: 232px;
+    min-width: 232px;
+    padding: 6px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--color-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 6px 16px -8px rgba(15, 23, 42, 0.28);
+}
+
+.ph-menu.show {
+    display: flex;
+}
+
+.ph-menu__caption {
+    padding: 8px 10px 6px;
+    color: var(--color-text-faint);
+    font-size: 10.5px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.ph-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: 38px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: var(--font-medium);
+    line-height: 1;
+    text-align: start;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ph-menu .dropdown-item > svg {
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.ph-menu .dropdown-item > i {
+    flex: 0 0 16px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.ph-menu .dropdown-item:hover,
+.ph-menu .dropdown-item:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.ph-menu .dropdown-item.is-warning {
+    color: var(--color-warning-deep);
+}
+
+.ph-menu .dropdown-item.is-warning:hover,
+.ph-menu .dropdown-item.is-warning:focus-visible {
+    background: rgba(var(--color-warning-rgb), 0.1);
+    color: var(--color-warning-deep);
+}
+
+.ph-menu .dropdown-item.is-danger {
+    color: var(--color-danger-deep);
+}
+
+.ph-menu .dropdown-item.is-danger:hover,
+.ph-menu .dropdown-item.is-danger:focus-visible {
+    background: rgba(var(--color-danger-rgb), 0.08);
+    color: var(--color-danger-deep);
+}
+
+.ph-menu .dropdown-divider {
+    margin: 6px 4px;
+    border-block-start: 1px solid var(--color-border-soft);
+    opacity: 1;
+}
+
+/*
+ * v2's rich menu row: a 30px icon tile, the label and a one-line hint. A
+ * page opts in per item by wrapping the icon in `.ph-menu__tile` and the
+ * copy in `.ph-menu__copy`; plain rows keep the compact 38px form above.
+ */
+.ph-menu:has(.ph-menu__hint) {
+    width: 268px;
+    min-width: 268px;
+}
+
+.ph-menu .dropdown-item:has(.ph-menu__tile) {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    height: auto;
+    min-height: 42px;
+    padding: 5px 8px;
+}
+
+.ph-menu__tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.ph-menu__tile > svg {
+    fill: currentColor;
+}
+
+.ph-menu .dropdown-item.is-warning .ph-menu__tile {
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--color-warning-strong);
+}
+
+.ph-menu .dropdown-item.is-danger .ph-menu__tile {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-strong);
+}
+
+.ph-menu__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.ph-menu__label {
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.ph-menu__hint {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 11.5px;
+    font-weight: var(--font-normal);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[data-coreui-theme="dark"] .ph-menu__tile {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-primary-tint);
+}
+
+/* ── Stats strip ────────────────────────────────────────────────────────── */
+
+/*
+ * A wrapping flex row, not a grid.
+ *
+ * A grid's tracks are fixed by the column count, so four cells stayed four
+ * cells at 420px and every value clipped. Here a cell asks for a share of
+ * the strip and snaps at two widths — two-up below 700px, one-up below
+ * 380px — measured against the strip itself, which is what a media query
+ * cannot do, because the strip is not the viewport.
+ *
+ * The dividers are the 1px gap: the strip paints border-soft and the cells
+ * paint the card over it, so a wrapped row rules itself with no nth-child
+ * arithmetic to keep in step with the cell count.
+ */
+.ph__strip {
+    --ph-basis: max(
+        clamp(calc(100% / var(--ph-units, 4) - 1px), (700px - 100%) * 100, calc(50% - 1px)),
+        min(100%, (380px - 100%) * 100)
+    );
+
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    border-block-start: 1px solid var(--color-border-soft);
+    background: var(--color-border-soft);
+}
+
+/* The head no longer clips, so the strip rounds its own bottom corners. */
+.ph--card .ph__strip {
+    overflow: hidden;
+    border-end-start-radius: 20px;
+    border-end-end-radius: 20px;
+}
+
+/*
+ * .ph__strip--N and .ph__strip--progress stay on the element as markup
+ * hooks — the layout is driven by --ph-units, which the view sets inline
+ * because the progress cell is worth one and a half stat cells and a class
+ * cannot carry a fraction.
+ */
+.ph__cell {
+    display: flex;
+    flex-grow: 1;
+    flex-shrink: 1;
+    /*
+     * Longhands, with a plain fallback first. --ph-basis is a nested
+     * max(clamp(min())); if an engine cannot parse it only the basis is
+     * dropped and the cell keeps its grow and shrink. Declared through the
+     * `flex` shorthand, a bad basis would take those down with it and leave
+     * every cell at its content width.
+     */
+    flex-basis: 220px;
+    flex-basis: var(--ph-basis);
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 15px 20px;
+    background: var(--color-card);
+}
+
+/*
+ * A cell that is itself the link.
+ *
+ * Background Tasks states three facts an operator acts on — the scheduler,
+ * the worker, the failed queue — and the answer to each is a different tab.
+ * Those facts used to sit below the header as their own chips, styled white
+ * on white-alpha for a dark hero the page no longer has, so the whole strip
+ * of them painted invisible and only the coloured dots survived. Wrapping
+ * the cell rather than the value keeps the target the size of the figure,
+ * and no underline: the label and the value already read as one thing.
+ */
+.ph__cell--link {
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.ph__cell--link:hover,
+.ph__cell--link:focus-visible {
+    background: var(--color-surface-alt);
+    color: inherit;
+}
+
+.ph__cell--link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+.ph__cell-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ph__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: var(--color-text-faint);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ph__dot {
+    flex: 0 0 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-palette-cbd5e1);
+}
+
+.ph__dot--success { background: var(--color-success-strong); }
+.ph__dot--warning { background: var(--color-warning); }
+.ph__dot--danger  { background: var(--color-danger-strong); }
+.ph__dot--primary,
+.ph__dot--brand   { background: var(--color-primary); }
+
+.ph__value {
+    overflow: hidden;
+    color: var(--color-text);
+    font-size: 24px;
+    font-weight: var(--font-bold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+ * A figure that is itself the alarm is coloured.
+ *
+ * Only the two tones that mean "act on this" get one: a strip where every
+ * value is tinted is a strip where none of them is, and the tile beside the
+ * cell already carries the reading for the rest.
+ */
+.ph__value--danger {
+    color: var(--color-danger-deep);
+}
+
+.ph__value--warning {
+    color: var(--color-warning-deep);
+}
+
+.ph__note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* The delta is a tonal chip, so a rise and a fall differ by more than sign. */
+.ph__delta {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+}
+
+.ph__delta--success {
+    background: rgba(var(--color-accent-rgb), 0.1);
+    color: var(--color-success-deep);
+}
+
+.ph__delta--warning {
+    background: rgba(var(--color-warning-rgb), 0.12);
+    color: var(--color-warning-deep);
+}
+
+.ph__delta--danger {
+    background: rgba(var(--color-danger-rgb), 0.1);
+    color: var(--color-danger-deep);
+}
+
+.ph__delta--brand {
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--color-primary-hover);
+}
+
+.ph__spark {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 3px;
+    height: 34px;
+    max-width: 60px;
+    min-width: 0;
+    margin-inline-start: auto;
+    overflow: hidden;
+}
+
+/*
+ * The sparkline's counterpart. A count that cannot trend takes a tonal tile
+ * instead of a drawn one — the handoff's rule is that a static figure never
+ * gets a fake trend beside it, and the component drops the icon outright
+ * when a page passes both.
+ */
+.ph__stat-icon {
+    display: inline-flex;
+    flex: 0 0 38px;
+    align-items: center;
+    align-self: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    margin-inline-start: auto;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/*
+ * Every icon size in this header has to shout.
+ *
+ * app.css ships `.icon:not(.icon-c-s):not(.icon-custom-size) { width: 1rem }`
+ * and `.icon-sm { width: .875rem }`, and a number of files under
+ * public/general/static/svg carry `class="icon icon-sm"` — or, worse,
+ * `class="icon icon-xs me-2"` — inside the SVG itself. Those selectors
+ * outrank anything this sheet can write without !important, and Bootstrap's
+ * `me-2` is !important already.
+ *
+ * Measured in Chrome before this rule existed: inside a 38px stat tile,
+ * mail-check.svg rendered 16×16 pushed 8px off centre by its own margin and
+ * shield-ban.svg rendered 14×14. Both read as a broken glyph rather than a
+ * wrong size, which is how it survived a review that only read the markup.
+ * role-management.css carries the same workaround for back.svg.
+ */
+.ph__tile > svg,
+.ph__stat-icon > svg,
+.ph-menu__tile > svg,
+.ph__crumb-back > svg,
+.ph__search-icon > svg,
+.ph-btn > svg,
+.ph__actions .btn > svg {
+    margin: 0 !important;
+}
+
+.ph__tile > svg {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.ph__stat-icon > svg {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.ph-menu__tile > svg {
+    width: 15px !important;
+    height: 15px !important;
+}
+
+.ph__crumb-back > svg,
+.ph__search-icon > svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/*
+ * Filled glyphs take the tone colour as fill; stroke-drawn ones (the
+ * Tabler set, e.g. `money`) already carry stroke="currentColor" and turn
+ * into a solid disc if a fill is forced onto their outline paths.
+ */
+.ph__stat-icon > svg:not([stroke]) {
+    fill: currentColor;
+}
+
+/* CoreUI's global `.icon { fill: currentcolor }` beats the svg's own fill="none". */
+.ph__stat-icon > svg[stroke] {
+    fill: none;
+}
+
+.ph__stat-icon > i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.ph__stat-icon--success {
+    background: rgba(var(--color-success-rgb), 0.12);
+    color: var(--color-success-strong);
+}
+
+.ph__stat-icon--warning {
+    background: rgba(var(--color-warning-rgb), 0.14);
+    color: var(--color-warning-strong);
+}
+
+.ph__stat-icon--danger {
+    background: rgba(var(--color-danger-rgb), 0.12);
+    color: var(--color-danger-strong);
+}
+
+.ph__stat-icon--primary,
+.ph__stat-icon--brand {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary);
+}
+
+.ph__spark-bar {
+    width: 5px;
+    border-radius: 3px;
+    background: rgba(var(--color-primary-rgb), 0.22);
+}
+
+.ph__spark-bar.is-current {
+    background: var(--color-primary);
+}
+
+.ph__cell--progress {
+    flex-basis: 330px;
+    flex-basis: max(
+        clamp(calc(150% / var(--ph-units, 4) - 1px), (700px - 100%) * 100, 100%),
+        min(100%, (380px - 100%) * 100)
+    );
+
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    padding-inline: 22px;
+}
+
+.ph__progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ph__ratio {
+    color: var(--color-text-muted);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ph__ratio strong {
+    color: var(--color-text);
+    font-size: 16px;
+    font-weight: var(--font-bold);
+    letter-spacing: -0.01em;
+}
+
+.ph__bar {
+    height: 7px;
+    border-radius: 999px;
+    background: var(--color-border-soft);
+    overflow: hidden;
+}
+
+.ph__bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-primary-light), var(--color-primary));
+}
+
+[dir='rtl'] .ph__bar-fill {
+    background: linear-gradient(270deg, var(--color-primary-light), var(--color-primary));
+}
+
+/* ── Section tabs — page content, rendered by the page under the header ─── */
+
+.ph-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 16px;
+    padding: 0 6px;
+    border-block-end: 1px solid var(--color-border);
+    list-style: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.ph-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.ph-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    margin-block-end: -1px;
+    padding: 0 14px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ph-tab:hover,
+.ph-tab:focus-visible {
+    color: var(--color-text);
+}
+
+.ph-tab.is-active,
+.ph-tab[aria-selected="true"],
+.ph-tab[aria-current="page"] {
+    border-block-end-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.ph-tab__count {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    line-height: 1.4;
+}
+
+.ph-tab__count--warning {
+    background: rgba(var(--color-warning-rgb), 0.16);
+    color: var(--color-warning-deep);
+}
+
+/* ── Dark ───────────────────────────────────────────────────────────────── */
+
+[data-coreui-theme="dark"] .ph {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .ph__crumb-list {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .ph__crumb + .ph__crumb::before {
+    border-color: rgba(var(--color-white-rgb), 0.42);
+}
+
+[data-coreui-theme="dark"] .ph__meta-item + .ph__meta-item::before,
+[data-coreui-theme="dark"] .ph__dot {
+    background: rgba(var(--color-white-rgb), 0.42);
+}
+
+[data-coreui-theme="dark"] .ph__dot--success { background: var(--color-success-strong); }
+[data-coreui-theme="dark"] .ph__dot--warning { background: var(--color-warning); }
+[data-coreui-theme="dark"] .ph__dot--danger  { background: var(--color-danger-strong); }
+[data-coreui-theme="dark"] .ph__dot--primary,
+[data-coreui-theme="dark"] .ph__dot--brand   { background: var(--color-primary-light); }
+
+[data-coreui-theme="dark"] .ph__crumb[aria-current="page"] > span,
+[data-coreui-theme="dark"] .ph__title,
+[data-coreui-theme="dark"] .ph__value,
+[data-coreui-theme="dark"] .ph__ratio strong {
+    color: var(--color-white);
+}
+
+/*
+ * Restated after the white rule above, which would otherwise win on order,
+ * and lifted off the deep tones — those are mixed for a white ground and go
+ * nearly black against this one.
+ */
+[data-coreui-theme="dark"] .ph__value--danger {
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .ph__value--warning {
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .ph--card .ph__head {
+    background: #202634;
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.08);
+}
+
+/* Halved the same way as the light values above. */
+[data-coreui-theme="dark"] .ph__wash {
+    background: linear-gradient(
+        180deg,
+        rgba(129, 140, 248, 0.055) 0,
+        rgba(129, 140, 248, 0.018) 90px,
+        rgba(129, 140, 248, 0) 180px
+    );
+}
+
+[data-coreui-theme="dark"] .ph__orb {
+    background: radial-gradient(circle at var(--ph-orb-x) 0%, rgba(129, 140, 248, 0.11), rgba(129, 140, 248, 0) 60%);
+}
+
+[data-coreui-theme="dark"] .ph__eyebrow {
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .ph__subtitle,
+[data-coreui-theme="dark"] .ph__meta,
+[data-coreui-theme="dark"] .ph__note,
+[data-coreui-theme="dark"] .ph__ratio {
+    color: rgba(var(--color-white-rgb), 0.62);
+}
+
+[data-coreui-theme="dark"] .ph__label {
+    color: rgba(var(--color-white-rgb), 0.42);
+}
+
+[data-coreui-theme="dark"] .ph__tile--soft {
+    background: rgba(129, 140, 248, 0.14);
+    color: var(--color-primary-light);
+    box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.3);
+}
+
+[data-coreui-theme="dark"] .ph__badge,
+[data-coreui-theme="dark"] .ph-pill,
+[data-coreui-theme="dark"] .ph-state,
+[data-coreui-theme="dark"] .ph__delta,
+[data-coreui-theme="dark"] .ph-tab__count {
+    background: rgba(var(--color-white-rgb), 0.08);
+    border-color: rgba(var(--color-white-rgb), 0.1);
+    color: rgba(var(--color-white-rgb), 0.72);
+}
+
+[data-coreui-theme="dark"] .ph-pill--success,
+[data-coreui-theme="dark"] .ph-state--success,
+[data-coreui-theme="dark"] .ph__delta--success {
+    --ph-tone-bg: rgba(var(--color-accent-rgb), 0.16);
+    --ph-tone-fg: var(--color-success-mint);
+    --ph-tone-ring: rgba(var(--color-accent-rgb), 0.3);
+
+    background: rgba(var(--color-accent-rgb), 0.16);
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .ph-pill--warning,
+[data-coreui-theme="dark"] .ph-state--warning,
+[data-coreui-theme="dark"] .ph__delta--warning,
+[data-coreui-theme="dark"] .ph-tab__count--warning {
+    --ph-tone-bg: rgba(var(--color-warning-rgb), 0.18);
+    --ph-tone-fg: var(--color-warning-tint);
+    --ph-tone-ring: rgba(var(--color-warning-rgb), 0.3);
+
+    background: rgba(var(--color-warning-rgb), 0.18);
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .ph-pill--danger,
+[data-coreui-theme="dark"] .ph-state--danger,
+[data-coreui-theme="dark"] .ph__delta--danger {
+    --ph-tone-bg: rgba(var(--color-danger-rgb), 0.18);
+    --ph-tone-fg: var(--color-danger-tint);
+    --ph-tone-ring: rgba(var(--color-danger-rgb), 0.3);
+
+    background: rgba(var(--color-danger-rgb), 0.18);
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .ph-pill--brand,
+[data-coreui-theme="dark"] .ph__delta--brand {
+    --ph-tone-bg: rgba(129, 140, 248, 0.16);
+    --ph-tone-fg: var(--color-primary-tint);
+    --ph-tone-ring: rgba(129, 140, 248, 0.3);
+
+    background: rgba(129, 140, 248, 0.16);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .ph__strip {
+    background: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .ph__cell {
+    background: #202634;
+}
+
+[data-coreui-theme="dark"] .ph__stat-icon {
+    background: rgba(var(--color-white-rgb), 0.08);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .ph__stat-icon--success {
+    background: rgba(var(--color-accent-rgb), 0.16);
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .ph__stat-icon--warning {
+    background: rgba(var(--color-warning-rgb), 0.18);
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .ph__stat-icon--danger {
+    background: rgba(var(--color-danger-rgb), 0.18);
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .ph__stat-icon--primary,
+[data-coreui-theme="dark"] .ph__stat-icon--brand {
+    background: rgba(129, 140, 248, 0.16);
+    color: var(--color-primary-tint);
+}
+
+[data-coreui-theme="dark"] .ph__strip,
+[data-coreui-theme="dark"] .ph__cell,
+[data-coreui-theme="dark"] .ph-tabs,
+[data-coreui-theme="dark"] .ph-menu .dropdown-divider {
+    border-color: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .ph__bar {
+    background: rgba(var(--color-white-rgb), 0.08);
+}
+
+[data-coreui-theme="dark"] .ph__spark-bar {
+    background: rgba(129, 140, 248, 0.35);
+}
+
+[data-coreui-theme="dark"] .ph__spark-bar.is-current {
+    background: var(--color-primary-light);
+}
+
+[data-coreui-theme="dark"] .ph-btn,
+[data-coreui-theme="dark"] .ph__actions .btn,
+[data-coreui-theme="dark"] .ph-more,
+[data-coreui-theme="dark"] .ph__search input {
+    border-color: rgba(var(--color-white-rgb), 0.1);
+    background: rgba(var(--color-white-rgb), 0.04);
+    color: rgba(var(--color-white-rgb), 0.78);
+    box-shadow: none;
+}
+
+[data-coreui-theme="dark"] .ph-btn:hover,
+[data-coreui-theme="dark"] .ph__actions .btn:hover,
+[data-coreui-theme="dark"] .ph-more:hover {
+    border-color: rgba(129, 140, 248, 0.5);
+    background: rgba(var(--color-white-rgb), 0.08);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .ph-more__dot {
+    background: rgba(var(--color-white-rgb), 0.78);
+}
+
+[data-coreui-theme="dark"] .ph-btn--primary,
+[data-coreui-theme="dark"] .ph__actions .btn-primary {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--color-primary-lift), var(--color-primary));
+    color: var(--color-white);
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.22);
+}
+
+[data-coreui-theme="dark"] .ph-btn--primary:hover,
+[data-coreui-theme="dark"] .ph__actions .btn-primary:hover {
+    background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+}
+
+[data-coreui-theme="dark"] .ph-menu {
+    background: #202634;
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.1), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
+}
+
+[data-coreui-theme="dark"] .ph-menu .dropdown-item {
+    color: rgba(var(--color-white-rgb), 0.88);
+}
+
+[data-coreui-theme="dark"] .ph-menu .dropdown-item:hover,
+[data-coreui-theme="dark"] .ph-menu .dropdown-item:focus-visible {
+    background: rgba(var(--color-white-rgb), 0.06);
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .ph-menu .dropdown-item.is-warning {
+    color: var(--color-warning-tint);
+}
+
+[data-coreui-theme="dark"] .ph-menu .dropdown-item.is-danger {
+    color: var(--color-danger-tint);
+}
+
+[data-coreui-theme="dark"] .ph-tab:hover,
+[data-coreui-theme="dark"] .ph-tab:focus-visible {
+    color: var(--color-white);
+}
+
+[data-coreui-theme="dark"] .ph-tab.is-active,
+[data-coreui-theme="dark"] .ph-tab[aria-selected="true"],
+[data-coreui-theme="dark"] .ph-tab[aria-current="page"] {
+    border-block-end-color: var(--color-primary-light);
+    color: var(--color-primary-light);
+}
+
+/* ── Phones ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+    .ph {
+        gap: 10px;
+    }
+
+    /*
+     * Top-aligned rather than centred: a detail page's identity block is
+     * three lines tall here, and a back control floating beside its middle
+     * line reads as belonging to nothing.
+     */
+    .ph__row {
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .ph--compact .ph__row {
+        padding: 4px 6px;
+    }
+
+    .ph__tile,
+    .ph__avatar {
+        flex-basis: 44px;
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+    }
+
+    .ph__tile svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .ph__avatar {
+        font-size: 15px;
+    }
+
+    .ph__identity {
+        flex: 1 1 0;
+        gap: 4px;
+    }
+
+    /* Room for the ⋯ control, which stays on this row. */
+    .ph--has-menu .ph__identity {
+        padding-inline-end: 44px;
+    }
+
+    .ph__titleline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .ph__title {
+        max-width: 100%;
+        overflow: hidden;
+        font-size: 19px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /*
+     * Two buttons to a row, full width. Flex rather than grid so an odd last
+     * button fills its row instead of sitting alone in the first column.
+     */
+    .ph__actions {
+        flex: 1 0 100%;
+        gap: 8px;
+        margin-inline-start: 0;
+    }
+
+    .ph__actions > * {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+    }
+
+    .ph__state,
+    .ph__search {
+        flex-basis: 100%;
+    }
+
+    .ph__search input {
+        width: 100%;
+    }
+
+    .ph__actions .ph-btn,
+    .ph__actions .btn {
+        width: 100%;
+        padding-inline: 10px;
+    }
+
+    .ph__more {
+        position: absolute;
+        inset-block-start: 16px;
+        inset-inline-end: 16px;
+    }
+
+    .ph--compact .ph__more {
+        inset-block-start: 0;
+        inset-inline-end: 4px;
+    }
+
+    .ph-more {
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+    }
+
+    /* The cells already wrap two-up on their own basis; only the inset changes. */
+    .ph__cell {
+        padding: 14px 16px;
+    }
+
+    .ph__cell--progress {
+        padding-inline: 16px;
+    }
+
+    .ph__value {
+        font-size: 20px;
+    }
+
+    /* The shape is the first thing to go when the cell narrows. */
+    .ph__spark {
+        display: none;
+    }
+
+    /* The trail shows where you are and one step up; the rest is the menu. */
+    .ph__crumb:nth-last-child(n+3) {
+        display: none;
+    }
+
+    .ph__crumb:nth-last-child(2)::before {
+        content: none;
+    }
+
+    .ph-tabs {
+        margin-inline: -4px;
+        padding-inline: 4px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ph *,
+    .ph *::before,
+    .ph *::after {
+        transition: none !important;
+    }
+}

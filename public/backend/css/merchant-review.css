@@ -1,0 +1,581 @@
+/*
+ * Merchant review sheet — admin › Business profiles › Review
+ *
+ * One merchant, one page. Evidence on the inline start, the decision on a
+ * rail of its own so the eye knows where the irreversible things live.
+ *
+ * The page's identity comes from <x-page-header> and is never restyled here.
+ * Declares no scrollbar and no checkbox rules by design — both are canon,
+ * declared once in custom.css and enforced by
+ * tests/Feature/AdminScrollbarConsistencyTest.php and
+ * tests/Feature/AdminCheckboxConsistencyTest.php.
+ */
+
+.mrv__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 392px;
+    gap: 18px;
+    align-items: start;
+    margin-block-start: 14px;
+}
+
+@media (max-width: 1100px) {
+    .mrv__cols {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.mrv__evidence {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 16px;
+    background: var(--color-card);
+}
+
+/* ----- Callout ----- */
+.mrv__callout {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 13px;
+}
+
+.mrv__callout strong {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-bold);
+}
+
+.mrv__callout small {
+    display: block;
+    margin-block-start: 1px;
+    color: var(--color-text-subtle);
+    font-size: var(--font-xs);
+}
+
+.mrv__callout-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 9px;
+}
+
+.mrv__callout--warning {
+    border-color: rgba(var(--color-warning-rgb), 0.26);
+    background: rgba(var(--color-warning-rgb), 0.07);
+}
+
+.mrv__callout--warning .mrv__callout-icon {
+    color: var(--color-warning-deep);
+    background: rgba(var(--color-warning-rgb), 0.15);
+}
+
+.mrv__callout--danger {
+    border-color: rgba(var(--color-danger-rgb), 0.24);
+    background: rgba(var(--color-danger-rgb), 0.055);
+}
+
+.mrv__callout--danger .mrv__callout-icon {
+    color: var(--color-danger-deep);
+    background: rgba(var(--color-danger-rgb), 0.13);
+}
+
+.mrv__callout--success {
+    border-color: rgba(var(--color-success-rgb), 0.26);
+    background: rgba(var(--color-success-rgb), 0.06);
+}
+
+.mrv__callout--success .mrv__callout-icon {
+    color: var(--color-success-deep);
+    background: rgba(var(--color-success-rgb), 0.15);
+}
+
+.mrv__callout--neutral {
+    border-color: var(--color-border);
+    background: var(--color-surface-alt);
+}
+
+.mrv__callout--neutral .mrv__callout-icon {
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+}
+
+/* ----- Sections ----- */
+.mrv__label {
+    margin: 0 0 10px;
+    color: var(--color-text-faint);
+    font-size: var(--font-size-px-105);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.mrv__quote {
+    padding: 15px 16px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 13px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-soft);
+    font-size: var(--font-sm);
+    line-height: 1.68;
+    text-wrap: pretty;
+}
+
+.mrv__empty {
+    color: var(--color-text-faint);
+    font-style: italic;
+}
+
+/* ----- Checks -----
+   Every one of these is computed from data the platform holds. No scores. */
+.mrv__checks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+@media (max-width: 640px) {
+    .mrv__checks {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.mrv__check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 12px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 11px;
+    background: var(--color-card);
+}
+
+.mrv__check-icon {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 7px;
+    font-size: var(--font-size-px-11);
+}
+
+.mrv__check-icon--pass {
+    color: var(--color-success-deep);
+    background: rgba(var(--color-success-rgb), 0.14);
+}
+
+.mrv__check-icon--warn {
+    color: var(--color-warning-deep);
+    background: rgba(var(--color-warning-rgb), 0.16);
+}
+
+.mrv__check-icon--neutral {
+    color: var(--color-text-subtle);
+    background: var(--color-surface-soft);
+}
+
+.mrv__check-body {
+    min-width: 0;
+}
+
+.mrv__check-title {
+    display: block;
+    color: var(--color-text);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+}
+
+.mrv__check-detail {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-11);
+}
+
+/* ----- Profile rows ----- */
+.mrv__rows {
+    margin: 0;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 13px;
+    overflow: hidden;
+}
+
+.mrv__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    background: var(--color-card);
+}
+
+.mrv__row + .mrv__row {
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.mrv__row dt {
+    flex: 0 0 132px;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.mrv__row dd {
+    min-width: 0;
+    margin: 0;
+    flex-grow: 1;
+    color: var(--color-text);
+    font-size: var(--font-sm);
+}
+
+.mrv__mono {
+    font-family: var(--font-mono);
+    font-size: var(--font-xs);
+    word-break: break-all;
+}
+
+.mrv__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.mrv__chip {
+    display: inline-flex;
+    height: 21px;
+    align-items: center;
+    padding-inline: 8px;
+    border-radius: 6px;
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+/* ----- Decision rail ----- */
+.mrv__rail {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: var(--color-card);
+}
+
+.mrv__rail-head h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-size: var(--font-md);
+    font-weight: var(--font-bold);
+    letter-spacing: -0.015em;
+}
+
+.mrv__rail-head p {
+    margin: 4px 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+}
+
+/* ----- The shape, before the boxes that make it -----
+   Four disconnected inputs do not read as a formula. This does. */
+.mrv__formula {
+    padding: 13px 14px;
+    border-radius: 13px;
+    background: var(--color-text);
+}
+
+.mrv__formula-label {
+    display: block;
+    color: var(--color-text-faint);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.mrv__formula-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    margin-block-start: 8px;
+    font-family: var(--font-mono);
+    font-size: var(--font-base);
+}
+
+.mrv__formula-line b {
+    color: var(--color-white);
+    font-weight: var(--font-semibold);
+}
+
+.mrv__formula-line i {
+    color: var(--color-text-muted);
+    font-style: normal;
+}
+
+.mrv__formula-line em {
+    color: var(--color-text-faint);
+    font-style: normal;
+}
+
+.mrv__formula-note {
+    display: block;
+    margin-block-start: 7px;
+    color: var(--color-text-faint);
+    font-size: var(--font-size-px-115);
+}
+
+/* ----- Fee fields ----- */
+.mrv__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mrv__field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mrv__field--wide {
+    grid-column: 1 / -1;
+}
+
+.mrv__field label {
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+.mrv__hint {
+    color: var(--color-text-faint);
+    font-weight: var(--font-normal);
+}
+
+.mrv__input {
+    position: relative;
+    display: block;
+}
+
+.mrv__input input {
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    padding-inline: 12px 46px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 11px;
+    outline: none;
+    background: var(--color-card);
+    color: var(--color-text);
+    font: inherit;
+    font-feature-settings: "tnum";
+    font-size: var(--font-base);
+}
+
+.mrv__input input:focus {
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.mrv__input input.is-invalid {
+    border-color: rgba(var(--color-danger-rgb), 0.5);
+}
+
+.mrv__unit {
+    position: absolute;
+    inset-inline-end: 12px;
+    top: 11px;
+    color: var(--color-text-faint);
+    font-size: var(--font-size-px-125);
+    font-weight: var(--font-semibold);
+}
+
+.mrv__textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 11px;
+    outline: none;
+    background: var(--color-card);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-px-125);
+    line-height: 1.55;
+    resize: vertical;
+}
+
+.mrv__textarea:focus {
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.mrv__textarea.is-invalid {
+    border-color: rgba(var(--color-danger-rgb), 0.5);
+}
+
+.mrv__count {
+    align-self: flex-end;
+    color: var(--color-text-faint);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-11);
+}
+
+.mrv__error {
+    margin: 0;
+    color: var(--color-danger);
+    font-size: var(--font-size-px-115);
+    font-weight: var(--font-semibold);
+}
+
+/* ----- Preview -----
+   Figures from the same calculator the checkout uses. */
+.mrv__preview {
+    padding: 14px 15px;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.22);
+    border-radius: 13px;
+    background: rgba(var(--color-primary-rgb), 0.05);
+}
+
+.mrv__preview h3 {
+    margin: 0 0 11px;
+    color: var(--color-primary-deep);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.mrv__preview-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--color-text-subtle);
+    font-feature-settings: "tnum";
+    font-size: var(--font-size-px-125);
+}
+
+.mrv__preview-row + .mrv__preview-row {
+    margin-block-start: 9px;
+    padding-block-start: 9px;
+    border-block-start: 1px solid rgba(var(--color-primary-rgb), 0.13);
+}
+
+.mrv__preview-out {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.mrv__preview-out b {
+    color: var(--color-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-bold);
+}
+
+.mrv__bound {
+    display: inline-flex;
+    height: 17px;
+    align-items: center;
+    padding-inline: 6px;
+    border-radius: 5px;
+    color: var(--color-warning-deep);
+    background: rgba(var(--color-warning-rgb), 0.16);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+/* ----- Danger zone -----
+   Bounded, and never beside the primary action. */
+.mrv__danger {
+    padding: 14px 15px;
+    border: 1px solid rgba(var(--color-danger-rgb), 0.28);
+    border-radius: 13px;
+    background: rgba(var(--color-danger-rgb), 0.045);
+}
+
+.mrv__danger h3 {
+    margin: 0;
+    color: var(--color-danger-deep);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.mrv__danger p {
+    margin: 5px 0 12px;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-px-115);
+    line-height: 1.55;
+}
+
+/* ----- Decision bar ----- */
+.mrv__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-block-start: auto;
+    padding-block-start: 14px;
+    border-block-start: 1px solid var(--color-border-soft);
+}
+
+.mrv__bar-note {
+    color: var(--color-text-muted);
+    font-size: var(--font-xs);
+}
+
+.mrv__bar-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+}
+
+.mrv__btn {
+    display: inline-flex;
+    height: 42px;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 18px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+}
+
+.mrv__btn--primary {
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(var(--color-white-rgb), 0.22);
+    color: var(--color-text-inverse);
+    background: linear-gradient(180deg, var(--color-primary-lift), var(--color-primary));
+}
+
+.mrv__btn--ghost {
+    border-color: var(--color-border);
+    color: var(--color-text-subtle);
+    background: var(--color-card);
+}
+
+.mrv__btn--danger {
+    height: 38px;
+    border-color: rgba(var(--color-danger-rgb), 0.38);
+    color: var(--color-danger-deep);
+    background: var(--color-card);
+}
+
+.mrv__bar .mrv__btn--danger {
+    height: 42px;
+}

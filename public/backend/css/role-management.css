@@ -1,0 +1,1784 @@
+/* Scoped role and permission management UI. */
+
+.role-mgmt-page {
+    --rm-border: var(--color-border-soft);
+    --rm-border-strong: var(--color-border-strong);
+    --rm-card: var(--color-card);
+    --rm-card-elevated: rgba(var(--color-white-rgb), 0.96);
+    --rm-muted: var(--color-text-muted);
+    --rm-soft: var(--color-text-soft);
+    --rm-text: var(--color-text);
+    --rm-surface: var(--color-surface-alt);
+    --rm-primary: var(--color-primary);
+    --rm-primary-hover: var(--color-primary-hover);
+    --rm-info: var(--color-info);
+    --rm-info-rgb: var(--color-info-rgb);
+    --rm-success: var(--color-success-strong);
+    --rm-danger: var(--color-danger-strong);
+    --rm-shadow: 0 1rem 2.4rem rgba(var(--color-text-rgb), 0.08);
+    --rm-shadow-soft: 0 0.35rem 1.25rem rgba(var(--color-text-rgb), 0.055);
+    --rm-permission-header-height: 4rem;
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(var(--color-text-faint-rgb), 0.16);
+    border-radius: var(--radius-lg);
+    background:
+        linear-gradient(180deg, rgba(var(--color-white-rgb), 0.94), rgba(var(--color-surface-alt-rgb), 0.92)),
+        var(--rm-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-page {
+    --rm-card-elevated: rgba(32, 38, 52, 0.96);
+    --rm-border: rgba(var(--color-white-rgb), 0.1);
+    --rm-border-strong: rgba(var(--color-white-rgb), 0.16);
+    --rm-shadow: 0 1rem 2.2rem rgba(var(--color-black-rgb), 0.22);
+    --rm-shadow-soft: 0 0.45rem 1.2rem rgba(var(--color-black-rgb), 0.18);
+    background:
+        linear-gradient(180deg, rgba(var(--color-white-rgb), 0.035), rgba(var(--color-white-rgb), 0.015)),
+        var(--cui-body-bg);
+}
+
+.role-mgmt-table-card {
+    border: 1px solid rgba(var(--color-text-faint-rgb), 0.16);
+    border-radius: var(--radius-lg);
+    background: var(--rm-card-elevated);
+    box-shadow: var(--rm-shadow-soft);
+    overflow: hidden;
+}
+
+.role-mgmt-table {
+    overflow-x: auto;
+}
+
+/*
+ * One column track shared by the header and every row, so the two can never
+ * drift apart the way two hand-copied `grid-template-columns` lists do.
+ */
+/*
+ * The Actions track is 245px, not the reference's 210px.
+ *
+ * Measured: "Manage permissions" plus the two 32px icon buttons come to 245px
+ * at this font. In a 210px track the icon buttons were flex-shrunk to 15px —
+ * they rendered as bare glyphs with the border cutting through them. The 35px
+ * is taken off the Role column, whose description already ellipsizes, so the
+ * row total is unchanged and the table still fits at 1440.
+ */
+.role-mgmt-table__inner {
+    --rm-columns:
+        minmax(14.0625rem, 2.4fr) 6.875rem minmax(11.875rem, 1.4fr)
+        minmax(9.375rem, 1fr) 6.875rem 15.3125rem;
+    min-width: 56.25rem;
+}
+
+/*
+ * The gap is 10px, not the reference's 12px.
+ *
+ * The six column minimums add up to 1030px; at 1440 with the sidebar expanded
+ * the card has 1102px to give, and 12px gaps plus the row's 40px of padding
+ * came to 1130 — an 8px overflow that put a scrollbar under the table at the
+ * design's own primary breakpoint. Measured, not guessed. Narrowing a column
+ * would have cost a visible amount of the role description; 2px off each gap
+ * costs nothing anyone can see.
+ */
+.role-mgmt-thead,
+.role-mgmt-row {
+    display: grid;
+    grid-template-columns: var(--rm-columns);
+    gap: 0.625rem;
+    align-items: center;
+}
+
+/*
+ * The row rule sets `display: grid`, and an author declaration outranks the
+ * user-agent `[hidden] { display: none }` — without this, a row the search
+ * filter hides stays on screen while the DOM insists it is hidden.
+ */
+.role-mgmt-row[hidden] {
+    display: none;
+}
+
+.role-mgmt-thead {
+    padding: 0.65rem 1.25rem;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-extrabold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--rm-border);
+    background: linear-gradient(180deg, var(--rm-surface), rgba(var(--color-white-rgb), 0.92));
+}
+
+.role-mgmt-thead__actions {
+    text-align: end;
+}
+
+.role-mgmt-row {
+    position: relative;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--rm-border);
+    color: var(--rm-text);
+    font-size: var(--font-sm);
+    transition: background-color 0.22s ease;
+}
+
+.role-mgmt-row::before {
+    position: absolute;
+    top: 0.65rem;
+    bottom: 0.65rem;
+    /* Logical: the marker hugs the row's leading edge in both directions. */
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: transparent;
+    content: "";
+    transition: background-color 0.22s ease, opacity 0.22s ease;
+    opacity: 0;
+}
+
+.role-mgmt-row:hover {
+    background: linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.05), rgba(var(--color-primary-rgb), 0.015) 60%, transparent);
+}
+
+.role-mgmt-row:hover::before {
+    background: linear-gradient(180deg, var(--rm-primary), var(--rm-primary-hover));
+    opacity: 1;
+}
+
+.role-mgmt-row.is-protected-row:hover {
+    background: linear-gradient(90deg, rgba(var(--color-warning-rgb), 0.06), rgba(var(--color-warning-rgb), 0.02) 60%, transparent);
+}
+
+.role-mgmt-row.is-protected-row:hover::before {
+    background: linear-gradient(180deg, var(--color-warning-strong), var(--color-warning-deep));
+}
+
+.role-mgmt-row:last-of-type {
+    border-bottom: 0;
+}
+
+.role-mgmt-role {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 18rem;
+}
+
+.role-mgmt-role__icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.55rem;
+    height: 2.55rem;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.22);
+    border-radius: var(--radius-md);
+    color: var(--rm-primary);
+    background:
+        linear-gradient(180deg, rgba(var(--color-white-rgb), 0.5), transparent),
+        var(--color-primary-soft);
+    box-shadow:
+        inset 0 1px 0 rgba(var(--color-white-rgb), 0.65),
+        0 0.25rem 0.55rem rgba(var(--color-primary-rgb), 0.08);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.role-mgmt-row:hover .role-mgmt-role__icon {
+    transform: translateY(-1px);
+    box-shadow:
+        inset 0 1px 0 rgba(var(--color-white-rgb), 0.7),
+        0 0.4rem 0.85rem rgba(var(--color-primary-rgb), 0.18);
+}
+
+.role-mgmt-role__icon.is-protected {
+    color: var(--color-warning-deep);
+    border-color: rgba(var(--color-warning-rgb), 0.24);
+    background:
+        linear-gradient(180deg, rgba(var(--color-white-rgb), 0.45), transparent),
+        var(--color-warning-soft);
+    box-shadow:
+        inset 0 1px 0 rgba(var(--color-white-rgb), 0.6),
+        0 0.25rem 0.55rem rgba(var(--color-warning-rgb), 0.12);
+}
+
+.role-mgmt-row:hover .role-mgmt-role__icon.is-protected {
+    box-shadow:
+        inset 0 1px 0 rgba(var(--color-white-rgb), 0.65),
+        0 0.4rem 0.85rem rgba(var(--color-warning-rgb), 0.22);
+}
+
+.role-mgmt-role__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.role-mgmt-role__name {
+    color: var(--rm-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-extrabold);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-mgmt-avatar-stack {
+    display: flex;
+    align-items: center;
+    min-height: 1.85rem;
+    /* Logical: the stack overlaps towards the start of the line in both directions. */
+    padding-inline-start: 0.4rem;
+}
+
+.role-mgmt-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    margin-inline-start: -0.5rem;
+    overflow: hidden;
+    border: 2px solid var(--rm-card-elevated);
+    border-radius: 50%;
+    background: var(--rm-surface);
+    color: var(--rm-primary);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    box-shadow: 0 0.2rem 0.5rem rgba(var(--color-text-rgb), 0.08);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.role-mgmt-row:hover .role-mgmt-avatar {
+    transform: translateY(-1px);
+}
+
+.role-mgmt-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.role-mgmt-empty-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: fit-content;
+    min-height: 1.8rem;
+    padding-block: 0.28rem;
+    padding-inline: 0.55rem 0.7rem;
+    border: 1px dashed rgba(var(--color-text-faint-rgb), 0.34);
+    border-radius: var(--radius-xl);
+    color: var(--rm-muted);
+    background: transparent;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.01em;
+}
+
+.role-mgmt-empty-pill__dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 50%;
+    background: var(--color-text-faint);
+    opacity: 0.7;
+}
+
+.role-mgmt-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: fit-content;
+    min-height: 1.7rem;
+    padding-block: 0.25rem;
+    padding-inline: 0.55rem 0.6rem;
+    border: 1px solid var(--rm-border);
+    border-radius: var(--radius-xl);
+    color: var(--rm-muted);
+    background: var(--rm-surface);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.01em;
+}
+
+.role-mgmt-staff-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.role-mgmt-staff-cell.is-empty {
+    gap: 0;
+}
+
+.role-mgmt-staff-meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-staff-meta strong {
+    color: var(--rm-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-extrabold);
+    line-height: 1;
+    letter-spacing: -0.01em;
+}
+
+.role-mgmt-staff-meta small {
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.01em;
+}
+
+.role-mgmt-status__dot {
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 50%;
+    background: var(--rm-primary);
+    box-shadow: 0 0 0 0.18rem rgba(var(--color-primary-rgb), 0.16);
+}
+
+.role-mgmt-status.is-protected {
+    color: var(--color-warning-deep);
+    border-color: rgba(var(--color-warning-rgb), 0.24);
+    background: var(--color-warning-soft);
+}
+
+.role-mgmt-status.is-protected .role-mgmt-status__dot {
+    background: var(--color-warning-strong);
+    box-shadow: 0 0 0 0.18rem rgba(var(--color-warning-rgb), 0.22);
+}
+
+.role-mgmt-status.is-custom {
+    color: var(--color-success-deep);
+    border-color: rgba(var(--color-success-rgb), 0.24);
+    background: var(--color-success-soft);
+}
+
+.role-mgmt-status.is-custom .role-mgmt-status__dot {
+    background: var(--rm-success);
+    box-shadow: 0 0 0 0.18rem rgba(var(--color-success-rgb), 0.2);
+}
+
+.role-mgmt-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.role-mgmt-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.05rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-md);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.role-mgmt-action-btn svg {
+    flex: 0 0 auto;
+}
+
+.role-mgmt-action-btn__label {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.role-mgmt-action-btn--manage {
+    color: var(--rm-primary);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.24);
+    background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.55), transparent), var(--color-primary-soft);
+}
+
+.role-mgmt-action-btn--manage:hover,
+.role-mgmt-action-btn--manage:focus {
+    color: var(--color-text-inverse);
+    border-color: var(--rm-primary);
+    background: linear-gradient(180deg, var(--rm-primary), var(--rm-primary-hover));
+    box-shadow: 0 0.5rem 1rem rgba(var(--color-primary-rgb), 0.22);
+    transform: translateY(-1px);
+}
+
+.role-mgmt-action-btn--manage:active {
+    transform: translateY(0);
+}
+
+/*
+ * Neutral until pointed at.
+ *
+ * This used to paint red on arrival, which made every row look like it was
+ * warning about something. The reference keeps Delete the same weight as Edit
+ * and only turns it red under the cursor, where the colour is telling you what
+ * is about to happen rather than decorating the table.
+ */
+.role-mgmt-action-btn--danger {
+    color: var(--rm-muted);
+    border: 1px solid var(--color-border);
+    background: var(--rm-card);
+}
+
+.role-mgmt-action-btn--danger:hover,
+.role-mgmt-action-btn--danger:focus {
+    color: var(--color-text-inverse);
+    border-color: var(--rm-danger);
+    background: linear-gradient(180deg, var(--rm-danger), rgba(var(--color-danger-rgb), 0.92));
+    box-shadow: 0 0.5rem 1rem rgba(var(--color-danger-rgb), 0.22);
+    transform: translateY(-1px);
+}
+
+.role-mgmt-action-btn--danger:active {
+    transform: translateY(0);
+}
+
+.role-mgmt-action-btn--locked {
+    color: var(--color-warning-deep);
+    border: 1px solid rgba(var(--color-warning-rgb), 0.22);
+    background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.55), transparent), var(--color-warning-soft);
+    cursor: default;
+}
+
+.role-mgmt-action-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.18rem rgba(var(--color-primary-rgb), 0.22), 0 0.5rem 1rem rgba(var(--color-primary-rgb), 0.16);
+}
+
+.role-mgmt-action-btn--danger:focus-visible {
+    box-shadow: 0 0 0 0.18rem rgba(var(--color-danger-rgb), 0.22), 0 0.5rem 1rem rgba(var(--color-danger-rgb), 0.16);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-thead {
+    background: rgba(var(--color-white-rgb), 0.04);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-row:hover {
+    background: linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.1), rgba(var(--color-primary-rgb), 0.03) 60%, transparent);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-row.is-protected-row:hover {
+    background: linear-gradient(90deg, rgba(var(--color-warning-rgb), 0.12), rgba(var(--color-warning-rgb), 0.04) 60%, transparent);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-empty-pill {
+    border-color: rgba(var(--color-white-rgb), 0.16);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-action-btn--manage {
+    background: rgba(var(--color-primary-rgb), 0.18);
+    border-color: rgba(var(--color-primary-rgb), 0.32);
+    color: var(--color-primary-subtle);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-action-btn--danger {
+    background: rgba(var(--color-danger-rgb), 0.16);
+    border-color: rgba(var(--color-danger-rgb), 0.3);
+    color: rgba(var(--color-danger-rgb), 0.92);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-action-btn--locked {
+    background: rgba(var(--color-warning-rgb), 0.16);
+    border-color: rgba(var(--color-warning-rgb), 0.28);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-staff-meta strong {
+    color: var(--color-white);
+}
+
+@media (max-width: 767.98px) {
+    .role-mgmt-page {
+        padding: 0.75rem;
+    }
+
+    .role-mgmt-table-card {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .role-mgmt-role {
+        min-width: 0;
+    }
+
+    .role-mgmt-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+
+    .role-mgmt-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .role-mgmt-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Roles index table (admin.role.index) and the permission editor
+ * (admin.role.permissions).
+ *
+ * The create and edit pages keep the form vocabulary above unchanged; this
+ * block is only those two screens. Colours resolve to tokens, sides are
+ * logical.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * Both screens are a set of cards on the page background, not one panel. The
+ * shared `.role-mgmt-page` wrapper paints a panel for the form pages, so it is
+ * unwound here rather than duplicated into a second root class.
+ */
+.role-mgmt-page--index,
+.role-mgmt-page--permissions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+
+/* ───────────────────────────────  index toolbar  ────────────────────────── */
+
+.role-mgmt-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--rm-border);
+}
+
+.role-mgmt-toolbar__tally {
+    /* Logical: the tally sits at the end of the toolbar in both directions. */
+    margin-inline-start: auto;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    white-space: nowrap;
+}
+
+.role-mgmt-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 12.5rem;
+    max-width: 20rem;
+    height: 2.25rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--rm-surface);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.role-mgmt-search:hover,
+.role-mgmt-search:focus-within {
+    border-color: rgba(var(--color-primary-rgb), 0.35);
+    background: var(--rm-card);
+}
+
+.role-mgmt-search__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--rm-muted);
+}
+
+.role-mgmt-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--rm-text);
+    font-size: var(--font-sm);
+    outline: none;
+}
+
+.role-mgmt-seg {
+    display: inline-flex;
+    gap: 0.125rem;
+    padding: 0.1875rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+}
+
+.role-mgmt-seg__btn {
+    height: 1.875rem;
+    padding: 0 0.75rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-mgmt-seg__btn.is-active {
+    background: var(--rm-card);
+    color: var(--rm-text);
+    box-shadow: var(--rm-shadow-soft);
+}
+
+.role-mgmt-seg__btn:focus-visible {
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.45);
+    outline-offset: 2px;
+}
+
+.role-mgmt-seg--sm {
+    display: flex;
+    width: 100%;
+}
+
+.role-mgmt-seg--sm .role-mgmt-seg__btn {
+    flex: 1;
+    height: 1.75rem;
+    padding: 0 0.375rem;
+    font-size: var(--font-2xs);
+}
+
+/* ────────────────────────────────  index row  ───────────────────────────── */
+
+.role-mgmt-role__desc {
+    display: block;
+    margin-block-start: 0.125rem;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-mgmt-meter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.role-mgmt-meter__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-size: var(--font-sm);
+    font-weight: var(--font-extrabold);
+    font-variant-numeric: tabular-nums;
+}
+
+.role-mgmt-meter__head small {
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-medium);
+}
+
+.role-mgmt-meter__pct {
+    margin-inline-start: auto;
+    color: var(--rm-muted);
+    font-size: var(--font-2xs);
+    font-weight: var(--font-bold);
+}
+
+.role-mgmt-meter__bar {
+    display: block;
+    height: 0.3125rem;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: var(--rm-border);
+}
+
+.role-mgmt-meter__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(90deg, var(--color-primary-lift), var(--rm-primary));
+    transition: width 0.3s ease;
+}
+
+.role-mgmt-meter.is-protected .role-mgmt-meter__fill {
+    background: linear-gradient(90deg, var(--color-warning-strong), var(--color-warning-deep));
+}
+
+.role-mgmt-updated {
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+}
+
+/*
+ * `flex-shrink` defaults to 1, so a row whose controls do not quite fit
+ * squashes them rather than overflowing — the 32px icon buttons rendered as
+ * 15px slivers with the border cutting through the glyph. Measured in the
+ * browser; nothing about the markup suggested it.
+ */
+.role-mgmt-actions .role-mgmt-action-btn {
+    flex-shrink: 0;
+}
+
+/* These variants are anchors, and an anchor arrives underlined. */
+a.role-mgmt-action-btn,
+a.role-mgmt-action-btn:hover,
+a.role-mgmt-action-btn:focus {
+    text-decoration: none;
+}
+
+.role-mgmt-action-btn--icon {
+    width: 2rem;
+    padding: 0;
+    justify-content: center;
+}
+
+.role-mgmt-action-btn.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.role-mgmt-table__empty {
+    margin: 0;
+    padding: 1.75rem 1.25rem;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    text-align: center;
+}
+
+.role-mgmt-table__empty[hidden] {
+    display: none;
+}
+
+.role-mgmt-tfoot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-surface-veil);
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+}
+
+.role-mgmt-tfoot__note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-warning-deep);
+}
+
+.role-mgmt-avatar--g1 { background: linear-gradient(135deg, var(--color-primary-lift), var(--color-primary-deep)); color: rgb(var(--color-white-rgb)); }
+.role-mgmt-avatar--g2 { background: linear-gradient(135deg, var(--color-info), var(--color-info-deep)); color: rgb(var(--color-white-rgb)); }
+.role-mgmt-avatar--g3 { background: linear-gradient(135deg, var(--color-success), var(--color-success-deep)); color: rgb(var(--color-white-rgb)); }
+.role-mgmt-avatar--g4 { background: linear-gradient(135deg, var(--color-warning), var(--color-warning-deep)); color: rgb(var(--color-white-rgb)); }
+.role-mgmt-avatar--g5 { background: linear-gradient(135deg, var(--color-violet), var(--color-violet-deep)); color: rgb(var(--color-white-rgb)); }
+.role-mgmt-avatar--g6 { background: linear-gradient(135deg, var(--color-danger), var(--color-danger-deep)); color: rgb(var(--color-white-rgb)); }
+
+/* ══════════════════════════  permission editor  ══════════════════════════ */
+
+/*
+ * The editor is three cards on the page background — header, module rail and
+ * the active module — laid out to the role-manager handoff. Every literal in
+ * that design maps to a token here; where the type scale has no step the
+ * design uses (13.5px, 17px, 19px), the value is written once as a local
+ * variable so it can be retuned in one place.
+ */
+.role-mgmt-page--permissions {
+    --rm-radius-card: var(--dash-radius-card);
+    --rm-radius-tile: var(--dash-radius-tile);
+    --rm-radius-control: 10px;
+    --rm-radius-btn: var(--dash-radius-control);
+    --rm-radius-chip: var(--dash-radius-chip);
+    --rm-shadow-card: var(--dash-shadow-card);
+    --rm-shadow-rail: 0 0 0 1px rgba(15, 23, 42, 0.05), var(--shadow-sm);
+    --rm-ring-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+    --rm-partial: var(--color-palette-a5b4fc);
+    --rm-subtle: var(--color-text-subtle);
+    --rm-faint: var(--color-text-faint);
+    --rm-veil: var(--color-surface-veil);
+    --rm-font-title: 19px;
+    --rm-font-module: 17px;
+    --rm-font-body: 13.5px;
+    --rm-font-meta: 12.5px;
+    --rm-font-label: 11px;
+    --rm-switch-travel: 18px;
+    gap: 16px;
+    max-width: 1320px;
+    margin-inline: auto;
+}
+
+/*
+ * The editor fits the viewport; the page under it does not scroll.
+ *
+ * Above the form sit the sticky header and the page's 24px top gap; below it
+ * the body's 16px margin and the 49px footer — measured in the shell at 1440,
+ * and the two are named so the next person who moves the footer knows what
+ * to retune. Inside that height the rail and the module pane each scroll
+ * their own list, so the header, the search and the Save button never leave
+ * the screen. Stacked on a narrow screen everything is a card again.
+ */
+@media (min-width: 992px) {
+    .role-mgmt-page--permissions {
+        --rm-page-above: 24px;
+        --rm-page-below: 65px;
+        height: calc(100vh - var(--top-height, 64px) - var(--rm-page-above) - var(--rm-page-below));
+        height: calc(100dvh - var(--top-height, 64px) - var(--rm-page-above) - var(--rm-page-below));
+        min-height: 0;
+    }
+
+    /*
+     * The one row track has to be definite — `minmax(0, 1fr)` rather than the
+     * implicit `auto` — or it sizes to the tallest column's content and the
+     * rail's `height: 100%` resolves against that instead of the body.
+     * Measured: with `auto` the rail came out 754px inside a 613px body.
+     */
+    .role-mgmt-editor-body {
+        flex: 1 1 auto;
+        grid-template-rows: minmax(0, 1fr);
+        min-height: 0;
+    }
+
+    .role-mgmt-groups {
+        height: 100%;
+    }
+
+    /*
+     * The pane is not the grid item — its wrapper is — so the wrapper has to
+     * take the row's height before the pane's percentage cap means anything.
+     * The pane itself keeps its content height when short (align start) and
+     * stops at the row when tall, scrolling its cards.
+     */
+    .role-mgmt-toggles {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .role-mgmt-pane {
+        max-height: 100%;
+    }
+}
+
+/*
+ * The role's key and description became ordinary labelled fields when
+ * <x-page-header> took over the identity. They sat in the editor's own head
+ * and were drawn as text that happened to be editable, which is why the
+ * role's name appeared twice on screen.
+ */
+.role-mgmt-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+    align-items: start;
+    padding: 1rem 1.25rem;
+    border-block-end: 1px solid var(--rm-border);
+}
+
+@container (max-width: 720px) {
+    .role-mgmt-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.role-mgmt-fields__error {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--color-danger-deep);
+    font-size: var(--font-xs);
+}
+
+.role-mgmt-field__label {
+    display: block;
+    margin-block-end: 0.25rem;
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-field {
+    display: block;
+    margin: 0;
+    min-width: 0;
+}
+
+.role-mgmt-field input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 2px 6px;
+    margin-inline-start: -6px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--rm-text);
+    font-family: inherit;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-mgmt-field input:hover {
+    border-color: var(--color-border);
+}
+
+.role-mgmt-field input:focus {
+    outline: none;
+    border-color: var(--rm-primary);
+    background: var(--rm-card);
+    box-shadow: var(--rm-ring-focus);
+}
+
+.role-mgmt-field input::placeholder {
+    color: var(--rm-faint);
+}
+
+.role-mgmt-field input[readonly] {
+    color: var(--rm-muted);
+    cursor: not-allowed;
+}
+
+.role-mgmt-field input[readonly]:hover,
+.role-mgmt-field input[readonly]:focus {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+.role-mgmt-field--name {
+    flex: 0 1 260px;
+}
+
+.role-mgmt-field--name input {
+    font-size: var(--rm-font-module);
+    font-weight: var(--font-bold);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+.role-mgmt-field--desc {
+    max-width: 560px;
+}
+
+.role-mgmt-field--desc input {
+    color: var(--rm-muted);
+    font-size: var(--font-sm);
+    line-height: 1.4;
+}
+
+.role-mgmt-field__error {
+    margin: 0;
+    padding: 0 20px 12px;
+}
+
+/* ──────────────────────────────  two panes  ─────────────────────────────── */
+
+.role-mgmt-editor-body {
+    display: grid;
+    grid-template-columns: minmax(240px, 292px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+/* The rail fills the editor's height; the list inside it is what scrolls. */
+.role-mgmt-groups {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: var(--rm-radius-card);
+    background: var(--rm-card);
+    box-shadow: var(--rm-shadow-rail);
+}
+
+.role-mgmt-groups__head {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--rm-border);
+}
+
+.role-mgmt-groups__head .role-mgmt-search {
+    flex: 1 1 auto;
+    gap: 0;
+    max-width: none;
+    height: 38px;
+    padding-block: 0;
+    padding-inline: 12px;
+    border-radius: var(--rm-radius-control);
+    background: var(--rm-card);
+}
+
+.role-mgmt-groups__head .role-mgmt-search:focus-within {
+    border-color: var(--rm-primary);
+    box-shadow: var(--rm-ring-focus);
+}
+
+.role-mgmt-groups__head .role-mgmt-search__icon {
+    color: var(--rm-faint);
+    margin-inline-end: 9px;
+}
+
+.role-mgmt-groups__head .role-mgmt-search input {
+    font-size: var(--rm-font-body);
+}
+
+.role-mgmt-groups__head .role-mgmt-search input::placeholder {
+    color: var(--rm-faint);
+}
+
+.role-mgmt-seg--sm {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    width: 100%;
+    padding: 3px;
+    border-radius: var(--rm-radius-btn);
+}
+
+.role-mgmt-seg--sm .role-mgmt-seg__btn {
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 7px;
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.role-mgmt-seg__btn:hover:not(.is-active):not([disabled]) {
+    color: var(--rm-text);
+}
+
+.role-mgmt-groups__list {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 14px;
+    min-height: 0;
+    padding-block: 6px 10px;
+    padding-inline: 10px 6px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.role-mgmt-groups__empty {
+    margin: 0;
+    padding: 24px 12px;
+    color: var(--rm-muted);
+    font-size: var(--font-sm);
+    text-align: center;
+}
+
+.role-mgmt-groups__empty[hidden] {
+    display: none;
+}
+
+/* A section is a heading that stays put while its modules scroll under it. */
+.role-mgmt-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.role-mgmt-section[hidden] {
+    display: none;
+}
+
+.role-mgmt-section__head {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 8px 6px;
+    background: var(--rm-card);
+}
+
+.role-mgmt-section__label {
+    color: var(--rm-faint);
+    font-size: var(--rm-font-label);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.role-mgmt-section__tally {
+    color: var(--color-border-strong);
+    font-size: var(--rm-font-label);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.role-mgmt-group {
+    position: relative;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    width: 100%;
+    height: 38px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--rm-radius-chip);
+    background: transparent;
+    color: var(--rm-soft);
+    font-size: var(--rm-font-body);
+    font-weight: var(--font-medium);
+    text-align: start;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/*
+ * The group rule sets `display: grid`, which outranks the user-agent
+ * `[hidden] { display: none }` — without this, a module the rail filter hides
+ * stays on screen while the DOM insists it is hidden.
+ */
+.role-mgmt-group[hidden] {
+    display: none;
+}
+
+.role-mgmt-group:hover {
+    background: var(--color-surface-alt);
+}
+
+.role-mgmt-group:focus-visible {
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.45);
+    outline-offset: -2px;
+}
+
+.role-mgmt-group.is-active {
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: var(--color-primary-deep);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-group__marker {
+    position: absolute;
+    inset-block: 0;
+    /* Logical: the marker hugs the rail's leading edge in both directions. */
+    inset-inline-start: 0;
+    width: 3px;
+    border-start-end-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
+    background: transparent;
+}
+
+.role-mgmt-group.is-active .role-mgmt-group__marker {
+    background: var(--rm-primary);
+}
+
+.role-mgmt-group__icon {
+    display: inline-flex;
+    color: var(--rm-faint);
+    transition: color 0.2s ease;
+}
+
+.role-mgmt-group.is-active .role-mgmt-group__icon {
+    color: var(--rm-primary);
+}
+
+.role-mgmt-group__label {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-mgmt-group__tally {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-border-strong);
+    font-size: var(--font-xs);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.role-mgmt-group__tally[data-fill="partial"],
+.role-mgmt-group__tally[data-fill="full"] {
+    color: var(--rm-subtle);
+}
+
+.role-mgmt-group.is-active .role-mgmt-group__tally[data-fill="partial"],
+.role-mgmt-group.is-active .role-mgmt-group__tally[data-fill="full"] {
+    color: var(--rm-primary-hover);
+}
+
+.role-mgmt-group__dot,
+.role-mgmt-legend__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-border);
+}
+
+.role-mgmt-group__tally[data-fill="partial"] .role-mgmt-group__dot,
+.role-mgmt-legend__dot.is-partial {
+    background: var(--rm-partial);
+}
+
+.role-mgmt-group__tally[data-fill="full"] .role-mgmt-group__dot,
+.role-mgmt-legend__dot.is-full {
+    background: var(--rm-primary);
+}
+
+.role-mgmt-groups__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--rm-border);
+    background: var(--rm-veil);
+    color: var(--rm-muted);
+    font-size: var(--font-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.role-mgmt-groups__foot strong {
+    color: var(--rm-text);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-legend {
+    display: inline-flex;
+    gap: 10px;
+}
+
+.role-mgmt-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ───────────────────────────────  module pane  ──────────────────────────── */
+
+.role-mgmt-toggles {
+    min-width: 0;
+    container-type: inline-size;
+}
+
+.role-mgmt-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--rm-radius-card);
+    background: var(--rm-card);
+    box-shadow: var(--rm-shadow-card);
+}
+
+.role-mgmt-pane[hidden] {
+    display: none;
+}
+
+.role-mgmt-pane__head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--rm-border);
+}
+
+.role-mgmt-pane__title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.role-mgmt-pane__title > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.role-mgmt-pane__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--rm-radius-tile);
+    background: var(--color-primary-soft);
+    color: var(--rm-primary);
+}
+
+/* app.css sets every heading to 500 !important; this one is a title. */
+.role-mgmt-pane__title h2 {
+    margin: 0;
+    color: var(--rm-text);
+    font-size: var(--rm-font-module);
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.01em;
+}
+
+.role-mgmt-pane__title p {
+    margin: 0;
+    color: var(--rm-muted);
+    font-size: var(--font-sm);
+    line-height: 1.45;
+    text-wrap: pretty;
+}
+
+.role-mgmt-quickset {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.role-mgmt-quickset__caption {
+    color: var(--rm-faint);
+    font-size: var(--rm-font-label);
+    font-weight: var(--font-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.role-mgmt-seg--quick {
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--rm-radius-control);
+}
+
+.role-mgmt-seg--quick .role-mgmt-seg__btn {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: var(--rm-radius-chip);
+    font-size: var(--rm-font-meta);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.role-mgmt-seg__btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.role-mgmt-grant-all {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--rm-border);
+    background: var(--rm-card);
+}
+
+.role-mgmt-grant-all__label {
+    color: var(--rm-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-grant-all__count {
+    color: var(--rm-muted);
+    font-size: var(--rm-font-meta);
+    font-weight: var(--font-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.role-mgmt-grant-all__count strong {
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-grant-all__count.is-on strong {
+    color: var(--rm-primary);
+}
+
+/* ──────────────────────────────  permission cards  ──────────────────────── */
+
+/* The cards scroll under the grant-all row and above the foot. */
+.role-mgmt-pane__rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 16px 24px 20px;
+    border-bottom: 1px solid var(--rm-border);
+    background: var(--rm-veil);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.role-mgmt-pane__foot {
+    flex: 0 0 auto;
+}
+
+/*
+ * One column once the pane is narrower than two cards can share. Container
+ * width, not viewport width: the rail takes a fixed slice of the page, so
+ * the pane is what actually decides whether two cards fit.
+ */
+@container (max-width: 720px) {
+    .role-mgmt-pane__rows {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Whole card is the control: click anywhere on it and the switch moves. */
+.role-mgmt-perm {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--rm-radius-tile);
+    background: var(--rm-card);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+}
+
+.role-mgmt-perm[hidden] {
+    display: none;
+}
+
+.role-mgmt-perm:hover {
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.35), 0 4px 12px -6px rgba(15, 23, 42, 0.12);
+}
+
+.role-mgmt-perm.is-on {
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.45);
+}
+
+.role-mgmt-perm:focus-within {
+    box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.45), var(--rm-ring-focus);
+}
+
+/*
+ * The checkbox is the row's real state — the switch beside it is decoration.
+ * Hiding it with `display: none` would drop it out of the tab order and stop
+ * it reaching the form, so it is clipped instead.
+ */
+.role-mgmt-perm__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.role-mgmt-perm__input[disabled] ~ .role-mgmt-switch {
+    opacity: 0.55;
+}
+
+.role-mgmt-perm:has(.role-mgmt-perm__input[disabled]) {
+    cursor: not-allowed;
+}
+
+.role-mgmt-perm__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.role-mgmt-perm__title {
+    color: var(--rm-text);
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    line-height: 1.3;
+}
+
+.role-mgmt-perm__hint {
+    color: var(--rm-muted);
+    font-size: var(--rm-font-meta);
+    line-height: 1.45;
+    text-wrap: pretty;
+}
+
+.role-mgmt-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+    margin-block-start: 1px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--color-border-strong);
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.role-mgmt-switch__knob {
+    position: absolute;
+    inset-block-start: 2px;
+    /* Logical: the knob rests at the start edge and travels towards the end. */
+    inset-inline-start: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-card);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.role-mgmt-perm__input:checked ~ .role-mgmt-switch,
+.role-mgmt-switch[aria-checked="true"] {
+    background: var(--rm-primary);
+}
+
+/* Some on, not all: the grant-all track shows the half state. */
+.role-mgmt-switch[data-fill="partial"] {
+    background: var(--rm-partial);
+}
+
+.role-mgmt-perm__input:checked ~ .role-mgmt-switch .role-mgmt-switch__knob,
+.role-mgmt-switch[aria-checked="true"] .role-mgmt-switch__knob {
+    transform: translateX(var(--rm-switch-travel));
+}
+
+/*
+ * `translateX` is a physical axis, so the knob has to travel the other way in
+ * Arabic — a logical inset moves where it starts, not where it goes.
+ */
+[dir="rtl"] .role-mgmt-perm__input:checked ~ .role-mgmt-switch .role-mgmt-switch__knob,
+[dir="rtl"] .role-mgmt-switch[aria-checked="true"] .role-mgmt-switch__knob {
+    transform: translateX(calc(var(--rm-switch-travel) * -1));
+}
+
+.role-mgmt-switch[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.role-mgmt-pane__empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 28px;
+    color: var(--rm-muted);
+    font-size: var(--font-sm);
+    text-align: center;
+}
+
+.role-mgmt-pane__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 24px;
+    background: var(--rm-veil);
+    color: var(--rm-muted);
+    font-size: var(--rm-font-meta);
+}
+
+.role-mgmt-pane__foot strong {
+    color: var(--rm-text);
+    font-weight: var(--font-semibold);
+}
+
+.role-mgmt-pane__nav {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.role-mgmt-pane__step {
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--rm-radius-btn);
+    background: var(--rm-card);
+    color: var(--rm-subtle);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.role-mgmt-pane__step:hover:not([disabled]) {
+    background: var(--color-surface-alt);
+    color: var(--rm-text);
+}
+
+.role-mgmt-pane__step[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ──────────────────────────────  responsive  ───────────────────────────── */
+
+@media (max-width: 991.98px) {
+    .role-mgmt-editor-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Stacked, the rail is a card like any other: its list gets a cap instead. */
+    .role-mgmt-groups__list {
+        max-height: 17.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .role-mgmt-toolbar,
+    .role-mgmt-pane__head {
+        align-items: stretch;
+    }
+
+    .role-mgmt-search {
+        max-width: none;
+    }
+
+    .role-mgmt-toolbar__tally {
+        margin-inline-start: 0;
+    }
+
+    .role-mgmt-field--name {
+        flex-basis: 100%;
+    }
+
+    .role-mgmt-pane__head,
+    .role-mgmt-grant-all,
+    .role-mgmt-pane__foot {
+        padding-inline: 16px;
+    }
+
+    .role-mgmt-pane__rows {
+        padding: 12px 16px 16px;
+    }
+}
+
+/* ───────────────────────────────  dark mode  ───────────────────────────── */
+
+/*
+ * The text aliases have to be remapped, not just the surfaces.
+ *
+ * `--rm-text` resolves to `--color-text`, which is near-black in both themes —
+ * the shared dark block above only ever remapped cards, borders and shadows
+ * because the form pages lean on CoreUI's inherited colour. These two screens
+ * set colour explicitly on headings, module names and permission titles, so in
+ * dark they rendered near-black on near-black. Confirmed by screenshot.
+ */
+[data-coreui-theme="dark"] .role-mgmt-page--index,
+[data-coreui-theme="dark"] .role-mgmt-page--permissions {
+    --rm-text: var(--color-white);
+    --rm-soft: rgba(var(--color-white-rgb), 0.78);
+    --rm-subtle: rgba(var(--color-white-rgb), 0.7);
+    --rm-muted: rgba(var(--color-white-rgb), 0.6);
+    --rm-faint: rgba(var(--color-white-rgb), 0.42);
+    --rm-card: var(--rm-card-elevated);
+    --rm-veil: rgba(var(--color-white-rgb), 0.03);
+    --rm-shadow-rail: 0 0 0 1px rgba(var(--color-white-rgb), 0.08);
+    --rm-shadow-card: 0 0 0 1px rgba(var(--color-white-rgb), 0.08), 0 12px 32px -20px rgba(var(--color-black-rgb), 0.6);
+    background: none;
+}
+
+[data-coreui-theme="dark"] .role-mgmt-seg {
+    background: rgba(var(--color-white-rgb), 0.06);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-seg__btn.is-active {
+    background: rgba(var(--color-white-rgb), 0.12);
+    color: rgb(var(--color-white-rgb));
+}
+
+[data-coreui-theme="dark"] .role-mgmt-field input:hover,
+[data-coreui-theme="dark"] .role-mgmt-groups__head .role-mgmt-search,
+[data-coreui-theme="dark"] .role-mgmt-pane__step {
+    border-color: rgba(var(--color-white-rgb), 0.14);
+    background: rgba(var(--color-white-rgb), 0.04);
+    color: rgba(var(--color-white-rgb), 0.82);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-field input:focus {
+    background: rgba(var(--color-white-rgb), 0.06);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-group:hover,
+[data-coreui-theme="dark"] .role-mgmt-perm {
+    background: rgba(var(--color-white-rgb), 0.04);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-perm {
+    box-shadow: 0 0 0 1px rgba(var(--color-white-rgb), 0.1);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-tfoot {
+    background: rgba(var(--color-white-rgb), 0.03);
+}
+
+/*
+ * The tinted chips carry a `-deep` ink on a translucent wash of the same hue.
+ * That reads beautifully on white and disappears on a dark card — checked by
+ * screenshot, where the active module, the tallies and the type pills were all
+ * legible only by their background. Each moves to the light end of its ramp.
+ */
+[data-coreui-theme="dark"] .role-mgmt-group.is-active,
+[data-coreui-theme="dark"] .role-mgmt-group.is-active .role-mgmt-group__tally[data-fill="partial"],
+[data-coreui-theme="dark"] .role-mgmt-group.is-active .role-mgmt-group__tally[data-fill="full"],
+[data-coreui-theme="dark"] .role-mgmt-grant-all__count.is-on strong {
+    color: var(--color-primary-light);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-status.is-custom {
+    color: var(--color-success-mint);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-status.is-protected,
+[data-coreui-theme="dark"] .role-mgmt-tfoot__note {
+    color: var(--color-warning);
+}
+
+[data-coreui-theme="dark"] .role-mgmt-meter__head strong {
+    color: var(--color-white);
+}
+
+/* ────────────────────────────  reduced motion  ─────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .role-mgmt-meter__fill,
+    .role-mgmt-switch,
+    .role-mgmt-switch__knob,
+    .role-mgmt-row,
+    .role-mgmt-perm,
+    .role-mgmt-group {
+        transition: none;
+    }
+}
+
+/*
+ * A filter chip is a tap target on a phone.
+ *
+ * Every one of these is a fixed 1.875rem tall, which reads well under a mouse and
+ * is under the 36px floor this admin already committed to for its top-bar
+ * controls. `min-block-size` is enough on its own — it wins over `height`,
+ * so the desktop rule above is left exactly as written and only a touch
+ * screen sees the difference. The strip that holds them has padding and no
+ * height of its own, so it grows with them.
+ */
+@media (max-width: 991.98px) {
+    .role-mgmt-seg__btn {
+        min-block-size: 36px;
+    }
+}

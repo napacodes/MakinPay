@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\VirtualCard\VirtualCardNetwork;
+use App\Enums\VirtualCard\VirtualCardRequestStatus;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+class VirtualCardRequest extends Model
+{
+    protected $guarded = [];
+
+    protected $casts = [
+        'provider_response'   => 'array',
+        'admin_reviewed_at'   => 'datetime',
+        'provider_issued_at'  => 'datetime',
+        'network'             => VirtualCardNetwork::class,
+        'status'              => VirtualCardRequestStatus::class,
+        'initial_load_amount' => 'float',
+        'card_load_amount'    => 'decimal:8',
+        'load_exchange_rate'  => 'decimal:12',
+    ];
+
+    /**
+     * The figure the provider must put on the card.
+     *
+     * `initial_load_amount` is what the wallet paid, in the wallet's currency.
+     * When the card is kept in another currency VirtualCardManager stores the
+     * converted amount on `card_load_amount`, and that is the one the provider
+     * receives; a same-currency request has no conversion and the two agree.
+     */
+    public function providerLoadAmount(): float
+    {
+        $cardAmount = $this->card_load_amount;
+
+        return $cardAmount !== null
+            ? (float) $cardAmount
+            : (float) ($this->initial_load_amount ?? 0);
+    }
+
+    /**
+     * The same figure as providerLoadAmount(), as the decimal string the
+     * columns hold - for the card's own balance, where a float must not go.
+     * Read from the raw attributes: `initial_load_amount` casts to float.
+     */
+    public function providerLoadDecimal(): string
+    {
+        $attributes = $this->getAttributes();
+
+        return (string) ($attributes['card_load_amount'] ?? $attributes['initial_load_amount'] ?? '0');
+    }
+
+    public function scopeFilter($query, $request)
+    {
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                    ->orWhere('uuid', 'like', "%{$search}%")
+                    ->orWhereHas('wallet.currency', function ($q) use ($search) {
+                        $q->where('code', 'like', "%{$search}%")
+                            ->orWhere('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($dateRange = $request->daterange) {
+            $dates = explode(',', $dateRange);
+            if (count($dates) === 2) {
+                $query->whereBetween('created_at', [
+                    Carbon::parse($dates[0])->startOfDay(),
+                    Carbon::parse($dates[1])->endOfDay(),
+                ]);
+            }
+        }
+
+        if ($status = $request->status) {
+            $query->where('status', $status);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get the wallet associated with this request.
+     */
+    public function wallet()
+    {
+        return $this->belongsTo(Wallet::class);
+    }
+
+    /**
+     * Get the user who made this request.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the cardholder profile attached to this request. Used by the
+     * admin review flow to filter the provider dropdown to those that
+     * support the cardholder's billing country.
+     */
+    public function cardholder()
+    {
+        return $this->belongsTo(Cardholders::class, 'cardholder_id');
+    }
+
+    /**
+     * Get the card issued for this request.
+     */
+    public function card()
+    {
+        return $this->hasOne(VirtualCard::class);
+    }
+
+    // Helper: latest KYC status
+    public function getUserKycStatusAttribute()
+    {
+        return $this->user->latestKycSubmission->status ?? null;
+    }
+
+    // Optional: status_label accessor
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status?->label() ?? '';
+    }
+
+    public function getStatusBadgeColorAttribute(): string
+    {
+        return $this->status?->badgeColor() ?? 'secondary';
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            // 7-character random uppercase string (collision risk very low for small scale)
+            $model->uuid = strtoupper(\Str::random(7));
+        });
+    }
+}

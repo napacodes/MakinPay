@@ -1,0 +1,785 @@
+/*
+ * KYC templates — admin panel
+ *
+ * The forms applicants fill in, and the builder that shapes them. A template's
+ * field names are the words a reviewer later reads on the review screen, so
+ * the list shows what each template is made of rather than only what it is
+ * called.
+ *
+ * Declares no scrollbar and no checkbox rules: both are canon, declared once
+ * in custom.css. Logical properties throughout, so this mirrors in dir=rtl.
+ */
+
+/* ── Template identity ──────────────────────────────────────────────────── */
+
+/*
+ * The name reads as a name. `.admin-users-doc__label` — what this cell used —
+ * is a 10px uppercase caption, right for the column headings it was written
+ * for and wrong for a sentence like "Individual — passport". The state chip
+ * is a sibling rather than a child because `.admin-users-name` is
+ * `white-space: nowrap; overflow: hidden`, which would clip a nested chip.
+ */
+.kt-titleline {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-inline-size: 0;
+}
+
+/* ── Field composition ──────────────────────────────────────────────────── */
+
+.kt-fieldcount {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.kt-fieldcount__n {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.kt-fieldcount__label {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.kt-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-block-start: 5px;
+}
+
+.kt-type {
+    display: inline-flex;
+    align-items: center;
+    block-size: 19px;
+    padding-inline: 7px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-2xs);
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+.kt-type--text {
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-deep);
+}
+
+/*
+ * Upload is teal, not green. The success green belongs to an outcome — an
+ * approved submission — and a field that happens to take a file is not an
+ * outcome. One hue per meaning, so the two never read as the same thing.
+ */
+.kt-type--file {
+    background: var(--tint-teal);
+    color: var(--color-teal);
+}
+
+.kt-type--number {
+    background: var(--tint-violet);
+    color: var(--color-violet-deep);
+}
+
+.kt-type--date {
+    background: var(--tint-warning);
+    color: var(--color-warning-deep);
+}
+
+.kt-type--country {
+    background: var(--tint-info);
+    color: var(--color-info-deep);
+}
+
+/*
+ * "Manual only" is the template saying it will never be sent to a provider,
+ * whatever the providers cover — an admin decision, so it is warning-toned
+ * rather than neutral: it changes where the work lands.
+ */
+.kt-type--manual {
+    background: var(--color-palette-fef3c7);
+    color: var(--color-warning-deep);
+}
+
+/* ── Usage ──────────────────────────────────────────────────────────────── */
+
+.kt-usage__total {
+    display: block;
+    font-size: var(--font-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Never used: the figure is a zero, and a zero should not shout. */
+.kt-usage__total--none {
+    color: var(--color-text-faint);
+}
+
+.kt-split {
+    display: flex;
+    gap: 2px;
+    block-size: 4px;
+    margin-block-start: 5px;
+    inline-size: 110px;
+}
+
+.kt-split__seg {
+    border-radius: 2px;
+}
+
+.kt-split__seg--approved {
+    background: var(--color-success-strong);
+}
+
+.kt-split__seg--rejected {
+    background: var(--color-danger-strong);
+}
+
+.kt-split__seg--pending {
+    background: var(--color-warning-strong);
+}
+
+.kt-split__seg--empty {
+    flex-grow: 1;
+    background: var(--color-border);
+}
+
+.kt-usage__note {
+    display: block;
+    margin-block-start: 4px;
+    font-size: var(--font-2xs);
+    color: var(--color-text-muted);
+}
+
+/* ── Last edited ────────────────────────────────────────────────────────── */
+
+/*
+ * Who last saved it, under when. `updated_by` is null on every row written
+ * before the column existed, so the blade renders the date alone for those
+ * rather than inventing an author.
+ */
+.kt-lastedit__at {
+    display: block;
+    font-size: var(--font-xs);
+    color: var(--color-text);
+}
+
+.kt-lastedit__by {
+    display: block;
+    margin-block-start: 1px;
+    font-size: var(--font-size-px-105);
+    color: var(--color-text-muted);
+}
+
+/* ── Row actions ────────────────────────────────────────────────────────── */
+
+.kt-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/*
+ * The one labelled action in the row. It used to be a third icon-only button,
+ * and a row that answers "what can I do here?" with a magnifier, a pencil and
+ * a ⋯ makes the reader decode three glyphs to find the one they came for.
+ * Edit carries the word; preview and delete moved behind the ⋯.
+ *
+ * Same 32px height as .kt-iconbtn, so the pair sits on one baseline.
+ */
+.kt-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    block-size: 32px;
+    padding-inline: 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text);
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.kt-action:hover,
+.kt-action:focus-visible {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+/*
+ * The destructive action lives behind the ⋯, the same rule the page header
+ * canon applies to the header's own controls. A delete one pixel from an
+ * edit is a delete that happens by accident.
+ */
+.kt-actions .dropdown {
+    display: inline-flex;
+}
+
+.kt-iconbtn {
+    inline-size: 32px;
+    block-size: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    color: var(--color-text-soft);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.kt-iconbtn:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+}
+
+.kt-iconbtn--danger:hover {
+    border-color: var(--color-danger);
+    background: var(--color-danger-soft);
+    color: var(--color-danger-deep);
+}
+
+/* ── Paused and draft rows ──────────────────────────────────────────────── */
+
+/*
+ * A paused row is quiet all the way across. Dimming only the title left the
+ * chips, the counts and the total at full strength, so the row still read as
+ * one applicants could reach.
+ */
+.kt-row--paused {
+    background: var(--color-surface-veil);
+}
+
+.kt-row--paused .admin-users-name,
+.kt-row--paused .kt-fieldcount__n,
+.kt-row--paused .kt-usage__total {
+    color: var(--color-text-subtle);
+}
+
+.kt-row--paused .kt-type--text,
+.kt-row--paused .kt-type--file,
+.kt-row--paused .kt-type--number,
+.kt-row--paused .kt-type--date,
+.kt-row--paused .kt-type--country {
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+}
+
+/* The one line on a quiet row that is not quiet: it is a warning. */
+.kt-hint--warn {
+    color: var(--color-warning-deep);
+}
+
+/* ── Applies-to chips ───────────────────────────────────────────────────── */
+
+/*
+ * The shared `.admin-user-role-badge` is a rounded pill with a dot, which is
+ * right on the user list where a role sits beside a person's name. Here it is
+ * a column of its own and reads as a square caps chip. Scoped to this module
+ * rather than reshaped in custom.css, which user management also draws from.
+ */
+.admin-kyc-page .admin-user-role-badge {
+    margin-inline: 0;
+    border-radius: var(--radius-sm);
+}
+
+.admin-kyc-page .admin-user-role-badge::before {
+    display: none;
+}
+
+/* ── Table foot ─────────────────────────────────────────────────────────── */
+
+.kt-tablefoot {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-block: 10px;
+    padding-inline: 16px;
+    border-block-start: 1px solid var(--color-border-soft);
+    background: var(--color-surface-alt);
+}
+
+.kt-tablefoot__note {
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+}
+
+.kt-tablefoot__count {
+    margin-inline-start: auto;
+    font-size: var(--font-xs);
+    white-space: nowrap;
+    color: var(--color-text-muted);
+}
+
+/* ── Builder ────────────────────────────────────────────────────────────── */
+
+/*
+ * The builder's header names the template, not the screen. "Edit KYC
+ * template" is the one thing an admin who just clicked Edit already knows;
+ * which template they opened, and when it was last saved by whom, is not.
+ */
+.kt-eyebrow {
+    display: block;
+    font-size: var(--font-2xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.kt-saved {
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+/*
+ * The old repeater was four bare inputs in a row with no sense of order or
+ * type. A field list that reads as a list, with the type visible and the
+ * order draggable, because the order here is the order on the review screen.
+ */
+
+.kt-builder {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 991.98px) {
+    .kt-builder {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.kt-panel {
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-alt);
+    overflow: hidden;
+}
+
+.kt-panel__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-block-end: 1px solid var(--color-border);
+    background: var(--color-card);
+}
+
+.kt-panel__title {
+    margin: 0;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* How many fields the form has, beside the word Fields. */
+.kt-panel__count {
+    display: inline-flex;
+    align-items: center;
+    block-size: 20px;
+    padding-inline: 7px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-2xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.kt-panel__hint {
+    margin-inline-start: auto;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+/*
+ * "Live" is a claim about the pane, so it is drawn as a state and not as a
+ * note: the preview really does redraw as the builder is typed into.
+ */
+.kt-panel__hint--live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    block-size: 22px;
+    padding-inline: 8px;
+    border-radius: 6px;
+    background: var(--color-success-soft);
+    color: var(--color-success-deep);
+    font-weight: 600;
+}
+
+.kt-panel__hint--live::before {
+    content: "";
+    inline-size: 5px;
+    block-size: 5px;
+    border-radius: 50%;
+    background: var(--color-success-strong);
+}
+
+.kt-panel__body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.kt-field {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+/*
+ * The row being edited says so. The ring is inset rather than a thicker
+ * border, so the row does not shift by half a pixel when it takes focus.
+ */
+.kt-field:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: inset 0 0 0 0.5px var(--color-primary), 0 6px 18px rgba(var(--color-primary-rgb), 0.14);
+}
+
+.kt-field:focus-within .kt-field__handle {
+    color: var(--color-primary);
+}
+
+.kt-field:focus-within .form-control,
+.kt-field:focus-within .form-select {
+    border-color: var(--color-primary-tint);
+}
+
+/* Mid-drag, and where it would land. */
+.kt-field--ghost {
+    opacity: 0.4;
+}
+
+.kt-field--drag {
+    box-shadow: var(--shadow-lg);
+}
+
+.kt-field__handle {
+    inline-size: 22px;
+    block-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-faint);
+    cursor: grab;
+}
+
+.kt-field__handle:active {
+    cursor: grabbing;
+}
+
+/*
+ * In the field row the type is a tile, not a text chip — there is no room for
+ * the word and the icon already says it. Scoped by ancestor rather than by a
+ * modifier class because the script rewrites this span's whole class
+ * attribute on every type change and would drop one.
+ */
+.kt-field .kt-type {
+    inline-size: 28px;
+    block-size: 28px;
+    flex-shrink: 0;
+    justify-content: center;
+    padding-inline: 0;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-xs);
+}
+
+.kt-field__label {
+    flex-grow: 1;
+    min-inline-size: 0;
+}
+
+.kt-field__type {
+    inline-size: 140px;
+    flex-shrink: 0;
+}
+
+/*
+ * Required is one bit, so it is one checkbox. It was a 128px select holding
+ * "Required" and "Optional", which is a dropdown to answer yes or no. The box
+ * itself is not painted here: the canon in custom.css owns every checkbox in
+ * the panel, and this one opts in with `.admin-check`.
+ */
+.kt-field__required {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    margin: 0;
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+    cursor: pointer;
+}
+
+.kt-addbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 10px 12px;
+    border-block-start: 1px solid var(--color-border);
+    background: var(--color-card);
+}
+
+.kt-addbar__label {
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--color-text-soft);
+}
+
+/* ── Applies-to, in the builder ─────────────────────────────────────────── */
+
+/*
+ * Three bare checkboxes in a row read as a settings list. These are a choice
+ * about who the form is for, so each one is a chip that shows whether it is
+ * picked from across the pane. The input keeps `.form-check-input` inside a
+ * `.form-check`, so the checkbox canon still draws the box.
+ */
+.kt-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.kt-roles .form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    block-size: 34px;
+    min-block-size: 0;
+    margin: 0;
+    padding-block: 0;
+    padding-inline: 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 9px;
+    background: var(--color-card);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.kt-roles .form-check-input {
+    float: none;
+    margin: 0;
+}
+
+.kt-roles .form-check-label {
+    margin: 0;
+    font-size: var(--font-xs);
+    color: var(--color-text-subtle);
+    cursor: pointer;
+}
+
+.kt-roles .form-check:has(.form-check-input:checked) {
+    border-color: var(--color-primary);
+    background: var(--tint-brand);
+}
+
+.kt-roles .form-check:has(.form-check-input:checked) .form-check-label {
+    font-weight: 600;
+    color: var(--color-primary-deep);
+}
+
+.kt-roles .form-check:has(.form-check-input:focus-visible) {
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.18);
+}
+
+/* ── Applicant preview ──────────────────────────────────────────────────── */
+
+/*
+ * What the applicant sees, drawn as the applicant will see it: one card, with
+ * the template's own name at the top and the consent line and submit button
+ * at the bottom. A column of grey placeholder strips did not read as a form,
+ * which is the one thing this pane exists to show.
+ */
+.kt-preview {
+    padding: 16px;
+}
+
+.kt-preview__card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.kt-preview__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.kt-preview__title {
+    margin: 0;
+    font-size: var(--font-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.kt-preview__desc {
+    margin-block: 4px 0;
+    font-size: var(--font-xs);
+    line-height: 1.5;
+    color: var(--color-text-subtle);
+}
+
+.kt-preview__field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Optional fields sit back, the way they will on the real form. */
+.kt-preview__field--optional {
+    opacity: 0.75;
+}
+
+.kt-preview__label {
+    font-size: var(--font-xs);
+    font-weight: 500;
+    color: var(--color-text-soft);
+}
+
+.kt-preview__optional {
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.kt-preview__control {
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: 38px;
+    padding-inline: 11px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    font-family: inherit;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.kt-preview__control::placeholder {
+    color: var(--color-text-muted);
+}
+
+.kt-preview__control--file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    block-size: auto;
+    padding-block: 18px;
+    padding-inline: 12px;
+    border-width: 1.5px;
+    border-style: dashed;
+    border-color: var(--color-primary-tint);
+    background: var(--color-surface-alt);
+    text-align: center;
+    font-weight: 500;
+    color: var(--color-primary-deep);
+}
+
+/* An optional upload does not deserve a whole dropzone. */
+.kt-preview__control--file-compact {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    block-size: 36px;
+    border-style: dashed;
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-alt);
+}
+
+.kt-preview__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 34px;
+    block-size: 34px;
+    border-radius: var(--radius-xl);
+    background: var(--tint-brand);
+    color: var(--color-primary-hover);
+}
+
+/*
+ * What the uploader will actually accept, from the same settings the
+ * validator reads — not a hardcoded "PDF, JPG or PNG · up to 8 MB" that is
+ * wrong the moment an admin changes either one.
+ */
+.kt-preview__hint {
+    font-size: var(--font-2xs);
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.kt-preview__required {
+    color: var(--color-danger);
+}
+
+.kt-preview__consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0;
+    padding: 11px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-alt);
+    font-size: var(--font-xs);
+    line-height: 1.5;
+    color: var(--color-text-subtle);
+}
+
+.kt-preview__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    block-size: 40px;
+    border-radius: var(--radius-lg);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-size: var(--font-xs);
+    font-weight: 600;
+}
+
+/*
+ * Before the first field exists there is no form to consent to and nothing to
+ * submit, so the card shows its empty line alone. The script owns this class.
+ */
+.kt-preview__card.is-empty .kt-preview__consent,
+.kt-preview__card.is-empty .kt-preview__submit {
+    display: none;
+}
+
+.kt-preview__empty {
+    padding: 24px 16px;
+    text-align: center;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}

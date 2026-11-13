@@ -1,0 +1,1006 @@
+/* ==========================================================================
+   Add new user — the create dialog on Admin → Users. (nu-)
+
+   Rendered by resources/views/backend/user/partials/_new_user.blade.php and
+   linked only from the user list. The tokens below alias the admin palette
+   so the dialog follows the theme, and the dark block mirrors the values
+   user-manage.css gives its own dialogs, so the two dialogs an admin meets
+   on the user pages read as one family.
+
+   Logical properties only — the panel ships in Arabic. No scrollbar and no
+   checkbox rule in here: both are canon in custom.css, and the status
+   switch is the shared .coevs-switch, only re-seated inside its row.
+   ========================================================================== */
+
+.nu-modal {
+    --nu-text: var(--color-text);
+    --nu-text-soft: var(--color-text-soft);
+    --nu-subtle: var(--color-text-subtle);
+    --nu-muted: var(--color-text-muted);
+    --nu-faint: var(--color-text-faint);
+    --nu-card: var(--color-card);
+    --nu-field: var(--color-card);
+    --nu-surface: var(--color-surface-alt);
+    --nu-soft: var(--color-surface-soft);
+    --nu-veil: var(--color-surface-veil, #fcfcfd);
+    --nu-border: var(--color-border);
+    --nu-border-soft: var(--color-border-soft);
+    --nu-border-strong: var(--color-border-strong);
+    --nu-primary: var(--color-primary);
+    --nu-primary-hover: var(--color-primary-hover);
+    --nu-primary-lift: var(--color-primary-lift, #6366f1);
+    --nu-primary-ink: var(--color-primary-hover);
+    --nu-primary-soft: rgba(var(--color-primary-rgb), 0.08);
+    --nu-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.12);
+    --nu-success: var(--color-success-strong);
+    --nu-success-ink: var(--color-success-deep);
+    --nu-success-soft: rgba(var(--color-success-rgb), 0.12);
+    --nu-warning: var(--color-warning-strong);
+    --nu-warning-ink: var(--color-warning-deep);
+    --nu-info: var(--color-info-strong);
+    --nu-info-ink: var(--color-info-deep);
+    --nu-danger: var(--color-danger-strong);
+    --nu-danger-ink: var(--color-danger-deep);
+    --nu-meter: var(--color-border);
+    --nu-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 12px 16px -12px rgba(15, 23, 42, 0.3);
+    font-family: var(--font-primary);
+}
+
+[data-coreui-theme="dark"] .nu-modal {
+    --nu-text: #ffffff;
+    --nu-text-soft: rgba(255, 255, 255, 0.85);
+    --nu-subtle: rgba(255, 255, 255, 0.78);
+    --nu-muted: rgba(255, 255, 255, 0.62);
+    --nu-faint: rgba(255, 255, 255, 0.42);
+    --nu-card: #202634;
+    --nu-field: rgba(255, 255, 255, 0.04);
+    --nu-surface: rgba(255, 255, 255, 0.04);
+    --nu-soft: rgba(255, 255, 255, 0.06);
+    --nu-veil: rgba(255, 255, 255, 0.02);
+    --nu-border: rgba(255, 255, 255, 0.1);
+    --nu-border-soft: rgba(255, 255, 255, 0.08);
+    --nu-border-strong: rgba(255, 255, 255, 0.16);
+    --nu-primary-ink: var(--color-primary-tint, #c7d2fe);
+    --nu-primary-soft: rgba(129, 140, 248, 0.14);
+    --nu-success: #4ade80;
+    --nu-success-ink: var(--color-success-mint, #86efac);
+    --nu-warning: var(--color-warning-tint, #fcd34d);
+    --nu-warning-ink: var(--color-warning-tint, #fcd34d);
+    --nu-info: #7dd3fc;
+    --nu-info-ink: #7dd3fc;
+    --nu-danger: var(--color-danger-tint, #fca5a5);
+    --nu-danger-ink: var(--color-danger-tint, #fca5a5);
+    --nu-meter: rgba(255, 255, 255, 0.12);
+    --nu-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ── Dialog shell ───────────────────────────────────────────────────────── */
+
+.nu-modal .modal-dialog {
+    max-width: 680px;
+    margin: 10px auto;
+}
+
+.nu-modal.fade .modal-dialog {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.26s ease;
+}
+
+.nu-modal.show .modal-dialog {
+    opacity: 1;
+    transform: none;
+}
+
+.nu-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 20px);
+    overflow: hidden;
+    border: 0;
+    border-radius: 18px;
+    background: var(--nu-card);
+    color: var(--nu-text);
+    box-shadow: var(--nu-shadow);
+}
+
+/*
+ * CoreUI appends the backdrop to <body>, so it cannot be scoped under the
+ * dialog; this sheet is only linked on the user list, which is scope
+ * enough. Same values as user-manage.css so the two pages match.
+ */
+body > .modal-backdrop {
+    background: #0f172a;
+    backdrop-filter: blur(3px);
+}
+
+body > .modal-backdrop.show {
+    opacity: 0.45;
+}
+
+.nu-modal svg {
+    flex: 0 0 auto;
+    fill: currentColor;
+}
+
+.nu-modal svg[stroke] {
+    fill: none;
+}
+
+/* ── Head ───────────────────────────────────────────────────────────────── */
+
+.nu-head {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px 14px;
+    border-block-end: 1px solid var(--nu-border-soft);
+}
+
+.nu-head__tile {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--nu-primary-soft);
+    color: var(--nu-primary);
+}
+
+[data-coreui-theme="dark"] .nu-head__tile {
+    color: var(--nu-primary-ink);
+}
+
+.nu-head__tile > svg {
+    width: 20px;
+    height: 20px;
+}
+
+.nu-head__copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* app.css pins h1–h6 to 500 !important; the title and the eyebrows need more. */
+.nu-head__title {
+    margin: 0;
+    color: var(--nu-text);
+    font-size: 16px;
+    font-weight: var(--font-bold) !important;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.nu-head__sub {
+    margin: 2px 0 0;
+    color: var(--nu-muted);
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.nu-head__close {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--nu-muted);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nu-head__close > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nu-head__close:hover,
+.nu-head__close:focus-visible {
+    background: var(--nu-soft);
+    color: var(--nu-text);
+    outline: 0;
+}
+
+/* ── Body and sections ──────────────────────────────────────────────────── */
+
+.nu-modal .nu-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+    padding: 20px 24px;
+    scrollbar-gutter: stable;
+}
+
+.nu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.nu-section__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    color: var(--nu-subtle);
+    font-size: 11px;
+    font-weight: var(--font-bold) !important;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.nu-section__head::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--nu-border-soft);
+}
+
+.nu-grid {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.nu-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nu-grid--roles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+/* ── Profile: avatar beside the names ───────────────────────────────────── */
+
+.nu-profile {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.nu-profile > .nu-grid {
+    flex: 1 1 auto;
+}
+
+.nu-avatar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 96px;
+    text-align: center;
+}
+
+.nu-avatar__frame {
+    position: relative;
+    width: 64px;
+    height: 64px;
+}
+
+/*
+ * helpers.js paints the chosen file onto this box as a background image
+ * (shared .imageUpload behaviour); user-create-modal.js only marks it
+ * filled so the placeholder glyph gets out of the way.
+ */
+.nu-avatar__preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border: 1px dashed var(--nu-border-strong);
+    border-radius: 50%;
+    background: var(--nu-soft) center / cover no-repeat;
+    color: var(--nu-faint);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.nu-avatar__preview > svg {
+    width: 28px;
+    height: 28px;
+}
+
+.nu-avatar__preview.is-filled {
+    border-style: solid;
+}
+
+.nu-avatar__preview.is-filled > svg {
+    display: none;
+}
+
+.nu-avatar__input,
+.nu-role__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.nu-avatar__badge {
+    position: absolute;
+    inset-block-end: -2px;
+    inset-inline-end: -2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border-radius: 50%;
+    background: var(--nu-primary);
+    color: #ffffff;
+    box-shadow: 0 0 0 2px var(--nu-card);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.nu-avatar__badge > svg {
+    width: 12px;
+    height: 12px;
+}
+
+.nu-avatar__badge:hover {
+    background: var(--nu-primary-hover);
+}
+
+.nu-avatar__input:focus-visible ~ .nu-avatar__badge {
+    box-shadow: 0 0 0 2px var(--nu-card), var(--nu-focus);
+}
+
+.nu-avatar__cta {
+    margin: 0;
+    color: var(--nu-primary-ink);
+    font-size: 11.5px;
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.nu-avatar__hint {
+    color: var(--nu-muted);
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+/* ── Fields ─────────────────────────────────────────────────────────────── */
+
+.nu-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.nu-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.nu-label {
+    margin: 0;
+    color: var(--nu-text-soft);
+    font-size: 12.5px;
+    font-weight: var(--font-semibold);
+    line-height: 1.4;
+}
+
+.nu-req {
+    color: var(--nu-danger);
+}
+
+.nu-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--nu-border);
+    border-radius: 10px;
+    background: var(--nu-field);
+    color: var(--nu-text);
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.4;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nu-input:focus {
+    border-color: var(--nu-primary);
+    outline: 0;
+    box-shadow: var(--nu-focus);
+}
+
+.nu-input::placeholder,
+.nu-adorn__input::placeholder {
+    color: var(--nu-faint);
+    opacity: 1;
+}
+
+/* An input with a prefix, a leading icon or a trailing button. */
+.nu-adorn {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    border: 1px solid var(--nu-border);
+    border-radius: 10px;
+    background: var(--nu-field);
+    box-sizing: border-box;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nu-adorn:focus-within {
+    border-color: var(--nu-primary);
+    box-shadow: var(--nu-focus);
+}
+
+.nu-adorn__prefix {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: stretch;
+    padding-inline: 12px 10px;
+    border-inline-end: 1px solid var(--nu-border-soft);
+    background: var(--nu-surface);
+    color: var(--nu-subtle);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+/* The dial code is empty until a country is picked; an empty box reads as a bug. */
+.nu-adorn__prefix:empty {
+    display: none;
+}
+
+.nu-adorn__lead {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 36px;
+    color: var(--nu-muted);
+}
+
+.nu-adorn__lead > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nu-adorn__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    color: var(--nu-text);
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.4;
+    outline: 0;
+}
+
+.nu-adorn__lead + .nu-adorn__input {
+    padding-inline-start: 0;
+}
+
+.nu-adorn__btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    width: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--nu-muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.nu-adorn__btn > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nu-adorn__btn:hover,
+.nu-adorn__btn:focus-visible {
+    color: var(--nu-text);
+    outline: 0;
+}
+
+.nu-adorn__btn .nu-eye-off,
+.nu-adorn__btn[aria-pressed="true"] .nu-eye {
+    display: none;
+}
+
+.nu-adorn__btn[aria-pressed="true"] .nu-eye-off {
+    display: inline-block;
+}
+
+.nu-select {
+    position: relative;
+}
+
+.nu-select__control {
+    padding-inline-end: 36px;
+    appearance: none;
+    cursor: pointer;
+}
+
+[data-coreui-theme="dark"] .nu-select__control > option {
+    background: #202634;
+    color: #ffffff;
+}
+
+.nu-select__caret {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 12px;
+    display: flex;
+    align-items: center;
+    color: var(--nu-muted);
+    pointer-events: none;
+}
+
+.nu-select__caret > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nu-hint {
+    color: var(--nu-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.nu-hint.is-ok {
+    color: var(--nu-success-ink);
+    font-weight: var(--font-semibold);
+}
+
+.nu-hint.is-bad {
+    color: var(--nu-danger-ink);
+    font-weight: var(--font-semibold);
+}
+
+.nu-error {
+    color: var(--nu-danger-ink);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.nu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--nu-primary-ink);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.nu-link > svg {
+    width: 12px;
+    height: 12px;
+}
+
+.nu-link:hover,
+.nu-link:focus-visible {
+    text-decoration: underline;
+    outline: 0;
+}
+
+/* ── Password strength ──────────────────────────────────────────────────── */
+
+.nu-meter {
+    display: flex;
+    gap: 4px;
+}
+
+.nu-meter > span {
+    flex: 1 1 0;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--nu-meter);
+    transition: background-color 0.2s ease;
+}
+
+.nu-meter[data-score="1"] > span:nth-child(-n + 1) {
+    background: var(--nu-danger);
+}
+
+.nu-meter[data-score="2"] > span:nth-child(-n + 2) {
+    background: var(--nu-warning);
+}
+
+.nu-meter[data-score="3"] > span:nth-child(-n + 3) {
+    background: var(--nu-info);
+}
+
+.nu-meter[data-score="4"] > span {
+    background: var(--nu-success);
+}
+
+.nu-strength[data-score="1"] {
+    color: var(--nu-danger-ink);
+    font-weight: var(--font-semibold);
+}
+
+.nu-strength[data-score="2"] {
+    color: var(--nu-warning-ink);
+    font-weight: var(--font-semibold);
+}
+
+.nu-strength[data-score="3"] {
+    color: var(--nu-info-ink);
+    font-weight: var(--font-semibold);
+}
+
+.nu-strength[data-score="4"] {
+    color: var(--nu-success-ink);
+    font-weight: var(--font-semibold);
+}
+
+/* ── Access: role cards and the status row ──────────────────────────────── */
+
+.nu-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.nu-fieldset > legend {
+    float: none;
+    width: auto;
+    margin: 0 0 7px;
+    padding: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.nu-role {
+    position: relative;
+    display: block;
+    min-width: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.nu-role__card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 64px;
+    padding: 12px 14px;
+    padding-inline-end: 28px;
+    border: 1px solid var(--nu-border);
+    border-radius: 12px;
+    background: var(--nu-field);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nu-role:hover .nu-role__card {
+    border-color: var(--nu-border-strong);
+}
+
+.nu-role__input:checked + .nu-role__card {
+    border-color: var(--nu-primary);
+    background: var(--nu-primary-soft);
+    box-shadow: inset 0 0 0 1px var(--nu-primary);
+}
+
+.nu-role__input:focus-visible + .nu-role__card {
+    box-shadow: inset 0 0 0 1px var(--nu-primary), var(--nu-focus);
+}
+
+.nu-role__tile {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--nu-soft);
+    color: var(--nu-subtle);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nu-role__tile > svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nu-role__input:checked + .nu-role__card .nu-role__tile {
+    background: var(--nu-card);
+    color: var(--nu-primary);
+}
+
+[data-coreui-theme="dark"] .nu-role__input:checked + .nu-role__card .nu-role__tile {
+    color: var(--nu-primary-ink);
+}
+
+.nu-role__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.nu-role__name {
+    color: var(--nu-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    line-height: 1.3;
+}
+
+.nu-role__desc {
+    color: var(--nu-muted);
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+.nu-role__check {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--nu-primary);
+    color: #ffffff;
+}
+
+.nu-role__check > svg {
+    width: 10px;
+    height: 10px;
+}
+
+.nu-role__input:checked + .nu-role__card .nu-role__check {
+    display: flex;
+}
+
+.nu-switch-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--nu-surface);
+}
+
+/*
+ * Bootstrap reserves start padding on .form-switch and pulls the input back
+ * into it; custom.css widens both below 992px. Inside the grid the switch
+ * has its own cell, so neither offset is wanted. Specificity outranks the
+ * `.form-switch:has(.coevs-switch)` pair in custom.css on purpose.
+ */
+.nu-modal .nu-switch-row .nu-switch-row__control {
+    display: flex;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.nu-modal .nu-switch-row .nu-switch-row__control .coevs-switch {
+    float: none;
+    margin: 0;
+}
+
+.nu-switch-row__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.nu-switch-row__label {
+    margin: 0;
+    color: var(--nu-text);
+    font-size: 13px;
+    font-weight: var(--font-semibold);
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.nu-switch-row__hint {
+    color: var(--nu-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.nu-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding-inline: 9px;
+    border-radius: 999px;
+    background: var(--nu-soft);
+    color: var(--nu-subtle);
+    font-size: 11px;
+    font-weight: var(--font-bold);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nu-pill.is-on {
+    background: var(--nu-success-soft);
+    color: var(--nu-success-ink);
+}
+
+/* ── Foot ───────────────────────────────────────────────────────────────── */
+
+.nu-foot {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 24px 20px;
+    border-block-start: 1px solid var(--nu-border-soft);
+    background: var(--nu-veil);
+}
+
+.nu-foot__note {
+    color: var(--nu-muted);
+    font-size: 12px;
+}
+
+.nu-foot__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-inline-start: auto;
+}
+
+.nu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--nu-border);
+    border-radius: 10px;
+    background: var(--nu-card);
+    color: var(--nu-subtle);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.nu-btn > svg {
+    width: 14px;
+    height: 14px;
+}
+
+.nu-btn:hover,
+.nu-btn:focus-visible {
+    background: var(--nu-surface);
+    border-color: var(--nu-border-strong);
+    color: var(--nu-text);
+}
+
+.nu-btn:focus-visible {
+    outline: 0;
+    box-shadow: var(--nu-focus);
+}
+
+.nu-btn--primary {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    background: linear-gradient(180deg, var(--nu-primary-lift), var(--nu-primary));
+    color: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.nu-btn--primary:hover,
+.nu-btn--primary:focus-visible {
+    background: linear-gradient(180deg, #5b5ef0, var(--nu-primary-hover));
+    color: #ffffff;
+}
+
+.nu-btn--primary:focus-visible {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), var(--nu-focus);
+}
+
+/* ── Phones ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 575.98px) {
+    .nu-modal .modal-dialog {
+        margin: 10px;
+    }
+
+    .nu-head {
+        padding: 14px 16px 12px;
+    }
+
+    .nu-modal .nu-body {
+        gap: 18px;
+        padding: 16px;
+    }
+
+    .nu-grid--2,
+    .nu-grid--roles {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .nu-grid--2 {
+        gap: 12px;
+    }
+
+    .nu-grid--roles {
+        gap: 8px;
+    }
+
+    .nu-foot {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        padding: 12px 16px 16px;
+    }
+
+    .nu-foot__note {
+        text-align: center;
+    }
+
+    .nu-foot__actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        margin-inline-start: 0;
+    }
+
+    .nu-btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nu-modal.fade .modal-dialog,
+    .nu-modal *,
+    .nu-modal *::before {
+        transition: none;
+    }
+}

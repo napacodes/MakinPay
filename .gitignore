@@ -1,0 +1,39 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Cache and temporary files
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+.phpunit.cache/
+.phpunit.result.cache
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build and generated files
+/public/build/
+/public/hot
+
+# Database dumps and backups
+/DB/*.sql
+/DB/*.sql.gz
+/DB/*.zip

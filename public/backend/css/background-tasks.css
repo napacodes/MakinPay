@@ -1,0 +1,1734 @@
+/* ==========================================================================
+   Background Tasks — redesigned shell and Commands tab
+
+   Traced from the design reference: every size, radius, ring and colour below
+   is the value the reference states, read back through the token that already
+   holds it. Physical sides become logical ones, which is the only place this
+   deliberately departs from an LTR-only reference.
+
+   Scoped under `.bt-page`. The legacy `.bt-admin` block above still dresses
+   Run history, Failed jobs and Setup until those tabs are rebuilt, which is
+   why the new components carry names that do not collide with it.
+   ========================================================================== */
+
+.bt-page {
+    --bt-lift:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.05),
+        0 1px 1px rgba(var(--color-text-rgb), 0.03),
+        0 10px 24px -14px rgba(var(--color-text-rgb), 0.14),
+        0 36px 72px -36px rgba(var(--color-primary-rgb), 0.14);
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/*
+ * The reference is a standalone page and caps itself at 1240px. Here the admin
+ * shell already caps and centres the content (`.container-lg`), so repeating
+ * it only inset this module a few pixels narrower than every other screen.
+ */
+
+/* ---------- Banner ---------- */
+
+/* ---------- Attention bar ---------- */
+
+.bt-page .bt-attention {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--color-palette-fef2f2);
+    box-shadow: inset 0 0 0 1px var(--color-palette-fecaca);
+}
+
+.bt-page .bt-attention__tile {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    background: var(--color-palette-fee2e2);
+    color: var(--color-danger-deep);
+    font-size: var(--font-size-rem-075);
+}
+
+.bt-page .bt-attention__text {
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-palette-7f1d1d);
+}
+
+.bt-page .bt-attention__text strong {
+    font-weight: var(--font-semibold);
+}
+
+.bt-page .bt-attention__cta {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 11px;
+    border: 1px solid var(--color-palette-fca5a5);
+    border-radius: 8px;
+    background: var(--color-white);
+    color: var(--color-palette-991b1b);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.bt-page .bt-attention__cta i {
+    font-size: var(--font-size-rem-05625);
+}
+
+/* The chevron points along the text, so it mirrors with it. */
+[dir="rtl"] .bt-page .bt-attention__cta i {
+    transform: scaleX(-1);
+}
+
+/* ---------- Shell and tabs ---------- */
+
+.bt-page .bt-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: 16px;
+    background: var(--color-white);
+    box-shadow: var(--bt-lift);
+    overflow: hidden;
+}
+
+.bt-page .bt-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px 0;
+    border-bottom: 1px solid var(--color-border-soft);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.bt-page .bt-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.bt-page .bt-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 14px;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.bt-page .bt-tab.is-active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-primary);
+}
+
+.bt-page .bt-tab__icon {
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+}
+
+.bt-page .bt-tab.is-active .bt-tab__icon {
+    color: var(--color-primary);
+}
+
+.bt-page .bt-tab__badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--color-palette-fef2f2);
+    color: var(--color-danger-deep);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+}
+
+/* ---------- Toolbar ---------- */
+
+.bt-page .bt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.bt-page .bt-toolbar__summary {
+    font-size: var(--font-size-rem-078125);
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-toolbar__summary strong {
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.bt-page .bt-toolbar__tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bt-page .bt-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    margin: 0;
+    padding: 0 12px;
+    border-radius: 9px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-search:focus-within {
+    box-shadow:
+        inset 0 0 0 1px var(--color-palette-c7d2fe),
+        0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.bt-page .bt-search i {
+    font-size: var(--font-size-rem-06875);
+}
+
+.bt-page .bt-search__input {
+    width: 150px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text);
+}
+
+.bt-page .bt-filters {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--color-surface-soft);
+}
+
+.bt-page .bt-filters__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bt-page .bt-filters__btn.is-active {
+    background: var(--color-white);
+    color: var(--color-text);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.08);
+}
+
+.bt-page .bt-filters__count {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-065625);
+    color: var(--color-text-faint);
+}
+
+/* ---------- Commands table ---------- */
+
+/*
+ * One horizontally scrolling table rather than a table plus a duplicated card
+ * list. The duplicate was a second copy of every row to keep in step, and it
+ * drifted.
+ */
+.bt-page .bt-tablewrap {
+    overflow-x: auto;
+}
+
+.bt-page .bt-grid--commands {
+    min-width: 820px;
+}
+
+.bt-page .bt-grid__head,
+.bt-page .bt-grid .bt-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) 130px minmax(0, 1.4fr) 70px 90px;
+    gap: 14px;
+    align-items: center;
+}
+
+.bt-page .bt-grid__head {
+    padding: 9px 22px;
+    background: var(--color-palette-fcfcfd);
+    border-bottom: 1px solid var(--color-border-soft);
+    font-size: var(--font-size-rem-065625);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-grid__num {
+    text-align: end;
+}
+
+.bt-page .bt-grid .bt-row {
+    padding: 13px 22px;
+    border-bottom: 1px solid var(--color-surface-soft);
+    transition: background 0.15s ease;
+}
+
+.bt-page .bt-grid .bt-row:hover {
+    background: var(--color-palette-fafbfd);
+}
+
+/* A `display` declaration outranks the user-agent [hidden] rule. */
+.bt-page .bt-grid .bt-row[hidden] {
+    display: none;
+}
+
+.bt-page .bt-grid__empty {
+    padding: 48px 22px;
+    text-align: center;
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-grid__empty[hidden] {
+    display: none;
+}
+
+/* ---------- Command cell ---------- */
+
+.bt-page .bt-task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.bt-page .bt-task__tile {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    border-radius: 10px;
+    background: var(--bt-tile-bg, var(--color-surface-soft));
+    color: var(--bt-tile-fg, var(--color-text-subtle));
+    font-size: var(--font-size-rem-08125);
+}
+
+.bt-page .bt-task__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bt-page .bt-task__label {
+    font-size: var(--font-size-rem-084375);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-task__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+/*
+ * The chip is one 20px line. On a phone row it used to wrap the signature
+ * into two centred lines spilling out of that height ("remittance:alert-" /
+ * "stuck"), so the text now truncates instead. The copy button reads
+ * data-bt-copy, never the visible text, so the clipped end is still copied.
+ */
+.bt-page .bt-sig {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+    height: 20px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 5px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    cursor: pointer;
+}
+
+.bt-page .bt-sig:hover {
+    background: var(--color-palette-e0e7ff);
+    color: var(--color-primary-deep);
+}
+
+.bt-page .bt-sig__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bt-page .bt-sig i {
+    flex: 0 0 auto;
+    font-size: var(--font-size-px-8);
+    color: var(--color-text-faint);
+}
+
+/* The cadence gives way first: the signature is what an operator copies. */
+.bt-page .bt-task__cadence {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Last run ---------- */
+
+.bt-page .bt-last {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bt-page .bt-last__ago {
+    font-size: var(--font-size-rem-078125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.bt-page .bt-last__ago.is-never {
+    color: var(--color-text-faint);
+}
+
+.bt-page .bt-last__at {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+/* ---------- Result ---------- */
+
+.bt-page .bt-result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.bt-page .bt-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+}
+
+.bt-page .bt-state__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.bt-page .bt-state.is-success {
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+}
+
+.bt-page .bt-state.is-success .bt-state__dot {
+    background: var(--color-success-strong);
+}
+
+.bt-page .bt-state.is-failed {
+    background: var(--color-palette-fef2f2);
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-state.is-failed .bt-state__dot {
+    background: var(--color-danger);
+}
+
+.bt-page .bt-state.is-running {
+    background: var(--color-palette-fffbeb);
+    color: var(--color-warning-deep);
+}
+
+.bt-page .bt-state.is-running .bt-state__dot {
+    background: var(--color-warning);
+}
+
+.bt-page .bt-state.is-never {
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+}
+
+.bt-page .bt-state.is-never .bt-state__dot {
+    background: var(--color-palette-cbd5e1);
+}
+
+.bt-page .bt-result__text {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-result__text.is-failed {
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-result__text.is-never {
+    color: var(--color-text-faint);
+}
+
+.bt-page .bt-result__dur {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+}
+
+.bt-page .bt-runs {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    text-align: end;
+}
+
+/* ---------- Run button ---------- */
+
+.bt-page .bt-row__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bt-page .bt-run {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(var(--color-primary-rgb), 0.3);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bt-page .bt-run:hover {
+    background: var(--color-primary-hover);
+    color: var(--color-white);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+}
+
+.bt-page .bt-run i {
+    font-size: var(--font-size-rem-05625);
+}
+
+/* ---------- Run dialog ---------- */
+
+/*
+ * The backdrop is CoreUI's, shared by both dialogs. Restated here because the
+ * reference dims further and blurs behind, which the default does not.
+ */
+.modal-backdrop.show {
+    background: var(--color-palette-0f172a);
+    opacity: 0.45;
+    backdrop-filter: blur(6px);
+}
+
+.bt-page .bt-dialog__dialog {
+    max-width: 520px;
+}
+
+.bt-page .bt-dialog__content {
+    border: 0;
+    border-radius: 20px;
+    background: var(--color-white);
+    box-shadow:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.06),
+        0 30px 80px -20px rgba(var(--color-text-rgb), 0.45);
+    overflow: hidden;
+}
+
+.bt-page .bt-dialog__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.05), transparent);
+}
+
+.bt-page .bt-dialog__identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.bt-page .bt-dialog__tile {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    background: var(--bt-tile-bg, var(--color-surface-soft));
+    color: var(--bt-tile-fg, var(--color-primary));
+    font-size: var(--font-size-rem-1125);
+}
+
+.bt-page .bt-dialog__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bt-page .bt-dialog__eyebrow {
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-dialog__title {
+    margin: 0;
+    font-size: var(--font-size-rem-10625);
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.015em;
+    color: var(--color-text);
+}
+
+.bt-page .bt-dialog__sig {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-071875);
+    color: var(--color-text-faint);
+}
+
+.bt-page .bt-dialog__close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 8px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-rem-06875);
+    cursor: pointer;
+}
+
+.bt-page .bt-dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px;
+}
+
+/*
+ * The command picker, shown only when the dialog was opened from the header
+ * and so has no row to read the task off. It reuses the search field's
+ * shape rather than inventing a third input in this module.
+ */
+.bt-page .bt-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+}
+
+.bt-page .bt-picker[hidden] {
+    display: none;
+}
+
+.bt-page .bt-picker__label {
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-picker__select {
+    height: 38px;
+    padding-inline: 12px;
+    border: 0;
+    border-radius: 9px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    color: var(--color-text);
+    font-size: var(--font-size-rem-08125);
+}
+
+.bt-page .bt-picker__select:focus {
+    outline: none;
+    box-shadow:
+        inset 0 0 0 1px var(--color-palette-c7d2fe),
+        0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.bt-page .bt-dialog__desc {
+    margin: 0;
+    font-size: var(--font-size-rem-08125);
+    line-height: 1.55;
+    color: var(--color-text-subtle);
+    text-wrap: pretty;
+}
+
+.bt-page .bt-opts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bt-page .bt-opts[hidden] {
+    display: none;
+}
+
+.bt-page .bt-opt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+}
+
+.bt-page .bt-opt__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bt-page .bt-opt__label {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.bt-page .bt-opt__help {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+/* ---------- Option controls ---------- */
+
+.bt-page .bt-switch {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.bt-page .bt-switch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.bt-page .bt-switch__track {
+    position: relative;
+    display: block;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--color-palette-cbd5e1);
+    transition: background 0.2s ease;
+}
+
+.bt-page .bt-switch__track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-white);
+    box-shadow: 0 1px 2px rgba(var(--color-text-rgb), 0.25);
+    transition: inset-inline-start 0.2s ease;
+}
+
+.bt-page .bt-switch__input:checked + .bt-switch__track {
+    background: var(--color-success-strong);
+}
+
+.bt-page .bt-switch__input:checked + .bt-switch__track::after {
+    inset-inline-start: 20px;
+}
+
+.bt-page .bt-switch__input:focus-visible + .bt-switch__track {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.bt-page .bt-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    height: 36px;
+    padding-inline: 12px 4px;
+    border-radius: 9px;
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.bt-page .bt-num__input {
+    width: 70px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text);
+}
+
+.bt-page .bt-num__range {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+    color: var(--color-palette-64748b);
+    white-space: nowrap;
+}
+
+/* ---------- Command preview ---------- */
+
+.bt-page .bt-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--color-palette-0f172a);
+    color: var(--color-palette-e2e8f0);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+}
+
+.bt-page .bt-preview__sigil {
+    color: var(--color-palette-818cf8);
+}
+
+.bt-page .bt-preview__cmd {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Dialog footer ---------- */
+
+.bt-page .bt-dialog__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--color-border-soft);
+    background: var(--color-palette-fcfcfd);
+}
+
+.bt-page .bt-dialog__note {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-dialog__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.bt-page .bt-btn-ghost,
+.bt-page .bt-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.bt-page .bt-btn-ghost {
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    color: var(--color-text-soft);
+}
+
+.bt-page .bt-btn-primary {
+    padding: 0 16px;
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-white);
+    box-shadow:
+        0 1px 2px rgba(var(--color-primary-rgb), 0.3),
+        0 6px 14px -8px rgba(var(--color-primary-rgb), 0.6);
+}
+
+.bt-page .bt-btn-primary:hover {
+    background: var(--color-primary-hover);
+    color: var(--color-white);
+}
+
+.bt-page .bt-btn-primary i {
+    font-size: var(--font-size-rem-0625);
+}
+
+/* ---------- Toast ---------- */
+
+.bt-toast {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 24px;
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: fit-content;
+    margin-inline: auto;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--color-text);
+    color: var(--color-white);
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    box-shadow: 0 20px 50px -20px rgba(var(--color-text-rgb), 0.6);
+    animation: btToastRise 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bt-toast[hidden] {
+    display: none;
+}
+
+.bt-toast__icon {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-success-strong);
+    font-size: var(--font-size-rem-05625);
+}
+
+@keyframes btToastRise {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 767.98px) {
+
+    .bt-page .bt-toolbar__tools {
+        width: 100%;
+    }
+
+    .bt-page .bt-search,
+    .bt-page .bt-search__input {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .bt-page .bt-filters {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
+/* ==========================================================================
+   Run history, Failed jobs and Setup
+
+   Same tracing as the shell above. These three tabs replaced the legacy
+   `.bt-admin` block, which is why that block is gone rather than layered over.
+   ========================================================================== */
+
+/* ---------- History toolbar ---------- */
+
+.bt-page .bt-toolbar--history {
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.bt-page .bt-toolbar__count {
+    margin-inline-start: auto;
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.bt-page .bt-select {
+    position: relative;
+    display: inline-flex;
+}
+
+.bt-page .bt-select select {
+    appearance: none;
+    height: 34px;
+    padding-inline: 12px 34px;
+    border: 0;
+    border-radius: 9px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    font-size: var(--font-size-rem-078125);
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.bt-page .bt-select i {
+    position: absolute;
+    inset-inline-end: 12px;
+    top: 0;
+    bottom: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    font-size: var(--font-size-rem-05625);
+    color: var(--color-text-faint);
+}
+
+/* A link styled as a segment still needs the segment's own alignment. */
+.bt-page a.bt-filters__btn {
+    text-decoration: none;
+}
+
+/* ---------- Expandable rows ---------- */
+
+.bt-page .bt-grid--history {
+    min-width: 820px;
+}
+
+.bt-page .bt-grid--history .bt-grid__head,
+.bt-page .bt-grid--history .bt-erow__row {
+    display: grid;
+    grid-template-columns: 24px 120px minmax(0, 1.6fr) 110px minmax(0, 1.6fr) 80px 140px;
+    gap: 12px;
+    align-items: center;
+}
+
+.bt-page .bt-grid--failed {
+    min-width: 820px;
+}
+
+.bt-page .bt-grid--failed .bt-grid__head,
+.bt-page .bt-grid--failed .bt-erow__row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1.4fr) 110px minmax(0, 2fr) 110px 150px;
+    gap: 12px;
+    align-items: center;
+}
+
+.bt-page .bt-erow {
+    border-bottom: 1px solid var(--color-surface-soft);
+}
+
+.bt-page .bt-erow__row {
+    width: 100%;
+    padding: 12px 22px;
+    border: 0;
+    background: transparent;
+    text-align: start;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.bt-page .bt-erow__row:hover,
+.bt-page .bt-erow.is-open .bt-erow__row {
+    background: var(--color-palette-fafbfd);
+}
+
+.bt-page .bt-chevbox {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-px-8);
+    transition: transform 0.2s ease;
+}
+
+/* The chevron points into the row, so it mirrors with the text. */
+[dir="rtl"] .bt-page .bt-chevbox {
+    transform: scaleX(-1);
+}
+
+.bt-page .bt-erow.is-open .bt-chevbox {
+    transform: rotate(90deg);
+}
+
+[dir="rtl"] .bt-page .bt-erow.is-open .bt-chevbox {
+    transform: scaleX(-1) rotate(-90deg);
+}
+
+/*
+ * Closed by default and revealed by the row's own state, so the full output is
+ * in the markup rather than fetched on demand — an operator reading a stack
+ * trace should not need a second request to see the rest of it.
+ */
+.bt-page .bt-erow__panel {
+    display: none;
+    padding-block: 0 14px;
+    padding-inline: 58px 22px;
+}
+
+.bt-page .bt-erow.is-open .bt-erow__panel {
+    display: block;
+}
+
+.bt-page .bt-pre {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-soft);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.bt-page .bt-pre.is-failed {
+    background: var(--color-palette-fef2f2);
+    color: var(--color-palette-7f1d1d);
+    box-shadow: inset 0 0 0 1px var(--color-palette-fecaca);
+}
+
+/* ---------- History cells ---------- */
+
+.bt-page .bt-when {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.bt-page .bt-when__time {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-078125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.bt-page .bt-when__date {
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+.bt-page .bt-histcmd {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bt-page .bt-histcmd__label {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-histcmd__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.bt-page .bt-histcmd__sig {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+}
+
+/* The flags the run was actually invoked with, not the ones it could take. */
+.bt-page .bt-optchip {
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary-deep);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-065625);
+    white-space: nowrap;
+}
+
+.bt-page .bt-histout {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-histout.is-failed {
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-histdur {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-subtle);
+    text-align: end;
+}
+
+.bt-page .bt-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.bt-page .bt-by__tile {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    border-radius: 7px;
+    background: var(--color-surface-soft);
+    color: var(--color-palette-64748b);
+    font-size: var(--font-size-rem-0625);
+    font-weight: var(--font-bold);
+}
+
+.bt-page .bt-by__tile.is-admin {
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary-hover);
+}
+
+.bt-page .bt-by__name {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Failed jobs cells ---------- */
+
+.bt-page .bt-job {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bt-page .bt-job__name {
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-job__class {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    color: var(--color-text-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-queuechip {
+    justify-self: start;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-06875);
+    font-weight: var(--font-semibold);
+}
+
+.bt-page .bt-exc {
+    font-size: var(--font-size-rem-075);
+    color: var(--color-danger-deep);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bt-page .bt-erow__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.bt-page .bt-erow__actions form {
+    margin: 0;
+}
+
+/* ---------- Row and toolbar buttons ---------- */
+
+.bt-page .bt-btn-retry,
+.bt-page .bt-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 11px;
+    border-radius: 8px;
+    background: var(--color-white);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bt-page .bt-btn-retry {
+    border: 1px solid var(--color-palette-c7d2fe);
+    color: var(--color-primary);
+}
+
+.bt-page .bt-btn-retry:hover {
+    background: var(--color-palette-eef2ff);
+    color: var(--color-primary);
+}
+
+.bt-page .bt-btn-danger {
+    border: 1px solid var(--color-palette-fecaca);
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-btn-danger:hover {
+    background: var(--color-palette-fef2f2);
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-toolbar__tools .bt-btn-retry,
+.bt-page .bt-toolbar__tools .bt-btn-danger {
+    height: 32px;
+    padding: 0 12px;
+    font-size: var(--font-size-rem-078125);
+}
+
+.bt-page .bt-iconbtn-danger {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-white);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-rem-06875);
+    cursor: pointer;
+}
+
+.bt-page .bt-iconbtn-danger:hover {
+    border-color: var(--color-palette-fecaca);
+    background: var(--color-palette-fef2f2);
+    color: var(--color-danger-deep);
+}
+
+.bt-page .bt-toolbar__summary strong.is-danger {
+    color: var(--color-danger-deep);
+}
+
+/* ---------- Confirm dialog ---------- */
+
+.bt-page .bt-dialog__dialog--confirm {
+    max-width: 420px;
+}
+
+.bt-page .bt-confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 26px 8px;
+    text-align: center;
+}
+
+.bt-page .bt-confirm__tile {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--color-palette-fef2f2);
+    color: var(--color-danger-deep);
+    font-size: var(--font-size-rem-1125);
+}
+
+.bt-page .bt-confirm__title {
+    margin: 0;
+    font-size: var(--font-size-rem-10625);
+    font-weight: var(--font-semibold) !important;
+    letter-spacing: -0.015em;
+    color: var(--color-text);
+}
+
+.bt-page .bt-confirm__text {
+    font-size: var(--font-size-rem-08125);
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+.bt-page .bt-confirm__actions {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 20px 26px 24px;
+}
+
+.bt-page .bt-confirm__actions .bt-btn-ghost,
+.bt-page .bt-btn-destructive {
+    flex: 1;
+    justify-content: center;
+    height: 38px;
+    border-radius: 10px;
+    font-size: var(--font-size-rem-08125);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.bt-page .bt-btn-destructive {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-danger-deep);
+    background: var(--color-danger-deep);
+    color: var(--color-white);
+    box-shadow: 0 6px 14px -8px var(--color-danger-deep);
+}
+
+.bt-page .bt-btn-destructive:hover {
+    background: var(--color-palette-991b1b);
+    color: var(--color-white);
+}
+
+/* ---------- Empty states ---------- */
+
+.bt-page .bt-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 48px 22px;
+    text-align: center;
+}
+
+.bt-page .bt-empty--healthy {
+    gap: 10px;
+    padding: 64px 22px;
+}
+
+.bt-page .bt-empty__tile {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--color-surface-soft);
+    color: var(--color-text-faint);
+    font-size: var(--font-size-rem-1);
+}
+
+.bt-page .bt-empty__tile.is-ok {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--color-palette-ecfdf5);
+    color: var(--color-success-deep);
+    font-size: var(--font-size-rem-125);
+}
+
+.bt-page .bt-empty__title {
+    font-size: var(--font-size-rem-0875);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.bt-page .bt-empty--healthy .bt-empty__title {
+    font-size: var(--font-size-rem-09375);
+}
+
+.bt-page .bt-empty__body {
+    font-size: var(--font-size-rem-078125);
+    color: var(--color-text-muted);
+}
+
+.bt-page .bt-empty__action {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-white);
+    color: var(--color-text-soft);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+    text-decoration: none;
+}
+
+/* ---------- Pagination foot ---------- */
+
+.bt-page .bt-tablefoot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 22px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.bt-page .bt-tablefoot .pagination {
+    margin: 0;
+}
+
+/* ---------- Setup ---------- */
+
+.bt-page .bt-setup {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 22px 24px;
+}
+
+.bt-page .bt-setup__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.bt-page .bt-step {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow:
+        0 0 0 1px rgba(var(--color-text-rgb), 0.06),
+        0 1px 2px rgba(var(--color-text-rgb), 0.04);
+}
+
+.bt-page .bt-step__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.bt-page .bt-step__identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bt-page .bt-step__num {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    background: var(--color-text);
+    color: var(--color-white);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-075);
+    font-weight: var(--font-semibold);
+}
+
+.bt-page .bt-step__title {
+    font-size: var(--font-size-rem-0875);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.bt-page .bt-step__text {
+    font-size: var(--font-size-rem-078125);
+    line-height: 1.5;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+/* The line to paste, on the ground a terminal is read on. */
+.bt-page .bt-code {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--color-palette-0f172a);
+    color: var(--color-palette-e2e8f0);
+}
+
+.bt-page .bt-code__pre {
+    flex: 1;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-rem-071875);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.bt-page .bt-code__copy {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(var(--color-white-rgb), 0.08);
+    color: var(--color-palette-cbd5e1);
+    font-size: var(--font-size-rem-0625);
+    cursor: pointer;
+}
+
+.bt-page .bt-code__copy:hover {
+    background: rgba(var(--color-white-rgb), 0.16);
+}
+
+.bt-page .bt-note {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--color-surface-alt);
+    box-shadow: inset 0 0 0 1px var(--color-border-soft);
+    font-size: var(--font-size-rem-078125);
+    color: var(--color-text-subtle);
+}
+
+.bt-page .bt-note > i {
+    flex: 0 0 auto;
+    font-size: var(--font-size-rem-075);
+    color: var(--color-primary);
+}
+
+.bt-page .bt-note__path {
+    font-family: var(--font-mono);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 767.98px) {
+    .bt-page .bt-toolbar--history {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .bt-page .bt-toolbar__count {
+        margin-inline-start: 0;
+    }
+
+    .bt-page .bt-select select {
+        width: 100%;
+    }
+}
+
+/*
+ * A filter chip is a tap target on a phone.
+ *
+ * Every one of these is a fixed 28px tall, which reads well under a mouse and
+ * is under the 36px floor this admin already committed to for its top-bar
+ * controls. `min-block-size` is enough on its own — it wins over `height`,
+ * so the desktop rule above is left exactly as written and only a touch
+ * screen sees the difference. The strip that holds them has padding and no
+ * height of its own, so it grows with them.
+ */
+@media (max-width: 991.98px) {
+    .bt-filters__btn {
+        min-block-size: 36px;
+    }
+}
