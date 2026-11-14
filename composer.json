@@ -80,13 +80,25 @@
             "@test:parallel",
             "@test:serial"
         ],
-        "test:parallel": "@php vendor/bin/pest --parallel --exclude-group=serial",
-        "test:serial": "@php vendor/bin/pest --group=serial"
+        "test:parallel": "@php vendor/bin/pest --parallel --exclude-group=serial,mysql",
+        "test:serial": "@php vendor/bin/pest --group=serial",
+        "test:installation": "@php vendor/bin/pest tests/Feature/Installation",
+        "test:updater": "@php vendor/bin/pest tests/Feature/Updater",
+        "test:payments": "@php vendor/bin/pest tests/Feature/Payments",
+        "test:addons": "@php vendor/bin/pest tests/Feature/Addons",
+        "test:mysql": "@php vendor/bin/pest --group=mysql",
+        "test:coverage": "@php vendor/bin/pest --coverage --exclude-group=serial,mysql"
     },
     "scripts-descriptions": {
         "test": "Run the whole suite: everything in parallel, then the serial group on its own.",
         "test:parallel": "Everything that is safe to run in four processes at once.",
-        "test:serial": "The suites that own a path outside their own database - the maintenance down file, the release zip, public/custom-landings, the updater's archives."
+        "test:serial": "The suites that own a path outside their own database - the maintenance down file, the release zip, public/custom-landings, the updater's archives, and the baseline seeders.",
+        "test:installation": "Installation preflight, administrator provisioning and the makinpay:install command.",
+        "test:updater": "Updater package signature verification and protected-path enforcement.",
+        "test:payments": "Payment gateway registration regression (no external requests).",
+        "test:addons": "Add-on licensing enforcement after the core licensing removal.",
+        "test:mysql": "Opt-in MySQL integration tests; requires MAKINPAY_ALLOW_MYSQL_TESTS.",
+        "test:coverage": "Run the parallel suite with a coverage report (needs Xdebug or PCOV)."
     },
     "extra": {
         "laravel": {

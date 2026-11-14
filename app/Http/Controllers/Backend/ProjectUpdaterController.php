@@ -9,7 +9,6 @@ use App\Http\Requests\Backend\InstallProjectUpdateRequest;
 use App\Http\Requests\Backend\RollBackProjectUpdateRequest;
 use App\Models\ProjectUpdate;
 use App\Services\ProjectUpdaterService;
-use App\Support\LicenseGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -19,7 +18,6 @@ class ProjectUpdaterController extends BaseController
 {
     public function __construct(
         private readonly ProjectUpdaterService $updater,
-        private readonly LicenseGuard $licenseGuard,
     ) {}
 
     public static function permissions(): array
@@ -40,12 +38,6 @@ class ProjectUpdaterController extends BaseController
         try {
             $license = $this->updater->activate((string) $request->validated('purchase_code'));
 
-            if ($license->isActive()) {
-                // Clear the runtime guard immediately so the "needs re-activation"
-                // banner disappears at once instead of after the next recheck.
-                $this->licenseGuard->markValidated();
-            }
-
             notifyEvs('success', __('Project license activated successfully.'));
         } catch (NotifyErrorException $e) {
             notifyEvs('error', $e->getMessage());
@@ -58,10 +50,6 @@ class ProjectUpdaterController extends BaseController
     {
         try {
             $update = $this->updater->checkForUpdates();
-
-            // A successful update check is a server-confirmed license signal,
-            // so clear any stale runtime-guard banner.
-            $this->licenseGuard->markValidated();
 
             if ($this->updater->licenseWasRefreshed()) {
                 notifyEvs('info', __('Your license token was refreshed automatically before the update check.'));
@@ -84,10 +72,6 @@ class ProjectUpdaterController extends BaseController
     {
         try {
             $license = $this->updater->refreshLicense();
-
-            if ($license->isActive()) {
-                $this->licenseGuard->markValidated();
-            }
 
             notifyEvs('success', __('License token refreshed successfully.'));
         } catch (NotifyErrorException $e) {

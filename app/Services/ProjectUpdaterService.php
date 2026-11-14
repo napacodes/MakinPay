@@ -276,22 +276,27 @@ class ProjectUpdaterService
 
         $license = ProjectLicense::current();
 
-        if (! $license?->isActive()) {
-            throw new NotifyErrorException(__('Activate the project license before checking for updates.'));
-        }
+        // Core product licensing (Envato) was removed in Milestone 1, so an
+        // active license row is no longer a precondition for checking for
+        // updates. When a token DOES exist it is still sent, and the update
+        // server may still answer; when none exists the check proceeds and the
+        // release manifest is verified by signature below, which is what
+        // actually protects the installation.
+        $hasLicense = $license instanceof ProjectLicense && $license->isActive();
 
-        // If the local token is missing entirely, refresh it up-front using the stored
-        // purchase code so the user does not have to manually re-activate.
-        $storedPurchaseCode = $license->safePurchaseCode();
+        // If a license exists but its local token is missing entirely, refresh
+        // it up-front using the stored purchase code so the user does not have
+        // to manually re-activate.
+        $storedPurchaseCode = $hasLicense ? $license->safePurchaseCode() : null;
 
-        if (blank($license->license_token) && filled($storedPurchaseCode)) {
+        if ($hasLicense && blank($license->license_token) && filled($storedPurchaseCode)) {
             $license                = $this->activate($storedPurchaseCode);
             $storedPurchaseCode     = $license->safePurchaseCode();
             $this->licenseRefreshed = true;
         }
 
         try {
-            $data = $this->client->check($license->license_token);
+            $data = $this->client->check($hasLicense ? $license->license_token : null);
         } catch (NotifyErrorException $e) {
             // The server rejected the stored token. If we have the original purchase
             // code we can transparently refresh and retry once — most token-mismatch
@@ -301,14 +306,22 @@ class ProjectUpdaterService
             }
 
             if (blank($storedPurchaseCode)) {
+                // No usable credential to retry with. Core licensing was removed
+                // in Milestone 1, so there may simply be no license row at all;
+                // that is not an operator error. Only surface the APP_KEY hint
+                // when a purchase code WAS stored and can no longer be read.
+                if (! $license instanceof ProjectLicense) {
+                    throw $e;
+                }
+
                 // Differentiate "no purchase code stored" from "purchase code can't be
-                // decrypted" so the operator knows whether to dig out their Envato
-                // code or to investigate APP_KEY rotation.
+                // decrypted" so the operator knows whether to re-enter their code
+                // or to investigate APP_KEY rotation.
                 $rawPurchaseCode = $license->getRawOriginal('purchase_code');
 
                 throw new NotifyErrorException(filled($rawPurchaseCode)
-                    ? __('The license token is invalid and the stored purchase code could not be decrypted (the application encryption key may have changed). Please re-activate the license with your Envato purchase code.')
-                    : __('The license token is no longer valid and cannot be refreshed automatically. Please re-activate the license with your purchase code.'));
+                    ? __('The license token is invalid and the stored purchase code could not be decrypted (the application encryption key may have changed). Please re-enter your purchase code.')
+                    : __('The license token is no longer valid and cannot be refreshed automatically. Please re-activate with your purchase code.'));
             }
 
             try {
@@ -324,13 +337,19 @@ class ProjectUpdaterService
             $data                   = $this->client->check($license->license_token);
         }
 
+
         $update = $data['update'] ?? $data;
 
         if (! is_array($update)) {
             throw new NotifyErrorException(__('The update check response was invalid.'));
         }
 
-        $license->forceFill(['last_checked_at' => now()])->save();
+        // Only an actual license row records a check timestamp. An
+        // installation with no license (the normal case after Milestone 1) has
+        // nothing to update here.
+        if ($license instanceof ProjectLicense) {
+            $license->forceFill(['last_checked_at' => now()])->save();
+        }
 
         $checked = ProjectUpdate::query()->updateOrCreate(
             [

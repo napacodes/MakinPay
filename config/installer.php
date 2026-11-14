@@ -50,13 +50,12 @@ use Database\Seeders\WalletEarnPlanSeeder;
 use Database\Seeders\WithdrawScheduleSeeder;
 
 return [
+    /*
+     * The legacy web installer's completion lock. Retained so installations
+     * created before the CLI installer existed are still recognised as
+     * installed. New installs write storage/app/makinpay-installed.json.
+     */
     'lock_file' => storage_path('app/installed'),
-
-    'database_dump' => base_path('DB/digikash.sql'),
-
-    'envato' => [
-        'required' => true,
-    ],
 
     'required_extensions' => [
         'BCMath'    => 'bcmath',
@@ -195,12 +194,9 @@ return [
     ],
 
     /*
-     * The wizard sidebar's Docs and Support buttons.
+     * Reference material for operators. The compatibility installer UI was
+     * removed in Milestone 1; see MAKINPAY_INSTALLATION.md for the CLI flow.
      */
-    'links' => [
-        'docs'    => 'https://codecanyon.net/item/digikash/58275561',
-        'support' => 'https://coevs.com',
-    ],
 
     /*
      * Presets for the wizard's Email step. They only fill the form: the buyer

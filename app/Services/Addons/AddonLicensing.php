@@ -7,21 +7,25 @@ namespace App\Services\Addons;
 use App\Models\ProjectLicense;
 use App\Services\ProjectUpdaterService;
 use App\Services\ProjectUpdateServerClient;
-use App\Support\LicenseGuard;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Throwable;
 
 /**
- * A paid add-on's license: its own Envato item, its own purchase code, held
+ * A paid add-on's license: its own item id, its own purchase code, held
  * in project_licenses under the add-on's slug and checked by the same update
  * server as core.
  *
- * Enforcement follows core's soft rules. Nothing is checked where core's
- * guard is off (local, testing, demo, or switched off in config). A missing
- * license is tolerated for the grace period after install; past it, and the
- * moment the server confirms a code invalid, the add-on stops loading and
- * its features read as off. Its data and the admin's settings stay.
+ * Enforcement is soft. Nothing is checked where registration is off (local,
+ * testing, demo, or switched off in config). A missing license is tolerated
+ * for the grace period after install; past it, and the moment the server
+ * confirms a code invalid, the add-on stops loading and its features read as
+ * off. Its data and the admin's settings stay.
+ *
+ * This is INDEPENDENT of the core product license that Envato required: the
+ * core guard was removed in Milestone 1, but add-on licensing is a separate
+ * mechanism and stays. The enablement rule below is therefore self-contained
+ * rather than delegated to a core license service.
  */
 final class AddonLicensing
 {
@@ -35,13 +39,32 @@ final class AddonLicensing
 
     public function __construct(
         private readonly ProjectUpdateServerClient $client,
-        private readonly LicenseGuard $guard,
         private readonly ?bool $enforced = null,
     ) {}
 
+    /**
+     * Whether add-on licensing is enforced at all.
+     *
+     * Off in local/testing (so developers never need purchase codes), off in
+     * demo deployments, and off when the operator disables it. Otherwise on.
+     */
+    public function enforced(): bool
+    {
+        if ($this->enforced !== null) {
+            return $this->enforced;
+        }
+
+        if ((bool) config('app.demo', false)) {
+            return false;
+        }
+
+        return (bool) config('project_updater.addon_license_enforce', true)
+            && ! app()->environment('local', 'testing');
+    }
+
     public function requiresLicense(AddonManifest $manifest): bool
     {
-        return $manifest->itemId !== null && ($this->enforced ?? $this->guard->enforced());
+        return $manifest->itemId !== null && $this->enforced();
     }
 
     public function state(AddonManifest $manifest): string

@@ -243,15 +243,5 @@
                 </p>
             @endif
         </div>
-    @elseif(! $license)
-        <div class="pu-card__body">
-            <div class="pu-note">
-                <i class="fas fa-lock" aria-hidden="true"></i>
-                <span>
-                    <strong>{{ __('Activate your Digikash license to enable updates') }}</strong>
-                    {{ __('Digikash needs a verified Envato purchase code before it can fetch releases for this domain.') }}
-                </span>
-            </div>
-        </div>
     @endif
 </section>

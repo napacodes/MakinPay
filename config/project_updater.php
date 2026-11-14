@@ -13,25 +13,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | License enforcement (soft)
+    | Add-on licensing (soft)
     |--------------------------------------------------------------------------
     |
-    | The runtime license guard (App\Support\LicenseGuard) periodically asks
-    | the update server whether this domain is still licensed. It is designed
-    | to be SOFT — a temporary server outage never locks a genuine buyer out:
+    | The core product license that Envato required was REMOVED in Milestone 1.
+    | It is no longer checked, activated, or scheduled.
     |
-    |   - Server confirms valid + domain matches  → full access.
-    |   - Server unreachable (timeout / 5xx / DNS) → keep working for
-    |     `grace_days`, then show a gentle "could not re-verify" notice.
-    |   - Server explicitly says invalid / domain mismatch → only THEN are
-    |     admin write actions degraded (a clear piracy signal).
+    | Add-on licensing is a SEPARATE mechanism and is retained: a paid add-on
+    | declares its own `itemId` and carries its own purchase code, held in
+    | `project_licenses` under the add-on's slug. Enforcement stays soft — a
+    | server outage never disables a paid add-on immediately:
     |
-    | Set `license_enforce` to false to disable the guard entirely.
+    |   - Server confirms valid  → the add-on keeps loading.
+    |   - Server unreachable     → tolerated for `license_grace_days`.
+    |   - Server confirms invalid → the add-on stops loading after grace.
+    |
+    | Set `addon_license_enforce` to false to disable add-on checks entirely.
     |
     */
-    'license_enforce'       => (bool) env('PROJECT_UPDATER_LICENSE_ENFORCE', true),
+    'addon_license_enforce' => (bool) env('PROJECT_UPDATER_ADDON_LICENSE_ENFORCE', true),
     'license_grace_days'    => (int) env('PROJECT_UPDATER_LICENSE_GRACE_DAYS', 14),
-    'license_recheck_hours' => (int) env('PROJECT_UPDATER_LICENSE_RECHECK_HOURS', 12),
 
     'install_enabled' => (bool) env('PROJECT_UPDATER_INSTALL_ENABLED', true),
 

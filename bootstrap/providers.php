@@ -6,7 +6,6 @@ use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
 use App\Providers\BroadcastServiceProvider;
 use App\Providers\FeatureServiceProvider;
-use App\Providers\LicenseGuardServiceProvider;
 use App\Providers\ObservabilityServiceProvider;
 use App\Providers\PaymentServiceProvider;
 use App\Providers\ViewComposerServiceProvider;
@@ -19,7 +18,6 @@ return [
     BroadcastServiceProvider::class,
     FeatureServiceProvider::class,
     AddonServiceProvider::class,
-    LicenseGuardServiceProvider::class,
     ObservabilityServiceProvider::class,
     PaymentServiceProvider::class,
     ViewComposerServiceProvider::class,
