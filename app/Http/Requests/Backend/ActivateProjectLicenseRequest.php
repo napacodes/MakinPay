@@ -26,8 +26,8 @@ class ActivateProjectLicenseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'purchase_code.required' => __('The Envato purchase code is required.'),
-            'purchase_code.regex'    => __('Enter a valid Envato purchase code from the license certificate.'),
+            'purchase_code.required' => __('The purchase code is required.'),
+            'purchase_code.regex'    => __('Enter a valid purchase code from your license certificate.'),
         ];
     }
 }

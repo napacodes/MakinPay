@@ -39,9 +39,6 @@
             {{-- Any Warning Messages Here --}}
             @include('backend.partials._messages')
 
-            {{-- License status notice (renders only when action is needed) --}}
-            <x-license-banner />
-
              {{--  Main Content --}}
              @yield('content')
         </div>

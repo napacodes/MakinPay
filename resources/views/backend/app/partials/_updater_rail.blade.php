@@ -8,7 +8,6 @@
      * and an operator only ever needs to recognise it, never to read it back.
      */
     $purchaseCode = $license?->safePurchaseCode();
-
     /*
      * Four characters each end, and a fixed run of dots between them.
      *
@@ -22,8 +21,7 @@
         ? mb_substr((string) $purchaseCode, 0, 4).str_repeat('•', 16).mb_substr((string) $purchaseCode, -4)
         : null;
 
-    $hasUsableCode   = $license?->hasUsablePurchaseCode() ?? false;
-    $envatoDownloads = 'https://codecanyon.net/downloads';
+    $hasUsableCode = $license?->hasUsablePurchaseCode() ?? false;
 
     $helpLinks = [
         ['category' => 'permissions', 'label' => __('An install failed on file permissions')],
@@ -32,138 +30,42 @@
     ];
 @endphp
 
-{{-- ── License ────────────────────────────────────────────────────────── --}}
+{{-- ── Update channel ─────────────────────────────────────────────────── --}}
+{{--
+    The core Envato license card lived here. Licensing was removed in
+    Milestone 1, so this card states how updates are obtained and what
+    protects them. It deliberately shows no purchase code: none is required,
+    and an installation that still carries one keeps it in the database
+    untouched rather than displaying it here.
+--}}
 <section class="pu-card" data-show="{{ $liveStates }}">
     <header class="pu-card__head">
         <div class="pu-card__head-main">
             <div class="pu-card__head-text">
-                <h2 class="pu-card__title">{{ __('License') }}</h2>
+                <h2 class="pu-card__title">{{ __('Updates') }}</h2>
             </div>
         </div>
-        <span class="pu-card__head-meta pu-mono" dir="ltr">{{ $license?->domain ?: request()->getHost() }}</span>
+        <span class="pu-card__head-meta pu-mono" dir="ltr">{{ request()->getHost() }}</span>
     </header>
 
-    @if($license)
-        <div class="pu-facts">
-            <div class="pu-fact">
-                <span class="pu-fact__k">{{ __('Purchase code') }}</span>
-                <span class="pu-fact__v pu-mono" dir="ltr">
-                    {{ $maskedPurchaseCode ?? __('Stored · not readable') }}
-                </span>
-            </div>
-            <div class="pu-fact">
-                <span class="pu-fact__k">{{ __('Buyer') }}</span>
-                <span class="pu-fact__v">{{ $license->buyer_username ?: __('Unknown') }}</span>
-            </div>
-            <div class="pu-fact">
-                <span class="pu-fact__k">{{ __('Support Until') }}</span>
-                <span class="pu-fact__v">
-                    {{ $license->support_until?->translatedFormat('d M Y') ?? __('Unknown') }}
-                </span>
-            </div>
-            <div class="pu-fact">
-                <span class="pu-fact__k">{{ __('Update access') }}</span>
-                <span class="pu-fact__v">{{ __('Lifetime Free') }}</span>
-            </div>
+    <div class="pu-facts">
+        <div class="pu-fact">
+            <span class="pu-fact__k">{{ __('Release channel') }}</span>
+            <span class="pu-fact__v">{{ ucfirst((string) config('project_updater.channel', 'stable')) }}</span>
         </div>
-
-        @can('project-updater-manage')
-            <footer class="pu-card__foot pu-card__foot--split">
-                @if($hasUsableCode)
-                    <form id="pu-refresh-license-form" action="{{ route('admin.app.updater.refresh-license') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="pu-btn pu-btn--secondary pu-btn--sm pu-btn--block">
-                            <i class="fas fa-arrows-rotate" aria-hidden="true"></i> {{ __('Re-verify') }}
-                        </button>
-                    </form>
-                @else
-                    <button type="button" class="pu-btn pu-btn--primary pu-btn--sm pu-btn--block" data-action="toggle-reactivate">
-                        <i class="fas fa-key" aria-hidden="true"></i> {{ __('Re-activate') }}
-                    </button>
-                @endif
-
-                <a href="{{ $envatoDownloads }}" target="_blank" rel="noopener noreferrer"
-                    class="pu-btn pu-btn--secondary pu-btn--sm pu-btn--block">
-                    <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> {{ __('Manage on Envato') }}
-                </a>
-            </footer>
-
-            @if($hasUsableCode)
-                <div class="pu-card__foot pu-card__foot--quiet">
-                    <button type="button" class="pu-link" data-action="toggle-reactivate">
-                        {{ __('Re-enter purchase code') }}
-                    </button>
-                </div>
-            @else
-                <p class="pu-card__hint">
-                    {{ __('Stored purchase code cannot be decrypted (APP_KEY may have changed). Re-enter your Envato purchase code to re-bind this installation.') }}
-                </p>
-            @endif
-
-            <div class="pu-reactivate" id="pu-reactivate-panel" hidden>
-                <form action="{{ route('admin.app.updater.activate') }}" method="POST" class="pu-form" id="pu-reactivate-form">
-                    @csrf
-                    <label class="pu-form__label" for="pu-reactivate-input">{{ __('Envato Purchase Code') }}</label>
-                    <input id="pu-reactivate-input"
-                        name="purchase_code"
-                        type="text"
-                        class="pu-input pu-mono"
-                        dir="ltr"
-                        placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-                        maxlength="40"
-                        autocomplete="off">
-                    <div id="pu-reactivate-hint" class="pu-form__hint">
-                        {{ __('Re-entering your purchase code updates this installation’s license token.') }}
-                    </div>
-                    <div class="pu-form__row">
-                        <button type="submit" id="pu-reactivate-submit" class="pu-btn pu-btn--primary pu-btn--sm" disabled>
-                            <i class="fas fa-key" aria-hidden="true"></i> {{ __('Re-activate license') }}
-                        </button>
-                        <button type="button" class="pu-btn pu-btn--ghost pu-btn--sm" data-action="toggle-reactivate">
-                            {{ __('Cancel') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        @endcan
-    @else
-        <div class="pu-card__body">
-            <p class="pu-card__lead">
-                {{ __('Enter your Envato purchase code to unlock update checks, installs and support.') }}
-            </p>
-
-            @can('project-updater-manage')
-                <form id="pu-activate-form" action="{{ route('admin.app.updater.activate') }}" method="POST" class="pu-form">
-                    @csrf
-                    <label class="pu-form__label" for="pu-license-input">{{ __('Envato Purchase Code') }}</label>
-                    <input id="pu-license-input"
-                        name="purchase_code"
-                        type="text"
-                        class="pu-input pu-mono"
-                        dir="ltr"
-                        value="{{ old('purchase_code') }}"
-                        placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-                        maxlength="40"
-                        autocomplete="off">
-                    @error('purchase_code')
-                        <div class="pu-form__hint pu-form__hint--error">{{ $message }}</div>
-                    @else
-                        <div id="pu-license-hint" class="pu-form__hint">
-                            {{ __('Find your purchase code in your Envato downloads.') }}
-                        </div>
-                    @enderror
-
-                    <button type="submit" id="pu-license-activate" class="pu-btn pu-btn--primary pu-btn--block" disabled>
-                        <i class="fas fa-key" aria-hidden="true"></i> {{ __('Activate license') }}
-                    </button>
-                </form>
-
-                <a href="{{ $envatoDownloads }}" target="_blank" rel="noopener noreferrer" class="pu-link pu-link--center">
-                    {{ __('Where do I find my purchase code?') }}
-                </a>
-            @endcan
+        <div class="pu-fact">
+            <span class="pu-fact__k">{{ __('Installed version') }}</span>
+            <span class="pu-fact__v pu-mono" dir="ltr">{{ config('project_updater.version') }}</span>
         </div>
-    @endif
+        <div class="pu-fact">
+            <span class="pu-fact__k">{{ __('Package integrity') }}</span>
+            <span class="pu-fact__v">{{ __('Signed releases, verified on install') }}</span>
+        </div>
+    </div>
+
+    <p class="pu-card__hint">
+        {{ __('Update packages are verified against MakinPay’s signing key before anything is written. A package that fails verification is rejected.') }}
+    </p>
 </section>
 
 {{-- ── Recovery backup ────────────────────────────────────────────────── --}}

@@ -147,23 +147,11 @@
             </div>
         </div>
 
-        {{-- ── Envato support window ──────────────────────────────────── --}}
-        @if($license && ($supportExpired || $supportEndingSoon))
-            <div class="pu-alert pu-alert--{{ $supportExpired ? 'danger' : 'warning' }}" data-show="{{ $liveStates }}">
-                <div class="pu-alert__icon">
-                    <i class="fas {{ $supportExpired ? 'fa-exclamation-circle' : 'fa-hourglass-half' }}" aria-hidden="true"></i>
-                </div>
-                <div class="pu-alert__body">
-                    <div class="pu-alert__title">
-                        {{ $supportExpired ? __('Envato support has expired') : __('Envato support is ending soon') }}
-                    </div>
-                    <div class="pu-alert__text">
-                        {{ __('You can still receive Digikash project updates for free — Envato support covers priority help only.') }}
-                        {{ __('Renew from your Envato downloads page if you want support back.') }}
-                    </div>
-                </div>
-            </div>
-        @endif
+        {{--
+            The Envato support-window alert was removed in Milestone 1 along
+            with core licensing: support expiry no longer gates anything, and
+            project updates carry no support-window condition.
+        --}}
 
         {{-- ── Main column + rail ─────────────────────────────────────── --}}
         <div class="pu-cols" data-show="{{ $liveStates }}">

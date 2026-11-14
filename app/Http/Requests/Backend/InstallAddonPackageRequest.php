@@ -6,9 +6,8 @@ namespace App\Http\Requests\Backend;
 
 /**
  * Installing an uploaded package: the identity confirmation, and the
- * purchase code from the installer's License step when the admin gave one.
- * The code can only be activated once the add-on is on disk, so it travels
- * with the install rather than before it.
+ * purchase code when the admin gave one. The code can only be activated once
+ * the add-on is on disk, so it travels with the install rather than before it.
  */
 class InstallAddonPackageRequest extends ConfirmAddonOperationRequest
 {
@@ -33,7 +32,7 @@ class InstallAddonPackageRequest extends ConfirmAddonOperationRequest
     public function messages(): array
     {
         return array_merge(parent::messages(), [
-            'purchase_code.regex' => __('Enter a valid Envato purchase code from the license certificate.'),
+            'purchase_code.regex' => __('Enter a valid purchase code from your license certificate.'),
         ]);
     }
 }

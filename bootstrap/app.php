@@ -73,7 +73,6 @@ use App\Http\Middleware\SetPaginationView;
 use App\Http\Middleware\TrackUserPresence;
 use App\Http\Middleware\Translate;
 use App\Http\Middleware\UseApiErrorEnvelope;
-use App\Http\Middleware\VerifyProjectLicense;
 use App\Http\Middleware\XSS;
 use App\Models\ApiIdempotencyKey;
 use App\Models\BackgroundTaskLog;
@@ -113,15 +112,17 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/launch', [PwaController::class, 'launcher'])->name('pwa.launcher');
             Route::get('/install-app', [PwaController::class, 'install'])->name('pwa.install');
 
-            Route::middleware('web')
-                ->group(base_path('routes/install.php'));
+            // The legacy web installer (/install, the wizard, and its JSON
+            // test endpoints) was removed in Milestone 1. Installation is a
+            // CLI operation: `php artisan makinpay:install`. EnsureApplicationInstalled
+            // answers uninstalled requests with a 503 maintenance page.
 
             // theme.preview only on the public groups: the admin page builder
             // saves against activeTheme(), so it must never see a preview.
             Route::middleware(['web', 'theme.preview'])
                 ->group(base_path('routes/auth.php'));
 
-            Route::middleware(['web', 'auth:admin', 'verified', 'XSS', 'lock_screen', '2fa', 'demo', 'license'])
+            Route::middleware(['web', 'auth:admin', 'verified', 'XSS', 'lock_screen', '2fa', 'demo'])
                 ->group(base_path('routes/admin.php'));
 
             Route::middleware(['web', 'theme.preview'])
@@ -242,7 +243,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'p2p.enabled'          => EnsureP2PEnabled::class,
             'p2p.country'          => EnsureP2PCountryAllowed::class,
             'demo'                 => DemoMode::class,
-            'license'              => VerifyProjectLicense::class,
             // Opts a route group into the mobile API error envelope. Marker
             // only: it sets a request attribute the exception handler reads,
             // so the merchant server-to-server API sharing the api/v1 prefix
@@ -448,8 +448,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // *after* reading the alert, having decided the change is right.
         $schedule->command('money:audit-precision --notify')->dailyAt('03:30')->withoutOverlapping(30);
 
-        // Re-verify the project license against the update server twice a day.
-        $schedule->command('license:heartbeat')->twiceDaily(3, 15);
+        // Envato licensing and its heartbeat were removed in Milestone 1.
+        // The project updater keeps its own signature-verified release check,
+        // which no longer depends on a per-domain activation state.
 
         // Retention pruning for captured errors. Nightly, bounded, and
         // deliberately unhurried: it clears what it can inside its ceiling

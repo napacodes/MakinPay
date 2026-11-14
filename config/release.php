@@ -169,6 +169,20 @@ return [
         'CLAUDE.md',
         'TASKS.md',
         'INBOX.md',
+
+        // ── Internal migration / audit working notes ────────────────────
+        // These document an in-progress internal refactor. They contain no
+        // runtime code and must never reach a customer download.
+        'MAKINPAY_B1_B5_DEFECT_RECORD.md',
+        'MAKINPAY_INSTALLATION.md',
+        'MAKINPAY_MILESTONE_1_AUDIT.md',
+        'MAKINPAY_MILESTONE_1_IMPLEMENTATION.md',
+        'MAKINPAY_TESTING.md',
+
+        // ── Test harness ────────────────────────────────────────────────
+        // Ships no tests to customers; the release is a production build.
+        'tests',
+        'phpunit.xml',
         'boost.json',
         'opencode.json',
         '.mcp.json',
