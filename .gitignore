@@ -18,6 +18,21 @@
 .phpunit.cache/
 .phpunit.result.cache
 
+# Runtime storage. The .gitkeep markers stay tracked so the tree exists on a
+# fresh clone; everything written into these directories at runtime does not.
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitkeep
+/storage/logs/*.log
+
+# `php artisan storage:link` creates this. It is a machine-specific absolute
+# symlink (on Windows, a junction to an absolute path), so committing it would
+# be broken for everyone else.
+/public/storage
+
 # IDE and editor
 .idea/
 .vscode/
