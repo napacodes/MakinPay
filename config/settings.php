@@ -464,7 +464,7 @@ return [
                 'key'     => 'site_title',
                 'label'   => 'Site Title',
                 'rules'   => 'required|min:2|max:500',
-                'value'   => 'Coevs',
+                'value'   => 'MakinPay',
                 'class'   => 'col-md-6',
                 'message' => 'Used in the browser tab, in outgoing email, and anywhere the product refers to itself by name.',
             ],
@@ -539,7 +539,10 @@ return [
                 'key'     => 'site_timezone',
                 'label'   => 'Site Timezone',
                 'rules'   => 'required',
-                'value'   => [],
+                // A scalar, not the empty array the option list is built from:
+                // a fresh install has to store something, and every reader
+                // already falls back to config('app.timezone').
+                'value'   => 'UTC',
                 'class'   => 'col-md-4',
                 'message' => 'The clock every date on the platform is shown in, from transactions to reports. Changing it does not move anything already recorded.',
             ],
@@ -562,7 +565,9 @@ return [
                 'key'     => 'home_redirect',
                 'label'   => 'Home Redirect',
                 'rules'   => 'required',
-                'value'   => [],
+                // '/' is what the shipped dump used and what the option list
+                // is populated from; an empty array would fail to store.
+                'value'   => '/',
                 'class'   => 'col-md-4',
                 'message' => 'All Page Slugs',
             ],
@@ -622,7 +627,7 @@ return [
                 'key'     => 'copyright_text',
                 'label'   => 'Copyright Text',
                 'rules'   => 'required|min:4|max:199',
-                'value'   => 'admin',
+                'value'   => 'MakinPay. All rights reserved.',
                 'class'   => 'col-md-4',
                 'message' => 'The line in the customer site footer. Nothing is added to it, so write the year and the name exactly as you want them to read.',
             ],

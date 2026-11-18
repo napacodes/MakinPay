@@ -99,10 +99,24 @@ class Page extends Model
         }
 
         return Cache::rememberForever($this->componentsCacheKey(), function () {
-            return PageComponent::whereIn('id', $this->component_ids)->with('repeatedContents')
+            $components = PageComponent::whereIn('id', $this->component_ids)->with('repeatedContents')
                 ->active()
-                ->orderByRaw('FIELD(id, '.implode(',', $this->component_ids).')')
                 ->get();
+
+            /*
+             * Order in PHP, not in the query.
+             *
+             * This used `orderByRaw('FIELD(id, …)')`, which is MySQL-only:
+             * on any other driver (SQLite in the test suite, or Postgres) the
+             * statement throws "no such function: FIELD" and the page 500s.
+             * The rows are already in memory at this point, so sorting them
+             * here costs nothing and works everywhere.
+             */
+            $position = array_flip(array_map('intval', $this->component_ids));
+
+            return $components
+                ->sortBy(fn (PageComponent $component): int => $position[(int) $component->id] ?? PHP_INT_MAX)
+                ->values();
         });
     }
 

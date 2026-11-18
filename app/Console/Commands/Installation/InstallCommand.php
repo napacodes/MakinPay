@@ -8,9 +8,7 @@ use App\Support\Installation\AdministratorProvisioner;
 use App\Support\Installation\Preflight;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -590,7 +588,11 @@ class InstallCommand extends Command
         $this->components->info('Installation complete');
         $this->newLine();
 
-        $adminPrefix = (string) (DB::table('settings')->where('key', 'admin_prefix')->value('value') ?: 'admin');
+        // Read through the Setting model, not a raw query: the column is `val`,
+        // and the value has a config default. A raw `->value('value')` raised
+        // "Unknown column 'value'" after a successful install, so the command
+        // exited non-zero and printed a stack trace on a working site.
+        $adminPrefix = trim((string) setting('admin_prefix', 'admin')) ?: 'admin';
 
         $this->line('  <fg=green>Next steps</>');
         $this->line('  1. Ensure the scheduler is running:');

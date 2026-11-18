@@ -24,6 +24,7 @@ use Database\Seeders\KycDocumentHashSeeder;
 use Database\Seeders\KycProviderSeeder;
 use Database\Seeders\KycSettingSeeder;
 use Database\Seeders\LanguageNativeNameSeeder;
+use Database\Seeders\LanguageSeeder;
 use Database\Seeders\MarketplaceSettingSeeder;
 use Database\Seeders\MassPaymentPermissionSeeder;
 use Database\Seeders\MediaSettingSeeder;
@@ -44,6 +45,7 @@ use Database\Seeders\RewardSeeder;
 use Database\Seeders\SecurityNotificationTemplateSeeder;
 use Database\Seeders\SiteBuilderSeeder;
 use Database\Seeders\SubscriptionPlanSeeder;
+use Database\Seeders\SystemSettingSeeder;
 use Database\Seeders\TaxPermissionSeeder;
 use Database\Seeders\VirtualCardProviderSeeder;
 use Database\Seeders\WalletEarnPlanSeeder;
@@ -98,6 +100,18 @@ return [
      * before the method seeders that attach to them.
      */
     'core_seeders' => [
+        // Language rows first: the frontend shell (language switcher, locale
+        // resolution, RTL) and the site builder components below reference
+        // them. A baseline install that created none left the homepage with
+        // an empty picker and a 500 on the default switcher partial.
+        LanguageSeeder::class,
+        LanguageNativeNameSeeder::class,
+        // The platform's own settings rows (site title, copyright, admin
+        // prefix, support contact, routing, timezone). Without these every
+        // read fell back to a config default, and two of those defaults
+        // rendered another product's name and the literal text "admin" in
+        // the footer. Must precede the setting seeders that read from it.
+        SystemSettingSeeder::class,
         PermissionTableSeeder::class,
         AgentPermissionSeeder::class,
         ObservabilityPermissionSeeder::class,
@@ -106,7 +120,6 @@ return [
         AddonPermissionSeeder::class,
         BillPaymentPermissionSeeder::class,
         MassPaymentPermissionSeeder::class,
-        TaxPermissionSeeder::class,
         TaxPermissionSeeder::class,
         DashboardSettingSeeder::class,
         KycSettingSeeder::class,
@@ -177,7 +190,15 @@ return [
         DashboardSettingSeeder::class,
         KycSettingSeeder::class,
         KycDocumentHashSeeder::class,
+        // Non-destructive (firstOrCreate by code), so an installation that
+        // went live while the baseline seeder did not know about languages —
+        // and therefore has an empty `languages` table and a 500 on the
+        // homepage — is repaired by the normal reconcile pass rather than
+        // needing a reinstall. Must precede LanguageNativeNameSeeder, which
+        // only fills in rows that already exist.
+        LanguageSeeder::class,
         LanguageNativeNameSeeder::class,
+        SystemSettingSeeder::class,
         MediaSettingSeeder::class,
         MarketplaceSettingSeeder::class,
         RemittanceCorridorSeeder::class,
