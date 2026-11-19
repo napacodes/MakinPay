@@ -6,6 +6,7 @@ namespace Tests;
 
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Storage;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -58,7 +59,45 @@ abstract class TestCase extends BaseTestCase
 
         static::$storageRoot = $root;
 
+        /*
+         * Capture the real storage root before redirecting it: the disk roots
+         * in config/filesystems.php were evaluated from it while the container
+         * booted, so they still point at the repository's storage/app.
+         */
+        $realStorage = rtrim(str_replace('\\', '/', storage_path()), '/');
+
         app()->useStoragePath($root);
+
+        /*
+         * Redirect every local disk that lived under the real storage tree.
+         * Without this, storage_path() is redirected but Storage::disk('public')
+         * still writes to storage/app/public — which is tracked in git, so a
+         * test that seeds media overwrites the repository's real images.
+         */
+        $disks = (array) config('filesystems.disks', []);
+
+        foreach ($disks as $name => $disk) {
+            $diskRoot = is_array($disk) ? ($disk['root'] ?? null) : null;
+
+            if (! is_string($diskRoot) || $diskRoot === '') {
+                continue;
+            }
+
+            $normalized = rtrim(str_replace('\\', '/', $diskRoot), '/');
+
+            if (! str_starts_with($normalized, $realStorage)) {
+                continue;
+            }
+
+            $relative = ltrim(substr($normalized, strlen($realStorage)), '/');
+
+            $disks[$name]['root'] = $root.($relative === '' ? '' : '/'.$relative);
+
+            // Drop any instance already resolved against the old root.
+            Storage::forgetDisk($name);
+        }
+
+        config(['filesystems.disks' => $disks]);
 
         /*
          * config/installer.php was built from the real storage_path() while

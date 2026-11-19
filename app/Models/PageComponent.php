@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ComponentType;
 use App\Enums\Theme;
+use App\Support\PublicMedia;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -121,6 +122,30 @@ class PageComponent extends Model
     public function repeatedContents()
     {
         return $this->hasMany(PageComponentRepeatedContent::class, 'component_id');
+    }
+
+    /**
+     * Resolve stored media references for the public site.
+     *
+     * Content stores disk-relative media paths, while the public disk is served
+     * from `storage/`. Section views wrap those values in asset(), so without
+     * this the browser requests /images/... and gets a 404.
+     *
+     * The rewrite happens in memory only. The original attribute is restored as
+     * "original" afterwards so nothing can persist the prefixed value by
+     * accident: the stored references stay exactly as the uploader wrote them.
+     */
+    public function prepareForDisplay(): static
+    {
+        $this->content_data = PublicMedia::normalize($this->content_data ?? []);
+        $this->syncOriginalAttribute('content_data');
+
+        foreach ($this->repeatedContents as $repeatedContent) {
+            $repeatedContent->content_data = PublicMedia::normalize($repeatedContent->content_data ?? []);
+            $repeatedContent->syncOriginalAttribute('content_data');
+        }
+
+        return $this;
     }
 
     public function limitRepeatedContentsOver(): bool

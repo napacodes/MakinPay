@@ -1,7 +1,8 @@
 @php
-    $currentLanguage = $languages->firstWhere('code', app()->getLocale()) ?? $languages->first();
+    $languages = $languages ?? collect();
+    $currentLanguage     = \App\Support\LanguageSwitcher::current($languages);
     $currentLanguageCode = $currentLanguage?->code ?? app()->getLocale();
-    $currentLanguageName = $currentLanguage?->name ?? strtoupper($currentLanguageCode);
+    $currentLanguageName = $currentLanguage?->displayName() ?: strtoupper($currentLanguageCode);
 @endphp
 
 {{-- Desktop Language Selector --}}
@@ -11,7 +12,7 @@
             @if($currentLanguage?->flag)
                 <img class="mx-2" src="{{ asset($currentLanguage->flag) }}" height="24" width="24" alt="{{ $currentLanguageName }}" loading="lazy">
             @else
-                <span class="mx-2">{{ strtoupper(substr($currentLanguageCode, 0, 2)) }}</span>
+                <span class="mx-2">{{ \App\Support\LanguageSwitcher::flagFallback($currentLanguage, $currentLanguageCode) }}</span>
             @endif
             <span>
                 {{ $currentLanguageName }}
@@ -25,9 +26,9 @@
                     @if($language->flag)
                         <img class="icon me-2" src="{{ asset($language->flag) }}" alt="{{ $language->name }}" loading="lazy">
                     @else
-                        <span class="icon me-2">{{ strtoupper(substr($language->code, 0, 2)) }}</span>
+                        <span class="icon me-2">{{ \App\Support\LanguageSwitcher::flagFallback($language) }}</span>
                     @endif
-                    {{ $language->name }}
+                    {{ $language->displayName() }}
                 </a>
             </li>
             @endforeach

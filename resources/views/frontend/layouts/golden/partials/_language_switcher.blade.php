@@ -1,6 +1,6 @@
 @php
 	$gdkLanguages       = $languages ?? collect();
-	$gdkCurrentLanguage = $gdkLanguages->firstWhere('code', app()->getLocale()) ?? $gdkLanguages->first();
+	$gdkCurrentLanguage = \App\Support\LanguageSwitcher::current($gdkLanguages);
 @endphp
 
 @if($gdkLanguages->count() > 0 && $gdkCurrentLanguage)
@@ -8,6 +8,8 @@
 		<button type="button" class="gdk-lang__trigger" data-gdk-lang-trigger aria-haspopup="listbox" aria-expanded="false">
 			@if($gdkCurrentLanguage->flag)
 				<img src="{{ asset($gdkCurrentLanguage->flag) }}" alt="" class="gdk-lang__flag" loading="lazy">
+			@else
+				<span class="gdk-lang__flag gdk-lang__flag--fallback" aria-hidden="true">{{ \App\Support\LanguageSwitcher::flagFallback($gdkCurrentLanguage) }}</span>
 			@endif
 			<span class="gdk-lang__code">{{ strtoupper($gdkCurrentLanguage->code) }}</span>
 			<i class="fa-solid fa-chevron-down gdk-lang__caret" aria-hidden="true"></i>
@@ -20,6 +22,8 @@
 					   class="gdk-lang__item {{ $language->code === $gdkCurrentLanguage->code ? 'is-active' : '' }}">
 						@if($language->flag)
 							<img src="{{ asset($language->flag) }}" alt="" class="gdk-lang__flag" loading="lazy">
+						@else
+							<span class="gdk-lang__flag gdk-lang__flag--fallback" aria-hidden="true">{{ \App\Support\LanguageSwitcher::flagFallback($language) }}</span>
 						@endif
 						<span class="gdk-lang__name">{{ $language->displayName() }}</span>
 						@if($language->code === $gdkCurrentLanguage->code)
