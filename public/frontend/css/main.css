@@ -1481,6 +1481,24 @@ span {
   border-radius: 20%;
 }
 
+/*
+ * Fallback shown when a language row has no flag image. It occupies exactly
+ * the box the flag would, so the toggle and the menu rows keep their alignment
+ * instead of collapsing, and it uses the same palette as the design system
+ * rather than inventing a new surface.
+ */
+.language-selector .flag-icon-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--front-palette-f0f4f8);
+  color: var(--front-palette-333);
+  font-size: 10px;
+  font-weight: var(--front-font-semibold);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
 .language-selector .dropdown-item.active {
   background-color: var(--front-palette-e9ecef);
   font-weight: var(--front-font-semibold);

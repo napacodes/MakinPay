@@ -33,6 +33,11 @@
 			if (! view()->exists($gdkSectionView)) {
 				$gdkSectionView = 'frontend.pages.sections._'.$component->section_name;
 			}
+
+			// Stored media paths are disk-relative but the public disk is served
+			// from /storage, so resolve them once here rather than in every
+			// section view. In-memory only: the stored references are untouched.
+			$component->prepareForDisplay();
 		@endphp
 
 		<div class="@isset($isPage) page-section @endisset">
